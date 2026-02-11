@@ -1,0 +1,60 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+venv/
+ENV/
+env/
+.venv
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Scraper specific
+output/
+logs/
+progress/
+errors/
+*.log
+
+# Sensitive files
+cookies.json
+cookies_*.json
+.env
+
+# Temporary files
+*.tmp
+*.bak
+*.cache
+config_custom.yaml
+
+# Output files (keep structure, ignore data)
+*.jsonl
+*.csv
+!sample_input.csv
+!links_via_country/*.csv
