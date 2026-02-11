@@ -25,8 +25,8 @@ wheels/
 .installed.cfg
 *.egg
 
-# =============== SCRAPY / LOGS (CRITICAL) ===============
-# Ignore ENTIRE scraped logs directory – not just .txt files
+# =============== SCRAPY / LOGS (CRITICAL FIX) ===============
+# IGNORE ENTIRE DIRECTORY – not just specific extensions
 acukwik_scraper/spiders/scraped_logs/
 
 # General log patterns
