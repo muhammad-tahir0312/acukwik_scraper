@@ -549,22 +549,44 @@ class AirportPageParser:
                     
                     value_elem = row.find_element(By.CSS_SELECTOR, "div.fl.w65p, div.fl.w60p")
                     
-                    # Email - check for button first
+                    # Email - click button if present then read mailto/text
                     if label == "email":
                         try:
                             button = value_elem.find_element(By.CSS_SELECTOR, "button.ghEmail, button.sEmail")
-                            # Email behind button
-                            errors.append({"field": "email", "error": "Email requires button click (ghEmail/sEmail)"})
-                            missing_fields.append("email")
-                        except:
-                            # Try direct email link
                             try:
-                                email_link = value_elem.find_element(By.CSS_SELECTOR, "a[href^='mailto:']")
-                                email = email_link.text.strip()
-                                if email:
-                                    contacts.append({"type": "email", "value": email})
+                                # Click via JS for reliability
+                                self.driver.execute_script("arguments[0].click();", button)
+                            except Exception:
+                                button.click()
+                            # Wait briefly for mailto link to appear or button text to change
+                            try:
+                                WebDriverWait(self.driver, 3).until(
+                                    lambda d: value_elem.find_elements(By.CSS_SELECTOR, "a[href^='mailto:']") or "@" in button.text
+                                )
+                            except Exception:
+                                pass
+                        except Exception:
+                            pass
+
+                        # Try direct email link after potential click
+                        try:
+                            email_link = value_elem.find_element(By.CSS_SELECTOR, "a[href^='mailto:']")
+                            email = (email_link.get_attribute("href") or email_link.text or "").replace("mailto:", "").strip()
+                            if email:
+                                contacts.append({"type": "email", "value": email})
+                                observed_fields.append("email")
+                            else:
+                                missing_fields.append("email")
+                        except Exception:
+                            # Fallback: button text may now contain email
+                            try:
+                                text_email = button.text.strip()
+                                if text_email and "@" in text_email:
+                                    contacts.append({"type": "email", "value": text_email})
                                     observed_fields.append("email")
-                            except:
+                                else:
+                                    missing_fields.append("email")
+                            except Exception:
                                 missing_fields.append("email")
                     
                     # Website

@@ -115,21 +115,46 @@ def auto_login_if_needed(config: Dict[str, Any]) -> bool:
             return False
         
         logger.info("Waiting for modal container to appear...")
-        time.sleep(2)
-        
-        # Handle cookie consent popup if it appears
-        logger.info("Checking for cookie consent popup...")
-        try:
-            cookie_accept = driver.find_element(By.XPATH, "//button[contains(text(), 'Accept all')]")
-            cookie_accept.click()
-            logger.info("Dismissed cookie consent popup")
-            time.sleep(1)
-        except:
-            logger.info("No cookie consent popup found")
+        time.sleep(3)
         
         # Wait longer for modal CONTENT to load (it loads via AJAX)
         logger.info("Waiting for modal form to load via AJAX...")
-        time.sleep(5)
+        time.sleep(3)
+        
+        # Handle cookie consent popup if it appears - SHORT TIMEOUT since it's usually not there
+        logger.info("Checking for cookie consent popup (quick check)...")
+        try:
+            from selenium.webdriver.support.ui import WebDriverWait
+            from selenium.webdriver.support import expected_conditions as EC
+            
+            wait_short = WebDriverWait(driver, 2)  # Only 2 seconds - don't waste time
+            
+            # Try multiple selectors for the Accept button
+            accept_button = None
+            selectors = [
+                (By.XPATH, "//button[contains(text(), 'Accept all')]"),
+                (By.XPATH, "//button[contains(text(), 'Accept All')]"),
+                (By.CSS_SELECTOR, "button[class*='accept']"),
+            ]
+            
+            for by_type, selector in selectors:
+                try:
+                    accept_button = wait_short.until(
+                        EC.element_to_be_clickable((by_type, selector))
+                    )
+                    logger.info(f"✓ Found cookie consent button: {selector}")
+                    # Click using JavaScript for reliability
+                    driver.execute_script("arguments[0].click();", accept_button)
+                    logger.info("✓ CLICKED 'Accept all' cookie button")
+                    time.sleep(2)  # Wait for popup to disappear
+                    break
+                except Exception as e:
+                    continue
+            
+            if not accept_button:
+                logger.info("✓ No cookie popup detected (already dismissed or not present - this is normal)")
+        except Exception as e:
+            logger.info(f"✓ No cookie popup found (this is normal if already dismissed)")
         
         # Check if modal uses iframe
         logger.info("Checking for iframe in modal...")
@@ -152,7 +177,68 @@ def auto_login_if_needed(config: Dict[str, Any]) -> bool:
         except Exception as e:
             logger.warning(f"Iframe check failed: {e}")
         
-        # Try to find email field with multiple strategies
+        # IMPORTANT: Check for cookie consent INSIDE the iframe (MUST do this AFTER switching to iframe)
+        logger.info("Checking for cookie consent popup INSIDE iframe...")
+        try:
+            from selenium.webdriver.support.ui import WebDriverWait
+            from selenium.webdriver.support import expected_conditions as EC
+
+            wait_cookie = WebDriverWait(driver, 4)
+            cookie_dismissed = False
+
+            # Try case-insensitive text match on buttons/links
+            try:
+                accept_btn = wait_cookie.until(
+                    EC.element_to_be_clickable(
+                        (
+                            By.XPATH,
+                            "//*[self::button or self::a][contains(translate(normalize-space(.), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'accept all')]"
+                        )
+                    )
+                )
+                logger.info("✓ Found cookie consent inside iframe via text match")
+                driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", accept_btn)
+                time.sleep(0.5)
+                driver.execute_script("arguments[0].click();", accept_btn)
+                time.sleep(2)
+                cookie_dismissed = True
+            except Exception as e:
+                logger.debug(f"Text-match selector failed: {e}")
+
+            # JavaScript fallback: search all buttons/links for text containing 'accept all'
+            if not cookie_dismissed:
+                try:
+                    logger.info("Trying JavaScript search for 'Accept all' button inside iframe...")
+                    js_clicked = driver.execute_script(
+                        """
+                        const els = Array.from(document.querySelectorAll('button, a'));
+                        const target = els.find(el => (el.innerText || '').toLowerCase().includes('accept all'));
+                        if (target) { target.click(); return true; }
+                        return false;
+                        """
+                    )
+                    if js_clicked:
+                        logger.info("✓ Clicked 'Accept all' via JavaScript")
+                        cookie_dismissed = True
+                        time.sleep(2)
+                except Exception as e:
+                    logger.debug(f"JS search failed: {e}")
+
+            if cookie_dismissed:
+                try:
+                    errors_dir = Path(__file__).parent / "errors"
+                    errors_dir.mkdir(exist_ok=True)
+                    screenshot_cookies = errors_dir / "login_step0_cookies_dismissed.png"
+                    driver.save_screenshot(str(screenshot_cookies))
+                    logger.info(f"📸 Screenshot saved: {screenshot_cookies}")
+                except Exception as e:
+                    logger.warning(f"Failed to save cookie screenshot: {e}")
+            else:
+                logger.info("No cookie popup in iframe (not found or already dismissed)")
+        except Exception as e:
+            logger.info(f"Cookie popup handling in iframe failed: {e}")
+        
+        # Try to find email field with exact selectors from HTML
         logger.info("Looking for email field in modal...")
         email_field = None
         
@@ -162,12 +248,10 @@ def auto_login_if_needed(config: Dict[str, Any]) -> bool:
         
         wait = WebDriverWait(driver, 20)
         selectors_to_try = [
-            # (By.ID, "UserName"),
-            # (By.NAME, "UserName"),
-            (By.CSS_SELECTOR, "input[type='email']"),
-            (By.CSS_SELECTOR, "input[placeholder*='mail' i]"),
-            (By.CSS_SELECTOR, ".dnnLoginService input[type='text']"),
-            (By.XPATH, "//input[@type='text' or @type='email']")
+            (By.ID, "dnn_ctr594_VDC_ctl00_txtUsername"),  # Exact ID from HTML
+            (By.NAME, "dnn$ctr594$VDC$ctl00$txtUsername"),  # Exact name from HTML
+            (By.XPATH, "//input[@type='text' or @type='email']"),
+            (By.CSS_SELECTOR, "input[type='text']"),
         ]
         
         for by_type, selector_value in selectors_to_try:
@@ -176,7 +260,7 @@ def auto_login_if_needed(config: Dict[str, Any]) -> bool:
                 email_field = wait.until(
                     EC.presence_of_element_located((by_type, selector_value))
                 )
-                logger.info(f"Found email field: {by_type} = {selector_value}")
+                logger.info(f"✓ Found email field: {by_type} = {selector_value}")
                 break
             except Exception as e:
                 logger.debug(f"Selector failed: {e}")
@@ -211,15 +295,16 @@ def auto_login_if_needed(config: Dict[str, Any]) -> bool:
         
         email_field.clear()
         email_field.send_keys(email)
-        logger.info("Email entered")
+        time.sleep(0.5)  # Small delay after typing
+        logger.info(f"✓ Email entered: {email}")
         
         # Find and fill password field
         logger.info("Looking for password field...")
         password_field = None
         
         password_selectors = [
-            (By.ID, "Password"),
-            (By.NAME, "Password"),
+            (By.ID, "dnn_ctr594_VDC_ctl00_txtPassword"),  # Exact ID from HTML
+            (By.NAME, "dnn$ctr594$VDC$ctl00$txtPassword"),  # Exact name from HTML
             (By.CSS_SELECTOR, "input[type='password']")
         ]
         
@@ -229,7 +314,7 @@ def auto_login_if_needed(config: Dict[str, Any]) -> bool:
                 password_field = wait.until(
                     EC.presence_of_element_located((by_type, selector_value))
                 )
-                logger.info(f"Found password field: {by_type} = {selector_value}")
+                logger.info(f"✓ Found password field: {by_type} = {selector_value}")
                 break
             except:
                 continue
@@ -239,35 +324,46 @@ def auto_login_if_needed(config: Dict[str, Any]) -> bool:
             return False
         
         password_field.clear()
+        time.sleep(0.5)  # Small delay after clear
         password_field.send_keys(password)
-        logger.info("Password entered")
         
-        # Find and click submit button
-        logger.info("Looking for submit button...")
+        # Find and click submit button - IT'S AN <A> TAG, NOT A BUTTON!
+        logger.info("Looking for login button...")
         login_submit = None
-        for selector in ["button[type='submit']", "input[type='submit']", "button:contains('Login')", ".btn-login"]:
+        
+        # The login button is: <a id="dnn_ctr594_VDC_ctl00_cmdLogin" class="dnnPrimaryAction" href="javascript:__doPostBack...">Login</a>
+        login_selectors = [
+            (By.ID, "dnn_ctr594_VDC_ctl00_cmdLogin"),  # Exact ID from HTML
+            (By.CSS_SELECTOR, "a.dnnPrimaryAction"),  # It's an <a> tag with this class
+            (By.XPATH, "//a[contains(@id, 'cmdLogin')]"),
+            (By.XPATH, "//a[contains(text(), 'Login')]"),
+        ]
+        
+        for by_type, selector_value in login_selectors:
             try:
-                login_submit = driver.find_element(By.CSS_SELECTOR, selector)
-                logger.info(f"Found submit button: {selector}")
+                logger.info(f"Trying login button selector: {by_type} = {selector_value}")
+                login_submit = wait.until(
+                    EC.element_to_be_clickable((by_type, selector_value))
+                )
+                logger.info(f"✓ Found login button: {by_type} = {selector_value}")
                 break
             except:
                 continue
         
         if login_submit:
-            # Use ActionChains or JavaScript fallback
+            # Use JavaScript click (most reliable for <a> tags with onclick)
+            logger.info("Clicking login button...")
             try:
-                actions = ActionChains(driver)
-                actions.move_to_element(login_submit).click().perform()
-                logger.info("Clicked Login submit button via ActionChains")
-            except Exception as e:
-                logger.warning(f"ActionChains failed, using JavaScript: {e}")
                 driver.execute_script("arguments[0].click();", login_submit)
-                logger.info("Clicked Login submit button via JavaScript")
+                logger.info("✓ Clicked Login button via JavaScript")
+            except Exception as e:
+                logger.error(f"Failed to click login button: {e}")
+                return False
         else:
-            logger.info("No submit button found, trying Enter key")
+            logger.warning("No login button found, trying Enter key as fallback")
             password_field.send_keys(Keys.RETURN)
-        
-        # Wait for login to complete
+
+        # Wait for login to complete and check for success
         logger.info("Waiting for login to complete...")
         time.sleep(5)
         
@@ -278,12 +374,37 @@ def auto_login_if_needed(config: Dict[str, Any]) -> bool:
         except:
             pass
         
+        # Verify login succeeded BEFORE saving cookies
+        time.sleep(2)  # Additional wait for page to update
+        page_source = driver.page_source
+        
+        # Check for account menu (positive indicator of successful login)
+        if 'id="dnn_MyAccountLink1_MyAccount"' in page_source or 'class="myAccount opened"' in page_source:
+            logger.info("✓ Login verification: Account menu detected!")
+        elif 'id="dnn_MyAccountLink1_LoginLi"' in page_source:
+            logger.error("✗ Login FAILED: Still seeing Login button, not logged in!")
+            # Save failure screenshot
+            try:
+                screenshot_fail = errors_dir / "login_FAILED_still_logged_out.png"
+                driver.save_screenshot(str(screenshot_fail))
+                logger.error(f"📸 Failure screenshot: {screenshot_fail}")
+            except:
+                pass
+            return False
+        else:
+            logger.warning("⚠️  Cannot confirm login status - no clear indicators found")
+        
         # Get and save cookies
         cookies = driver.get_cookies()
+        
+        if len(cookies) == 0:
+            logger.error("✗ No cookies found - login likely failed")
+            return False
+        
         with open(cookies_file, 'w') as f:
             json.dump(cookies, f, indent=2)
         
-        logger.info(f"✓ Login successful! Saved {len(cookies)} cookies to {cookies_file}")
+        logger.info(f"✓ Login successful! Saved {len(cookies)} cookies to {cookies_file}")        
         return True
         
     except Exception as e:
@@ -389,12 +510,48 @@ class ScraperOrchestrator:
             logger.warning("Authentication enabled but no cookies file specified")
             return
         
-        base_url = auth_config.get("base_url", "https://www.acukwik.com")
+        base_url = auth_config.get("base_url", "https://acukwik.com")  # FIXED: Changed default to non-www
         
         auth = CookieAuthentication(cookies_file)
         auth.apply_cookies(driver, base_url)
         
-        logger.info("Driver authenticated successfully")
+        num_cookies = len(auth.cookies) if auth.cookies else 0
+        logger.info(f"Driver authenticated with {num_cookies} cookies")
+        
+        # Verify authentication by checking a simple page
+        try:
+            driver.get(base_url)
+            time.sleep(2)
+            
+            # Check if we can see user account menu (positive indicator)
+            page_source = driver.page_source
+            
+            if 'id="dnn_MyAccountLink1_MyAccount"' in page_source or 'class="myAccount opened"' in page_source:
+                logger.info("✓ Authentication successful - user account menu detected")
+                return
+            
+            # If positive indicator not found, check for login form/prompts (negative indicators)
+            page_source_lower = page_source.lower()
+            
+            # Check for login form HTML patterns
+            login_form_patterns = [
+                'class="loginForm"',
+                'id="dnn_ctr594_VDC_ctl00_cmdLogin"',
+                'src="/Login?returnurl='
+            ]
+            has_login_form = any(pattern in page_source for pattern in login_form_patterns)
+            
+            # Check for login text prompts
+            has_login_text = "please log in" in page_source_lower or "please login" in page_source_lower or "log in to ac-u-kwik" in page_source_lower
+            
+            if has_login_form or has_login_text:
+                logger.warning("⚠️  Authentication may have failed - login form/prompts detected!")
+                logger.warning("   Cookies might be expired. Please refresh cookies.json")
+            else:
+                logger.warning("⚠️  Could not confirm authentication - no account menu or login prompts found")
+                logger.warning("   This might be okay, but verify output data quality")
+        except Exception as e:
+            logger.warning(f"Could not verify authentication: {e}")
     
     def load_input_data(self) -> List[Dict[str, Any]]:
         """
@@ -492,6 +649,9 @@ class ScraperOrchestrator:
                 # Wait for page load
                 time.sleep(self.config["scraping"].get("delay_between_requests", 2))
                 
+                # Check for authentication issues
+                self._verify_authentication(driver, url, external_id)
+                
                 # Parse based on entity type
                 entities = []
                 if entity_type == "airport":
@@ -560,6 +720,99 @@ class ScraperOrchestrator:
                         pass
         
         return None
+    
+    def _verify_authentication(self, driver: webdriver.Remote, url: str, external_id: str) -> None:
+        """Verify that user is properly authenticated by checking page content."""
+        try:
+            page_source = driver.page_source
+            page_source_lower = page_source.lower()
+            
+            # First, check for POSITIVE authentication indicators (user is logged in)
+            # When logged in, the page shows: <li id="dnn_MyAccountLink1_MyAccount" class="myAccount opened">
+            if 'id="dnn_MyAccountLink1_MyAccount"' in page_source or 'class="myAccount opened"' in page_source:
+                logger.debug(f"✓ Authentication verified for {external_id} - user account menu detected")
+                return  # Successfully authenticated, no need to check failure indicators
+            
+            # If positive indicator not found, check for NEGATIVE indicators (authentication failure)
+            
+            # Check for login form/modal indicators (case-insensitive)
+            login_text_indicators = [
+                "please login",
+                "sign in to view",
+                "login required",
+                "you must be logged in",
+                "log in to ac-u-kwik"  # Specific to acukwik login form header
+            ]
+            
+            # Check for specific HTML patterns that indicate login form/modal (case-sensitive)
+            login_html_patterns = [
+                'class="loginForm"',           # Login form class
+                'class="reg-form loginForm"',  # Full login form class
+                'id="dnn_ctr594_VDC_ctl00_cmdLogin"',  # Login button ID
+                'class="dnnFormPopup"',        # Login modal popup class
+                'src="/Login?returnurl=',      # Login iframe source
+                'AC-U-KWIK &gt; sign in',      # Modal title (HTML encoded)
+                'AC-U-KWIK > sign in'          # Modal title (plain text)
+            ]
+            
+            # Check if any login form patterns exist
+            has_login_form = any(pattern in page_source for pattern in login_html_patterns)
+            has_login_text = any(indicator in page_source_lower for indicator in login_text_indicators)
+            
+            # Check for the specific pattern when content is hidden: <a href="#" class="International">INTERNATIONAL</a>
+            # This is a very reliable indicator of authentication failure
+            hidden_content_pattern = 'class="International"'
+            has_hidden_content = hidden_content_pattern in page_source
+            
+            # Check if page has suspicious "INTERNATIONAL" everywhere (indicates auth failure)
+            international_count = page_source_lower.count("international")
+            
+            if has_login_form or has_login_text or has_hidden_content or international_count > 50:
+                logger.error(f"⚠️  AUTHENTICATION FAILURE DETECTED for {external_id}")
+                
+                failure_reasons = []
+                if has_login_form:
+                    failure_reasons.append("login form/modal detected (HTML patterns matched)")
+                if has_login_text:
+                    failure_reasons.append("login text prompts found")
+                if has_hidden_content:
+                    failure_reasons.append('hidden content markers (class="International") found')
+                if international_count > 50:
+                    failure_reasons.append(f"excessive 'INTERNATIONAL' text (count: {international_count})")
+                
+                logger.error(f"   Reason(s): {', '.join(failure_reasons)}")
+                
+                # Save screenshot and HTML for debugging
+                errors_dir = Path(__file__).parent / "errors"
+                errors_dir.mkdir(exist_ok=True)
+                
+                timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+                screenshot_path = errors_dir / f"auth_failure_{external_id}_{timestamp}.png"
+                html_path = errors_dir / f"auth_failure_{external_id}_{timestamp}.html"
+                
+                try:
+                    driver.save_screenshot(str(screenshot_path))
+                    logger.error(f"   Screenshot saved: {screenshot_path}")
+                except Exception as e:
+                    logger.error(f"   Failed to save screenshot: {e}")
+                
+                try:
+                    with open(html_path, "w", encoding="utf-8") as f:
+                        f.write(driver.page_source)
+                    logger.error(f"   HTML saved: {html_path}")
+                except Exception as e:
+                    logger.error(f"   Failed to save HTML: {e}")
+                
+                logger.error(f"   URL: {url}")
+                logger.error(f"   ⚠️  COOKIES MAY BE INVALID OR EXPIRED - Please refresh cookies!")
+                
+                # Raise exception to mark this scrape as failed
+                raise Exception("Authentication failure detected - cookies may be invalid")
+        
+        except Exception as e:
+            if "Authentication failure" in str(e):
+                raise  # Re-raise auth failures
+            logger.debug(f"Auth verification check failed: {e}")
     
     def _generate_external_id(self, url: str, entity_type: str) -> str:
         """Generate external ID from URL."""

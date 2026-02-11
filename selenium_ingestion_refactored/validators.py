@@ -40,7 +40,8 @@ VALIDATION_SCHEMAS = {
             "services": {"type": "array", "items": {"type": "string"}},
             "roles": {"type": "array", "items": {"type": "string"}},
             "associated_airports": {"type": "array", "items": {"type": "string"}},
-            "address": {"type": ["string", "null"]},
+            # Allow structured address objects (parsed from page) or plain strings
+            "address": {"type": ["string", "null", "object"]},
             "hours": {"type": ["string", "null"]}
         },
         "required": ["name"]
@@ -161,8 +162,21 @@ def _validate_organization_data(data: Dict[str, Any]) -> List[str]:
     if not roles:
         errors.append("No roles specified for organization")
     
-    valid_roles = ["FBO", "FUEL", "HANDLER", "HOTEL", "CATERING", "MAINTENANCE", 
-                   "CUSTOMS", "ORGANIZATION"]
+    # Keep in sync with parsers.py section_roles
+    valid_roles = [
+        "FBO",
+        "HANDLER",
+        "SUPERVISING_AGENT",
+        "FUEL_SUPPLIER",
+        "FLIGHT_SUPPORT_ORGANIZATION",
+        "CATERING",
+        "GROUND_TRANSPORTATION",
+        "MAINTENANCE",
+        "HOTEL",
+        "CAR_RENTAL",
+        "CUSTOM",
+        "ORGANIZATION",
+    ]
     for role in roles:
         if role not in valid_roles:
             errors.append(f"Unknown role: {role}")
