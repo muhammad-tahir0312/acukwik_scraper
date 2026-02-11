@@ -21,7 +21,7 @@ from selenium.common.exceptions import WebDriverException, TimeoutException
 
 from config_loader import load_config
 from auth import CookieAuthentication
-from parsers import AirportParser, OrganizationParser
+from parsers import AirportPageParser, AirportParser, OrganizationParser
 from validators import validate_record
 from output import BatchOutputWriter
 from progress import ProgressTracker
@@ -480,6 +480,9 @@ class ScraperOrchestrator:
                 # Navigate to URL
                 logger.info(f"Scraping {url} (attempt {attempt + 1}/{max_retries})")
                 
+                # Start timing
+                scrape_start = time.time()
+                
                 try:
                     driver.get(url)
                 except TimeoutException:
@@ -490,32 +493,47 @@ class ScraperOrchestrator:
                 time.sleep(self.config["scraping"].get("delay_between_requests", 2))
                 
                 # Parse based on entity type
+                entities = []
                 if entity_type == "airport":
-                    parser = AirportParser(driver, self.source)
-                    scraped_data = parser.parse(url)
+                    # Use new AirportPageParser that returns multiple entities
+                    parser = AirportPageParser(driver, self.source)
+                    entities = parser.parse(url)  # Returns list of entities (airport + orgs)
                     
-                    # Use ICAO from CSV if not found on page
-                    if not scraped_data.get("data", {}).get("icao") and record.get("ICAO"):
-                        scraped_data["data"]["icao"] = record["ICAO"].upper()
+                    # Use ICAO from CSV if not found on page (for first entity - airport)
+                    if entities and not entities[0].get("data", {}).get("icao") and record.get("ICAO"):
+                        entities[0]["data"]["icao"] = record["ICAO"].upper()
                     
                 else:
+                    # Legacy organization scraping (single entity)
                     parser = OrganizationParser(driver, self.source)
                     associated_airport = record.get("airport_icao")
-                    scraped_data = parser.parse(url, associated_airport)
+                    single_entity = parser.parse(url, associated_airport)
+                    entities = [single_entity]
                 
-                # Validate
-                validation_errors = validate_record(scraped_data)
-                if validation_errors:
-                    scraped_data["validation_errors"] = validation_errors
-                    logger.warning(f"Validation errors for {external_id}: {validation_errors}")
+                # Calculate scrape duration
+                scrape_duration_ms = int((time.time() - scrape_start) * 1000)
+                
+                # Add timing to all entities
+                for entity in entities:
+                    entity["scrape_duration_ms"] = scrape_duration_ms
+                
+                # Validate and write all entities
+                for entity in entities:
+                    # Validate
+                    validation_errors = validate_record(entity)
+                    if validation_errors:
+                        entity["validation_errors"] = validation_errors
+                        logger.warning(f"Validation errors for {entity.get('external_id')}: {validation_errors}")
+                    
+                    # Write entity
+                    self.output_writer.write_success(entity)
                 
                 # Success!
                 self.progress_tracker.mark_completed(external_id)
-                self.output_writer.write_success(scraped_data)
                 self.stats["success"] += 1
                 
-                logger.info(f"Successfully scraped: {external_id}")
-                return scraped_data
+                logger.info(f"Successfully scraped {len(entities)} entities from: {external_id} (took {scrape_duration_ms}ms)")
+                return entities[0] if entities else None  # Return first for compatibility
                 
             except Exception as e:
                 logger.error(f"Error scraping {url} (attempt {attempt + 1}): {str(e)}")
@@ -684,7 +702,7 @@ class ScraperOrchestrator:
         self.stats["completed_at"] = datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
         
         # Calculate duration
-        start_time = datetime.fromisoformat(self.stats["started_at"].replace("Z", ""))
+        start_time = datetime.fromisoformat(self.stats["started_at"].replace("Z", "+00:00"))
         end_time = datetime.now(timezone.utc)
         duration = (end_time - start_time).total_seconds()
         
