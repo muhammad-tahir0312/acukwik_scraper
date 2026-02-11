@@ -8,8 +8,8 @@ source:
 input:
   # Single CSV file or list of CSV files
   csv_paths:
-    - "../data.csv"
-    # - "../country_links.csv"
+    # - "../data.csv" # Example of single file
+    - "../country_links.csv"
   
   # Expected CSV columns (flexible - will look for these names):
   # - url, link, or "Airport Link": URL to scrape (REQUIRED)
