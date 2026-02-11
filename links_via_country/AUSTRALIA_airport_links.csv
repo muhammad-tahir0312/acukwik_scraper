@@ -1,0 +1,415 @@
+ICAO,Airport Name,City,State,Country,Airport Link
+YPAD,Adelaide International,Adelaide,SA ,AUSTRALIA,https://acukwik.com/Airport-Info/YPAD
+YPED,Adelaide/Edinburgh AB,Adelaide,SA ,AUSTRALIA,https://acukwik.com/Airport-Info/YPED
+YPPF,Adelaide/Parafield,Adelaide,SA ,AUSTRALIA,https://acukwik.com/Airport-Info/YPPF
+YSHR,Airlie Beach/Whitsunday (Shute Harbour),Airle Beach,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YSHR
+YABA,Harry Riggs Albany Regional,Albany,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YABA
+YMAY,Albury,Albury,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YMAY
+YADG,Aldinga,Aldinga,SA ,AUSTRALIA,https://acukwik.com/Airport-Info/YADG
+YBAS,Alice Springs,Alice Springs,NT ,AUSTRALIA,https://acukwik.com/Airport-Info/YBAS
+YAPH,Alpha,Alpha,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YAPH
+YAMC,Aramac,Aramac,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YAMC
+YARA,Ararat,Ararat,VIC ,AUSTRALIA,https://acukwik.com/Airport-Info/YARA
+YARG,Argyle,Argyle,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YARG
+YARM,Armidale,Armidale,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YARM
+YAUG,Augusta,Augusta,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YAUG
+YAUR,Aurukun,Aurukun,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YAUR
+YAYR,Ayr,Ayr,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YAYR
+YBNS,Bairnsdale,Bairnsdale,VIC ,AUSTRALIA,https://acukwik.com/Airport-Info/YBNS
+YBGO,Balgo Hill,Balgo,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YBGO
+YBLT,Ballarat,Ballarat,VIC ,AUSTRALIA,https://acukwik.com/Airport-Info/YBLT
+YLLE,Ballera,Ballera,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YLLE
+YBNA,Ballina/Byron Gateway,Ballina,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YBNA
+YBRN,Balranald,Balranald,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YBRN
+YNPE,Northern Peninsula,Bamaga,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YNPE
+YBAR,Barcaldine,Barcaldine,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YBAR
+YBRY,Barimunya,Barimunya,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YBRY
+YBWX,Barrow Island,Barrow Isl,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YBWX
+YBTH,Bathurst,Bathurst,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YBTH
+YBTI,Bathurst Island,Bathurst Island,NT ,AUSTRALIA,https://acukwik.com/Airport-Info/YBTI
+YBIE,Bedourie,Bedourie,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YBIE
+YBLA,Benalla,Benalla,VIC ,AUSTRALIA,https://acukwik.com/Airport-Info/YBLA
+YBDG,Bendigo,Bendigo,VIC ,AUSTRALIA,https://acukwik.com/Airport-Info/YBDG
+YBEV,Beverley (WA),Beverley,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YBEV
+YBIR,Birchip,Birchip,VIC ,AUSTRALIA,https://acukwik.com/Airport-Info/YBIR
+YBDV,Birdsville,Birdsville,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YBDV
+YBCK,Blackall,Blackall,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YBCK
+YBTR,Blackwater,Blackwater,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YBTR
+YBGD,Boolgeeda,Boolgeeda,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YBGD
+YBRL,Borroloola,Borroloola,NT ,AUSTRALIA,https://acukwik.com/Airport-Info/YBRL
+YBOU,Boulia,Boulia,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YBOU
+YBKE,Bourke,Bourke,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YBKE
+YBWN,Bowen,Bowen,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YBWN
+YBRW,Brewarrina,Brewarrina,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YBRW
+YBBN,Brisbane International,Brisbane,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YBBN
+YBAF,Brisbane/Archerfield,Brisbane,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YBAF
+YBHI,Broken Hill,Broken Hill,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YBHI
+YBWG,Bronzewing,Bronzewing,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YBWG
+YBRM,Broome International,Broome,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YBRM
+YPEA,Bullsbrook (Perth)/Pearce AB,Bullsbrook,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YPEA
+YBUN,Bunbury,Bunbury,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YBUN
+YBUD,Bundaberg,Bundaberg,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YBUD
+YBKT,Burketown,Burketown,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YBKT
+YWYY,Burnie-Wynyard,Burnie,TAS ,AUSTRALIA,https://acukwik.com/Airport-Info/YWYY
+YBLN,Busselton-Margaret River,Busselton,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YBLN
+YCAB,Caboolture,Caboolture,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YCAB
+YBCS,Cairns International,Cairns,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YBCS
+YCDR,Caloundra,Caloundra West,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YCDR
+YSCN,Camden,Camden,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YSCN
+YCMW,Camooweal,Camooweal,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YCMW
+YSCB,Canberra,Canberra,ACT ,AUSTRALIA,https://acukwik.com/Airport-Info/YSCB
+YCPR,Cape Preston (Sino Iron),Cape Preston,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YCPR
+YCAR,Carnarvon,Carnarvon,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YCAR
+YCAS,Casino,Casino,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YCAS
+YCDU,Ceduna,Ceduna,SA ,AUSTRALIA,https://acukwik.com/Airport-Info/YCDU
+YCNY,Century Mine,Century Mine,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YCNY
+YCNK,Hunter Valley NSW/Cessnock,Cessnock,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YCNK
+YBCV,Charleville,Charleville,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YBCV
+YCHT,Charters Towers,Charters Towers,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YCHT
+YCGO,Chillagoe,Chillagoe,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YCGO
+YCCA,Chinchilla,Chinchilla,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YCCA
+YCHK,Christmas Creek,Christmas Creek,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YCHK
+YPXM,Christmas Island,Christmas Island,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YPXM
+YCVA,Clare Valley,Clare Valley,SA ,AUSTRALIA,https://acukwik.com/Airport-Info/YCVA
+YCMT,Clermont,Clermont,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YCMT
+YCEE,Cleve,Cleve,SA ,AUSTRALIA,https://acukwik.com/Airport-Info/YCEE
+YCCY,Cloncurry,Cloncurry,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YCCY
+YOSB,Osborne Mine,Cloncurry,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YOSB
+YFDF,Fortescue Dave Forrest,Cloud Break Mine,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YFDF
+YCBA,Cobar Regional,Cobar,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YCBA
+YCTI,Cockatoo Island,Cockatoo Island,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YCTI
+YCOE,Coen,Coen,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YCOE
+YCFS,Coffs Harbour,Coffs Harbour,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YCFS
+YCBR,Collarenebri,Collarenebri,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YCBR
+YCDO,Condobolin,Condobolin,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YCDO
+YBRS,Connewarre/Barwon Heads (Geelong),Connewarre,VIC ,AUSTRALIA,https://acukwik.com/Airport-Info/YBRS
+YCBP,Coober Pedy,Coober Pedy,SA ,AUSTRALIA,https://acukwik.com/Airport-Info/YCBP
+YPMH,Coober Pedy/Prominent Hill,Coober Pedy,SA ,AUSTRALIA,https://acukwik.com/Airport-Info/YPMH
+YCKN,Cooktown,Cooktown,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YCKN
+YBCG,Gold Coast,Coolangatta,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YBCG
+YEJI,Coolgardie/East Jaurdi,Coolgardie,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YEJI
+YCOM,Cooma/Snowy Mountains,Cooma,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YCOM
+YCBB,Coonabarabran,Coonabarabran,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YCBB
+YCNM,Coonamble,Coonamble,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YCNM
+YCWA,Coondewanna,Coondewanna,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YCWA
+YCTM,Cootamundra,Cootamundra,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YCTM
+YCOR,Corowa,Corowa,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YCOR
+YCRG,Corryong,Corryong,VIC ,AUSTRALIA,https://acukwik.com/Airport-Info/YCRG
+YCWR,Cowra,Cowra,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YCWR
+YCKI,Croker Island,Croker Island,NT ,AUSTRALIA,https://acukwik.com/Airport-Info/YCKI
+YCUE,Cue,Cue,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YCUE
+YCUN,Cunderdin,Cunderdin,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YCUN
+YCMU,Cunnamulla,Cunnamulla,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YCMU
+YKKG,Daguragu/Kalkgurung,Daguragu,NT ,AUSTRALIA,https://acukwik.com/Airport-Info/YKKG
+YDAY,Dalby,Dalby,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YDAY
+YPDN,Darwin International,Darwin,NT ,AUSTRALIA,https://acukwik.com/Airport-Info/YPDN
+YBLP,Bluewater Park,Deeragun,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YBLP
+YDGU,Degrussa,Degrussa,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YDGU
+YDLQ,Deniliquin,Deniliquin,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YDLQ
+YDEK,Denmark,Denmark,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YDEK
+YDBY,Derby,Derby,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YDBY
+YCIN,Derby/Curtin AB,Derby,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YCIN
+YDPO,Devonport,Devonport,TAS ,AUSTRALIA,https://acukwik.com/Airport-Info/YDPO
+YDBI,Dirranbandi,Dirranbandi,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YDBI
+YLBD,Djarindjin/Lombadina,Djarindjin,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YLBD
+YDOD,Donald,Donald,VIC ,AUSTRALIA,https://acukwik.com/Airport-Info/YDOD
+YDMG,Doomadgee,Doomadgee,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YDMG
+YSDU,Dubbo,Dubbo,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YSDU
+YDKG,Duketon Gold,Duketon Gold,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YDKG
+YDUM,Dumbleyung,Dumbleyung,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YDUM
+YDYS,Dysart,Dysart,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YDYS
+YMES,East Sale AB,East Sale ,VIC ,AUSTRALIA,https://acukwik.com/Airport-Info/YMES
+YECH,Echuca,Echuca,VIC ,AUSTRALIA,https://acukwik.com/Airport-Info/YECH
+YKID,Einasleigh/Kidston,Einasleigh,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YKID
+YEML,Emerald ,Emerald,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YEML
+YESP,Esperance,Esperance,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YESP
+YEVD,Evans Head Memorial,Evans Head,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YEVD
+YPLM,Exmouth/Learmonth,Exmouth,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YPLM
+YFTZ,Fitzroy Crossing,Fitzroy Crossing,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YFTZ
+YFLI,Flinders Island,Flinders Island,TAS ,AUSTRALIA,https://acukwik.com/Airport-Info/YFLI
+YFBS,Forbes,Forbes,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YFBS
+YFRT,Forrest,Forrest,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YFRT
+YFTA,Forrestania,Forrestania,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YFTA
+YMHL,Mount Holland,Forrestania,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YMHL
+YELD,Galiwinku/Elcho Island,Galiwinku,NT ,AUSTRALIA,https://acukwik.com/Airport-Info/YELD
+YLEV,Gapuwiyak/Lake Evella,Gapuwiyak,NT ,AUSTRALIA,https://acukwik.com/Airport-Info/YLEV
+YGAY,Gayndah,Gayndah,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YGAY
+YGTN,Georgetown,Georgetown,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YGTN
+YGEL,Geraldton,Geraldton,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YGEL
+YGIL,Gilgandra,Gilgandra,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YGIL
+YGIG,Gingin,Gingin,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YGIG
+YGLA,Gladstone,Gladstone,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YGLA
+YGLI,Glen Innes Regional,Glen Innes,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YGLI
+YGNW,Gnowangerup,Gnowangerup,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YGNW
+YGGE,Golden Grove,Golden Grove,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YGGE
+YGDA,Goodooga,Goodooga,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YGDA
+YGDI,Goondiwindi,Goondiwindi,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YGDI
+YGLB,Goulburn,Goulburn,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YGLB
+YGFN,Grafton/Clarence Valley,Grafton,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YGFN
+YGTH,Griffith,Griffith,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YGTH
+YGTE,Groote Eylandt,Groote Eylandt,NT ,AUSTRALIA,https://acukwik.com/Airport-Info/YGTE
+YGDH,Gunnedah,Gunnedah,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YGDH
+YGYM,Gympie,Gympie,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YGYM
+YHLC,Halls Creek,Halls Creek,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YHLC
+YHML,Hamilton,Hamilton,VIC ,AUSTRALIA,https://acukwik.com/Airport-Info/YHML
+YBHM,Hamilton Island/Great Barrier Reef,Hamilton Island,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YBHM
+YHAW,Hawker Wilpena Pound,Hawker,SA ,AUSTRALIA,https://acukwik.com/Airport-Info/YHAW
+YHAY,Hay,Hay,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YHAY
+YHBA,Hervey Bay,Hervey Bay,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YHBA
+YHLS,Hillston,Hillston,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YHLS
+YCBG,Hobart Cambridge,Hobart,TAS ,AUSTRALIA,https://acukwik.com/Airport-Info/YCBG
+YMHB,Hobart International,Hobart,TAS ,AUSTRALIA,https://acukwik.com/Airport-Info/YMHB
+YHSM,Horsham,Horsham,VIC ,AUSTRALIA,https://acukwik.com/Airport-Info/YHSM
+YHUG,Hughenden,Hughenden,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YHUG
+YHRD,Hungerford,Hungerford,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YHRD
+YIGM,Ingham,Ingham,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YIGM
+YINJ,Injune,Injune,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YINJ
+YIFL,Innisfail/Mundoo,Innisfail,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YIFL
+YIVL,Inverell,Inverell,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YIVL
+YAMB,Ipswich/Amberley AB,Ipswich,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YAMB
+YISF,Isisford,Isisford,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YISF
+YIVO,Ivanhoe,Ivanhoe,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YIVO
+YJAB,Jabiru,Jabiru,NT ,AUSTRALIA,https://acukwik.com/Airport-Info/YJAB
+YJBY,Jervis Bay,Jervis Bay,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YJBY
+YJLC,Julia Creek,Julia Creek,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YJLC
+YJDA,Jundah,Jundah,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YJDA
+YJUN,Jundah or Jundee,Jundee,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YJUN
+YJNB,Jurien Bay,Jurien Bay,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YJNB
+YKDI,Kadina (Copper Coast),Kadina,SA ,AUSTRALIA,https://acukwik.com/Airport-Info/YKDI
+YTST,Kalamburu/North Kimberley/Truscott-Mungalalu,Kalamburu,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YTST
+YKBR,Kalbarri,Kalbarri,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YKBR
+YSCD,Kalgoorlie/Carosue Dam,Kalgoorlie,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YSCD
+YPKG,Kalgoorlie-Boulder,Kalgoorlie-Boulder,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YPKG
+YKBL,Kambalda,Kambalda,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YKBL
+YKAR,Karara,Karara,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YKAR
+YPKA,Karratha,Karratha,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YPKA
+YEWA,Eliwana Camp,Kartajirri,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YEWA
+YKMB,Karumba,Karumba,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YKMB
+YKNG,Katanning,Katanning,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YKNG
+YPTN,Katherine/Tindal,Katherine,NT ,AUSTRALIA,https://acukwik.com/Airport-Info/YPTN
+YKTH,Keith,Keith,SA ,AUSTRALIA,https://acukwik.com/Airport-Info/YKTH
+YKMP,Kempsey,Kempsey,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YKMP
+YKBA,Kens Bore,Kens Bore,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YKBA
+YKER,Kerang,Kerang,VIC ,AUSTRALIA,https://acukwik.com/Airport-Info/YKER
+YIMB,Kimba,Kimba,SA ,AUSTRALIA,https://acukwik.com/Airport-Info/YIMB
+YKII,King Island,King Island,TAS ,AUSTRALIA,https://acukwik.com/Airport-Info/YKII
+YKRY,Kingaroy,Kingaroy,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YKRY
+YKSC,Kangaroo Island (Kingscote),Kingscote,SA ,AUSTRALIA,https://acukwik.com/Airport-Info/YKSC
+YKIG,Kingston,Kingston,SA ,AUSTRALIA,https://acukwik.com/Airport-Info/YKIG
+YKDN,Kondinin,Kondinin,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YKDN
+YKLC,Koolan Island(Koolan Central),Koolan Island,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YKLC
+YKBN,Kooralbyn,Kooralbyn,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YKBN
+YKOW,Kowanyama,Kowanyama,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YKOW
+YKUB,Kubin,Kubin,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YKUB
+YPKU,East Kimberley Regional/Kununurra,Kununurra,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YPKU
+YHOO,Lajamanu/Hooker Creek,Lajamanu,NT ,AUSTRALIA,https://acukwik.com/Airport-Info/YHOO
+YLTV,Latrobe Valley Regional,Latrobe Valley,VIC ,AUSTRALIA,https://acukwik.com/Airport-Info/YLTV
+YMLT,Launceston,Launceston,TAS ,AUSTRALIA,https://acukwik.com/Airport-Info/YMLT
+YLTN,Laverton,Laverton,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YLTN
+YGRM,Laverton/Gruyere,Laverton,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YGRM
+YYRN,Laverton/Yamarna,Laverton,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YYRN
+YLEC,Leigh Creek,Leigh Creek,SA ,AUSTRALIA,https://acukwik.com/Airport-Info/YLEC
+YLST,Leinster,Leinster,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YLST
+YLAW,Leinster/Lawlers,Leinster,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YLAW
+YTHN,Leinster/Thunderbox,Leinster,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YTHN
+YLEG,Leongatha,Leongatha,VIC ,AUSTRALIA,https://acukwik.com/Airport-Info/YLEG
+YLEO,Leonora,Leonora,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YLEO
+YDLO,Leonora/Darlot,Leonora,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YDLO
+YLED,Lethbridge Park,Lethbridge,VIC ,AUSTRALIA,https://acukwik.com/Airport-Info/YLED
+YLRD,Lightning Ridge,Lightning Ridge,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YLRD
+YLIS,Lismore Regional,Lismore,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YLIS
+YLHR,Lockhart River,Lockhart River,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YLHR
+YLRE,Longreach,Longreach,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YLRE
+YLOX,Loxton,Loxton,SA ,AUSTRALIA,https://acukwik.com/Airport-Info/YLOX
+YBMK,Mackay,Mackay,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YBMK
+YMND,Maitland Russell Field,Maitland,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YMND
+YMCO,Mallacoota,Mallacoota,VIC ,AUSTRALIA,https://acukwik.com/Airport-Info/YMCO
+YMNG,Mangalore,Mangalore,VIC ,AUSTRALIA,https://acukwik.com/Airport-Info/YMNG
+YMGD,Maningrida,Maningrida,NT ,AUSTRALIA,https://acukwik.com/Airport-Info/YMGD
+YMJM,Manjimup,Manjimup,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YMJM
+YIBO,Japal Camp/Iron Bridge Mine,Marble Bar,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YIBO
+YMBA,Mareeba,Mareeba,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YMBA
+YMGT,Margaret River,Margaret River,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YMGT
+YLMQ,Lake Macquarie,Marks Point,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YLMQ
+YALA,Marla,Marla,SA ,AUSTRALIA,https://acukwik.com/Airport-Info/YALA
+YORB,Marlo/Orbost,Marlo,VIC ,AUSTRALIA,https://acukwik.com/Airport-Info/YORB
+YBSU,Sunshine Coast,Maroochydore,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YBSU
+YMYB,Maryborough (QLD),Maryborough,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YMYB
+YMBU,Maryborough (VIC),Maryborough,VIC ,AUSTRALIA,https://acukwik.com/Airport-Info/YMBU
+YMHU,McArthur River Mine,McArthur River,NT ,AUSTRALIA,https://acukwik.com/Airport-Info/YMHU
+YMEK,Meekatharra,Meekatharra,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YMEK
+YMAV,Melbourne/Avalon,Melbourne,VIC ,AUSTRALIA,https://acukwik.com/Airport-Info/YMAV
+YMEN,Melbourne/Essendon Fields,Melbourne,VIC ,AUSTRALIA,https://acukwik.com/Airport-Info/YMEN
+YMMB,Melbourne/Moorabbin,Melbourne,VIC ,AUSTRALIA,https://acukwik.com/Airport-Info/YMMB
+YMPC,Melbourne/Point Cook AB,Melbourne,VIC ,AUSTRALIA,https://acukwik.com/Airport-Info/YMPC
+YMML,Melbourne/Tullamarine,Melbourne,VIC ,AUSTRALIA,https://acukwik.com/Airport-Info/YMML
+YMER,Merimbula/Bega Valley,Merimbula,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YMER
+YMMU,Middlemount,Middlemount,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YMMU
+YMIA,Mildura,Milduea,VIC ,AUSTRALIA,https://acukwik.com/Airport-Info/YMIA
+YMLS,Miles,Miles,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YMLS
+YMGB,Milingimbi,Milingimbi,NT ,AUSTRALIA,https://acukwik.com/Airport-Info/YMGB
+YMCT,Millicent,Millicent,SA ,AUSTRALIA,https://acukwik.com/Airport-Info/YMCT
+YMDR,Minderoo Station,Minderoo Station,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YMDR
+YMIT,Mitchell,Mitchell,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YMIT
+YITT,Mitta Mitta,Mitta Mitta,VIC ,AUSTRALIA,https://acukwik.com/Airport-Info/YITT
+YMTO,Monto,Monto,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YMTO
+YOOM,Moomba,Moomba,SA ,AUSTRALIA,https://acukwik.com/Airport-Info/YOOM
+YMRB,Moranbah,Moranbah,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YMRB
+YMOR,Moree Regional,Moree,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YMOR
+YMTI,Mornington Island,Mornington Island,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YMTI
+YMRY,Moruya,Moruya,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YMRY
+YMBT,Mount Beauty,Mount Beauty,VIC ,AUSTRALIA,https://acukwik.com/Airport-Info/YMBT
+YMTG,Mount Gambier,Mount Gambier,SA ,AUSTRALIA,https://acukwik.com/Airport-Info/YMTG
+YGON,Mount Gordon,Mount Gordon,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YGON
+YHOT,Mount Hotham,Mount Hotham,VIC ,AUSTRALIA,https://acukwik.com/Airport-Info/YHOT
+YBMA,Mount Isa,Mount Isa,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YBMA
+YMNE,Mount Keith,Mount Keith,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YMNE
+YMOG,Mount Magnet,Mount Magnet,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YMOG
+YDGA,Yalgoo/Dalgaranga Gold Mine,Mount Magnet,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YDGA
+YMDG,Mudgee,Mudgee,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YMDG
+YMDA,Mundubbera,Mundubbera,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YMDA
+YMGI,Mungindi,Mungindi,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YMGI
+YLMU,Mungo Lodge,Mungo Lodge,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YLMU
+YMBD,Murray Bridge,Murray Bridge,SA ,AUSTRALIA,https://acukwik.com/Airport-Info/YMBD
+YMUL,Murray Field,Murray Field,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YMUL
+YMMI,Murrin Murrin,Murrin Murrin,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YMMI
+YNRC,Naracoorte,Naracoorte,SA ,AUSTRALIA,https://acukwik.com/Airport-Info/YNRC
+YNBR,Narrabri,Narrabri,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YNBR
+YNAR,Narrandera,Narrandera,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YNAR
+YNRG,Narrogin,Narrogin,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YNRG
+YNRM,Narromine,Narromine,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YNRM
+YWLM,Newcastle (Williamtown AB),Newcastle,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YWLM
+YABR,Abra Mine,Newman,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YABR
+YKDD,Gudai-Darri Mine/ Koodaideri Mine,Newman,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YKDD
+YNWN,Newman,Newman,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YNWN
+YKWA,Newman/Karlawinda Mine,Newman,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YKWA
+YANG,Newman/West Angelas,Newman,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YANG
+YNGU,Ngukurr,Ngukurr,NT ,AUSTRALIA,https://acukwik.com/Airport-Info/YNGU
+YHNL,Nhill,Nhill,VIC ,AUSTRALIA,https://acukwik.com/Airport-Info/YHNL
+YPGV,Gove,Nhulunbuy,NT ,AUSTRALIA,https://acukwik.com/Airport-Info/YPGV
+YCNF,Camp Nifty,Nifty,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YCNF
+YNTN,Normanton,Normanton,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YNTN
+YNSM,Norseman,Norseman,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YNSM
+YNOV,Nova,Norseman,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YNOV
+YNTM,Northam,Northam,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YNTM
+YSNW,Nowra,Nowra,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YSNW
+YNUM,Numbulwar,Numbulwar,NT ,AUSTRALIA,https://acukwik.com/Airport-Info/YNUM
+YNYN,Nyngan,Nyngan,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YNYN
+YBOK,Oakey AB,Oakey,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YBOK
+YOEN,Oenpelli,Oenpelli,NT ,AUSTRALIA,https://acukwik.com/Airport-Info/YOEN
+YOLD,Olympic Dam,Olympic Dam,SA ,AUSTRALIA,https://acukwik.com/Airport-Info/YOLD
+YOLW,Onslow,Onslow,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YOLW
+YOOD,Oodnadatta,Oodnadatta,SA ,AUSTRALIA,https://acukwik.com/Airport-Info/YOOD
+YORG,Orange,Orange,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YORG
+YPAC,Pacific Haven,Pacific Haven,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YPAC
+YPAM,Palm Island,Palm Island,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YPAM
+YPBO,Paraburdoo,Paraburdoo,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YPBO
+YPKS,Parkes,Parkes,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YPKS
+YPPH,Perth International,Perth,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YPPH
+YPJT,Perth/Jandakot,Perth,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YPJT
+YRTI,Rottnest Island,Perth,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YRTI
+YPTB,Peterborough,Peterborough,SA ,AUSTRALIA,https://acukwik.com/Airport-Info/YPTB
+YPBH,Peterborough/Great Ocean Road,Peterborough,VIC ,AUSTRALIA,https://acukwik.com/Airport-Info/YPBH
+YTMO,Phosphate Hill/The Monument,Phosphate Hill,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YTMO
+YGPT,Pirlangimpi/Garden Point,Pirlangimpi,NT ,AUSTRALIA,https://acukwik.com/Airport-Info/YGPT
+YPCE,Pooncarie,Pooncarie,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YPCE
+YPMP,Edward River/Pormpuraaw,Pormpuraaw,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YPMP
+YPAG,Port Augusta,Port Augusta,SA ,AUSTRALIA,https://acukwik.com/Airport-Info/YPAG
+YPPD,Port Hedland International,Port Hedland,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YPPD
+YPKT,Port Keats,Port Keats,NT ,AUSTRALIA,https://acukwik.com/Airport-Info/YPKT
+YPLC,Port Lincoln,Port Lincoln,SA ,AUSTRALIA,https://acukwik.com/Airport-Info/YPLC
+YPMQ,Port Macquarie,Port Macquarie,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YPMQ
+YPIR,Port Pirie,Port Pirie,SA ,AUSTRALIA,https://acukwik.com/Airport-Info/YPIR
+YPOD,Portland,Portland,VIC ,AUSTRALIA,https://acukwik.com/Airport-Info/YPOD
+YGHP,Glenample Heliport,Princetown,VIC ,AUSTRALIA,https://acukwik.com/Airport-Info/YGHP
+YBPN,Proserpine/Whitsunday Coast,Proserpine,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YBPN
+YQLP,Quilpie,Quilpie,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YQLP
+YQDI,Quirindi,Quirindi,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YQDI
+YRNG,Ramingining,Ramingining,NT ,AUSTRALIA,https://acukwik.com/Airport-Info/YRNG
+YNRV,Ravensthorpe,Ravensthorpe,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YNRV
+YRED,Redcliffe,Redcliffe,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YRED
+YREN,Renmark,Renmark,SA ,AUSTRALIA,https://acukwik.com/Airport-Info/YREN
+YRMD,Richmond,Richmond,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YRMD
+YSRI,Richmond AB,Richmond,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YSRI
+YBRK,Rockhampton,Rockhampton,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YBRK
+YROM,Roma,Roma,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YROM
+YGIA,Roy Hill - Ginbata,Roy Hill,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YGIA
+YWSL,Sale/West Sale,Sale,VIC ,AUSTRALIA,https://acukwik.com/Airport-Info/YWSL
+YBSG,Scherger,Scherger,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YBSG
+YSCO,Scone,Scone,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YSCO
+YSHK,Shark Bay,Shark Bay,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YSHK
+YSHL,Shellharbour (Wollongong),Shellharbour,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YSHL
+YSHT,Shepparton,Shepparton,VIC ,AUSTRALIA,https://acukwik.com/Airport-Info/YSHT
+YSMI,Smithton,Smithton,TAS ,AUSTRALIA,https://acukwik.com/Airport-Info/YSMI
+YSNK,Snake Bay,Snake Bay,NT ,AUSTRALIA,https://acukwik.com/Airport-Info/YSNK
+YSOL,Solomon,Solomon,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YSOL
+YGBI,South Goulburn Island (Warruwi Intenational),South Goulburn Island,NT ,AUSTRALIA,https://acukwik.com/Airport-Info/YGBI
+YSCR,Southern Cross,Southern Cross,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YSCR
+YSPI,Springsure,Springsure,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YSPI
+YSTA,St Arnaud,St Arnaud,VIC ,AUSTRALIA,https://acukwik.com/Airport-Info/YSTA
+YSGE,St George,St George,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YSGE
+YSPE,Stanthorpe,Stanthorpe,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YSPE
+YSWL,Stawell,Stawell,VIC ,AUSTRALIA,https://acukwik.com/Airport-Info/YSWL
+YSTO,Stonehenge,Stonehenge,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YSTO
+YSRN,Srahan,Strahan,TAS ,AUSTRALIA,https://acukwik.com/Airport-Info/YSRN
+YKBY,Streaky Bay,Streaky Bay,SA ,AUSTRALIA,https://acukwik.com/Airport-Info/YKBY
+YSRD,Sunrise Dam Gold Mine,Sunrise Dam,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YSRD
+YSWH,Swan Hill,Swan Hill,VIC ,AUSTRALIA,https://acukwik.com/Airport-Info/YSWH
+YLHI,Lord Howe Island,Sydney,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YLHI
+YSBK,Sydney/Bankstown,Sydney,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YSBK
+YSSY,Sydney/Kingsford Smith,Sydney,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YSSY
+YSTW,Tamworth Regional,Tamworth,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YSTW
+YTRE,Taree,Taree,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YTRE
+YTEF,Telfer,Telfer,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YTEF
+YTEM,Temora,Temora,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YTEM
+YTNK,Tennant Creek,Tennant Creek,NT ,AUSTRALIA,https://acukwik.com/Airport-Info/YTNK
+YTNG,Thangool,Thangool,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YTNG
+YTGM,Thargomindah,Thargomindah,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YTGM
+YTGT,The Granites,The Granites,NT ,AUSTRALIA,https://acukwik.com/Airport-Info/YTGT
+YTDR,Theodore,Theodore,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YTDR
+YHID,Horn Island,Thursday Island,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YHID
+YTIB,Tibooburra,Tibooburra,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YTIB
+YTOC,Tocumwal,Tocumwal,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YTOC
+YTWB,Toowoomba,Toowoomba,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YTWB
+YBWW,Toowoomba/Brisbane West Wellcamp,Toowoomba,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YBWW
+YTOT,Tottenham,Tottenham,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YTOT
+YBTL,Townsville International,Townsville,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YBTL
+YTEE,Trepell,Trepell,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YTEE
+YTRA,Tropicana Gold Mine,Tropicana Gold Mine,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YTRA
+YTTI,Troughton Island,Troughton Island,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YTTI
+YTBB,Tumby Bay,Tumby Bay,SA ,AUSTRALIA,https://acukwik.com/Airport-Info/YTBB
+YTMU,Tumut,Tumut,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YTMU
+YTYA,Tyabb,Tyabb,VIC ,AUSTRALIA,https://acukwik.com/Airport-Info/YTYA
+YSWG,Wagga Wagga,Wagga Wagga,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YSWG
+YWKI,Waikerie,Waikerie,SA ,AUSTRALIA,https://acukwik.com/Airport-Info/YWKI
+YWCH,Walcha,Walcha,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YWCH
+YWLG,Walgett,Walgett,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YWLG
+YWGT,Wangaratta,Wangaratta,VIC ,AUSTRALIA,https://acukwik.com/Airport-Info/YWGT
+YWBR,Warburton,Warburton,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YWBR
+YHPN,Hopetoun,Warracknabeal,VIC ,AUSTRALIA,https://acukwik.com/Airport-Info/YHPN
+YWKB,Warracknabeal,Warracknabeal,VIC ,AUSTRALIA,https://acukwik.com/Airport-Info/YWKB
+YWRN,Warren,Warren,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YWRN
+YWBL,Warrnambool,Warrnambool,VIC ,AUSTRALIA,https://acukwik.com/Airport-Info/YWBL
+YWCK,Warwick,Warwick,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YWCK
+YBWP,Weipa,Weipa,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YBWP
+YWTO,Wentworth,Wentworth,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YWTO
+YWWL,West Wyalong,West Wyalong,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YWWL
+YWHC,White Cliffs,White Cliffs,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YWHC
+YWHA,Whyalla,Whyalla,SA ,AUSTRALIA,https://acukwik.com/Airport-Info/YWHA
+YWCA,Wilcannia,Wilcannia,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YWCA
+YWMC,William Creek,William Creek,SA ,AUSTRALIA,https://acukwik.com/Airport-Info/YWMC
+YWIS,Williamson AB,Williamson,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YWIS
+YWLU,Wiluna,Wiluna,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YWLU
+YWDG,Windarling,Windarling,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YWDG
+YWDH,Windorah,Windorah,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YWDH
+YWTN,Winton,Winton,QLD ,AUSTRALIA,https://acukwik.com/Airport-Info/YWTN
+YWWI,Woodie Woodie,Woodie Woodie,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YWWI
+YPWR,Woomera AB,Woomera,SA ,AUSTRALIA,https://acukwik.com/Airport-Info/YPWR
+YCPT,Woomera/Carrapateena,Woomera,SA ,AUSTRALIA,https://acukwik.com/Airport-Info/YCPT
+YWUD,Wudinna,Wudinna,SA ,AUSTRALIA,https://acukwik.com/Airport-Info/YWUD
+YWYM,Wyndham,Wyndham,WA ,AUSTRALIA,https://acukwik.com/Airport-Info/YWYM
+YYWG,Yarrawonga,Yarrawonga,VIC ,AUSTRALIA,https://acukwik.com/Airport-Info/YYWG
+YJAC,Yellabinna/Jacintha Ambrosia,Yellabinna,SA ,AUSTRALIA,https://acukwik.com/Airport-Info/YJAC
+YYNG,Young,Young,NSW ,AUSTRALIA,https://acukwik.com/Airport-Info/YYNG
+YYND,Yuendumu,Yuendumu,NT ,AUSTRALIA,https://acukwik.com/Airport-Info/YYND
+YAYE,Ayers Rock (Connellan),Yulara/Ayers Rock Resort,NT ,AUSTRALIA,https://acukwik.com/Airport-Info/YAYE

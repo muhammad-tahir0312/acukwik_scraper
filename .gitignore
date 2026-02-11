@@ -1,0 +1,57 @@
+# =============== VIRTUAL ENVIRONMENTS ===============
+venv/
+.venv/
+env/
+.env
+
+# =============== PYTHON ARTIFACTS ===============
+__pycache__/
+*.py[cod]
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# =============== SCRAPY / LOGS (CRITICAL) ===============
+# Ignore ENTIRE scraped logs directory – not just .txt files
+acukwik_scraper/spiders/scraped_logs/
+
+# General log patterns
+*.log
+logs/
+log/
+
+# =============== TESTING & COVERAGE ===============
+.pytest_cache/
+htmlcov/
+.coverage
+.coveragerc
+nosetests.xml
+coverage.xml
+
+# =============== IDE / EDITORS ===============
+.idea/
+.vscode/
+*.swp
+*~
+.DS_Store
+
+# =============== SECRETS (NEVER COMMIT) ===============
+*.key
+*.pem
+*.crt
+secrets.json
+config.ini
