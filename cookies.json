@@ -1,130 +1,5 @@
 [
   {
-    "domain": ".acukwik.com",
-    "expiry": 1805374176,
-    "httpOnly": false,
-    "name": "_sp_id.5f31",
-    "path": "/",
-    "sameSite": "Lax",
-    "secure": true,
-    "value": "8b6e8bdd-9ca5-42ac-93d8-c971fee5b62c.1770814146.1.1770814177..a665ef85-ccce-4d9e-a508-b2d80a42f753..29772019-a445-4736-a2ec-dd9b3c807666.1770814146013.6"
-  },
-  {
-    "domain": "acukwik.com",
-    "httpOnly": false,
-    "name": "acu_login_success",
-    "path": "/",
-    "sameSite": "Lax",
-    "secure": true,
-    "value": "1"
-  },
-  {
-    "domain": "acukwik.com",
-    "expiry": 1770820147,
-    "httpOnly": false,
-    "name": "_td_global",
-    "path": "/",
-    "sameSite": "None",
-    "secure": true,
-    "value": "3a632dc1-25df-4e28-8ca2-321964d80e1b"
-  },
-  {
-    "domain": "acukwik.com",
-    "httpOnly": false,
-    "name": "_iris_duid",
-    "path": "/",
-    "sameSite": "Lax",
-    "secure": false,
-    "value": "8b6e8bdd-9ca5-42ac-93d8-c971fee5b62c"
-  },
-  {
-    "domain": ".acukwik.com",
-    "expiry": 1786366146,
-    "httpOnly": false,
-    "name": "__eoi",
-    "path": "/",
-    "sameSite": "None",
-    "secure": true,
-    "value": "ID=12bdbc74fc28de7a:T=1770814146:RT=1770814146:S=AA-Afjaf73ezWPOtAoHseDk7uGzE"
-  },
-  {
-    "domain": ".acukwik.com",
-    "httpOnly": false,
-    "name": "s_sq",
-    "path": "/",
-    "sameSite": "Lax",
-    "secure": false,
-    "value": "%5B%5BB%5D%5D"
-  },
-  {
-    "domain": ".acukwik.com",
-    "expiry": 1804510146,
-    "httpOnly": false,
-    "name": "__gpi",
-    "path": "/",
-    "sameSite": "None",
-    "secure": true,
-    "value": "UID=000012f48a8867ba:T=1770814146:RT=1770814146:S=ALNI_MYCwZJrZgiGISmvD73Vl-sIFuKNEg"
-  },
-  {
-    "domain": ".acukwik.com",
-    "expiry": 1804510146,
-    "httpOnly": false,
-    "name": "__gads",
-    "path": "/",
-    "sameSite": "None",
-    "secure": true,
-    "value": "ID=cda1292d40e8108a:T=1770814146:RT=1770814146:S=ALNI_Mb7VKF5T1R-73KIHMu7G2SD2zQOVw"
-  },
-  {
-    "domain": ".acukwik.com",
-    "expiry": 1802350176,
-    "httpOnly": true,
-    "name": "sp",
-    "path": "/",
-    "sameSite": "Lax",
-    "secure": true,
-    "value": "637a55ea-d9c9-48e4-865b-ed775506dc4b"
-  },
-  {
-    "domain": "acukwik.com",
-    "httpOnly": true,
-    "name": "dnn_IsMobile",
-    "path": "/",
-    "sameSite": "Lax",
-    "secure": true,
-    "value": "False"
-  },
-  {
-    "domain": "acukwik.com",
-    "expiry": 1776814144,
-    "httpOnly": true,
-    "name": ".ASPXANONYMOUS",
-    "path": "/",
-    "sameSite": "Lax",
-    "secure": true,
-    "value": "4PaSn7iaDeviWqex_MG-9ZhZjSQH_JjN5M8hr3eTjzW3jgcwqam-aIPtzSuo-ycsZaV6G8udHEuqUgY_1sgGWP2dvN681IPVaxGPv6kvT6d5bCgG0"
-  },
-  {
-    "domain": ".acukwik.com",
-    "expiry": 1805374147,
-    "httpOnly": false,
-    "name": "AMCV_DD4C6A00570E3C0F7F000101%40AdobeOrg",
-    "path": "/",
-    "sameSite": "Lax",
-    "secure": false,
-    "value": "-432600572%7CMCIDTS%7C20496%7CMCMID%7C32967494253644787010513567054474670481%7CMCAAMLH-1771418946%7C3%7CMCAAMB-1771418946%7C6G1ynYcLPuiQxYZrsz_pkqfLG9yMXBpb2zX5dvJdYQJzPXImdj0y%7CMCOPTOUT-1770821346s%7CNONE%7CMCSYNCSOP%7C411-20503%7CvVersion%7C4.5.2"
-  },
-  {
-    "domain": ".acukwik.com",
-    "httpOnly": false,
-    "name": "AMCVS_DD4C6A00570E3C0F7F000101%40AdobeOrg",
-    "path": "/",
-    "sameSite": "Lax",
-    "secure": false,
-    "value": "1"
-  },
-  {
     "domain": "acukwik.com",
     "httpOnly": true,
     "name": "LastPageId",
@@ -134,63 +9,34 @@
     "value": "0:55"
   },
   {
-    "domain": ".acukwik.com",
-    "expiry": 1770815976,
-    "httpOnly": false,
-    "name": "_sp_ses.5f31",
-    "path": "/",
-    "sameSite": "Lax",
-    "secure": true,
-    "value": "*"
-  },
-  {
-    "domain": ".acukwik.com",
-    "expiry": 1778590146,
-    "httpOnly": false,
-    "name": "_gcl_au",
-    "path": "/",
-    "sameSite": "Lax",
-    "secure": false,
-    "value": "1.1.1661967129.1770814146"
-  },
-  {
     "domain": "acukwik.com",
-    "expiry": 1773406174,
+    "expiry": 1773409956,
     "httpOnly": true,
     "name": ".DOTNETNUKE",
     "path": "/",
     "sameSite": "Lax",
     "secure": true,
-    "value": "2685FFE5EB742E676119B9914E5F039D0410435D422874DE0D5517F3DB99E281C7C242E82F67FE6D24AE6A409612A5D3A6D33407DD237E1287D235889B01EC10D62A73DDA7878C4E4E259C9C372D3D7AAB7DC1DC322CB53B6D7C3CBF"
+    "value": "5D45E229EA31F5D95B7498AF060671239E313035ACAFD9DFF8FAA20BEBA684F6E1E26FA2CF7F27A3B129678782B1200D43E10A0E38255768F38F727BEC5B0FDD02551AD4DAA558DB2830082E71A88EDEA43CF897D5C7CD57C593A252"
+  },
+  {
+    "domain": "acukwik.com",
+    "expiry": 1776817928,
+    "httpOnly": true,
+    "name": ".ASPXANONYMOUS",
+    "path": "/",
+    "sameSite": "Lax",
+    "secure": true,
+    "value": "Ol_6CVW72RqXJFyQX_IcFvib2ALaHM3dBtXfe4DFeOLxUhf15lAMCLhNswZLrPsoB-Nk57LqPnCoEbPWLfenlnYvLEfs2s1FSvioLF6MIy4GFHNV0"
   },
   {
     "domain": ".acukwik.com",
-    "expiry": 1770815945,
+    "expiry": 1770819728,
     "httpOnly": true,
     "name": "__cf_bm",
     "path": "/",
     "sameSite": "None",
     "secure": true,
-    "value": "AThnTmHR3AonP8mLAECD9jVJqzt76mRJUWmGdYP_Qj4-1770814145-1.0.1.1-O98DGzuyGGq8BBdH5rriQfH3PQWO9UXMemRdPnIjocOO7yv.xuigqvVznw_n_HoEeqivd5RgLs2UBQB1gciqtpy6nLKYXVbW8Hw3ohRqx98"
-  },
-  {
-    "domain": ".acukwik.com",
-    "expiry": 1805374176,
-    "httpOnly": false,
-    "name": "_td",
-    "path": "/",
-    "sameSite": "None",
-    "secure": true,
-    "value": "f1311f96-be8a-45df-a139-244cabc24583"
-  },
-  {
-    "domain": ".acukwik.com",
-    "httpOnly": false,
-    "name": "s_cc",
-    "path": "/",
-    "sameSite": "Lax",
-    "secure": false,
-    "value": "true"
+    "value": "XwcreD3cLjFWv8Ghvw9J6BtpqCG8hAN1WA1mvUhAIDU-1770817928-1.0.1.1-e3oUTj2JXwAzHUDA4G0.lb25uUvle5VDfNavRWHgdOUFlqnyGVpxhiGqtyzDCiUR90Nk_1oG2c69qWlVUvTZRSQTrq5sWTuwndkDdowxAAw"
   },
   {
     "domain": "acukwik.com",
@@ -202,13 +48,12 @@
     "value": "en-US"
   },
   {
-    "domain": ".acukwik.com",
-    "expiry": 1805374146,
-    "httpOnly": false,
-    "name": "__td_signed",
+    "domain": "acukwik.com",
+    "httpOnly": true,
+    "name": "dnn_IsMobile",
     "path": "/",
-    "sameSite": "None",
+    "sameSite": "Lax",
     "secure": true,
-    "value": "true"
+    "value": "False"
   }
 ]

@@ -35,11 +35,8 @@ env/
 *~
 .DS_Store
 
-# Scraper specific
-output/
+# Scraper specifis
 logs/
-progress/
-errors/
 *.log
 
 # Sensitive files
