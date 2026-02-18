@@ -1,0 +1,284 @@
+2026-02-11 14:47:23,887 - __main__ - INFO - Logging initialized. Log file: logs/scraper_20260211_134723.log
+2026-02-11 14:47:23,894 - config_loader - INFO - Loaded configuration from: config.yaml
+2026-02-11 14:47:23,895 - config_loader - INFO - Configuration validated successfully
+2026-02-11 14:47:23,895 - output - INFO - Output writer initialized. Success file: output/scraped_records_20260211_134723.jsonl
+2026-02-11 14:47:23,895 - output - INFO - Failed records file: output/failed_records_20260211_134723.jsonl
+2026-02-11 14:47:23,897 - progress - INFO - Loaded progress: 0 completed, 1 failed
+2026-02-11 14:47:23,898 - progress - INFO - Progress tracker initialized with 0 completed IDs
+2026-02-11 14:47:23,898 - __main__ - INFO - Scraper orchestrator initialized for source: acukwik
+2026-02-11 14:47:23,898 - __main__ - INFO - ============================================================
+2026-02-11 14:47:23,898 - __main__ - INFO - Starting Aviation Data Scraper
+2026-02-11 14:47:23,898 - __main__ - INFO - ============================================================
+2026-02-11 14:47:23,898 - __main__ - INFO - Using existing cookies (age: 0.0 days)
+2026-02-11 14:47:23,899 - __main__ - INFO - Loading input from: ../data.csv
+2026-02-11 14:47:23,899 - __main__ - INFO - Loaded 6 records from ../data.csv
+2026-02-11 14:47:23,899 - __main__ - INFO - Total records loaded: 6
+2026-02-11 14:47:23,899 - __main__ - INFO - Starting parallel scraping with 16 workers
+2026-02-11 14:47:23,899 - __main__ - INFO - Total records to process: 6
+2026-02-11 14:47:25,671 - __main__ - ERROR - Error scraping https://acukwik.com/Airport-Info/SABE (attempt 1): Message: session not created: Chrome instance exited. Examine ChromeDriver verbose log to determine the cause.
+Stacktrace:
+#0 0x601b132b0d0a <unknown>
+#1 0x601b12cc0682 <unknown>
+#2 0x601b12cfe23b <unknown>
+#3 0x601b12cf8f09 <unknown>
+#4 0x601b12d4a8de <unknown>
+#5 0x601b12d49fcc <unknown>
+#6 0x601b12d0788f <unknown>
+#7 0x601b12d08651 <unknown>
+#8 0x601b13275159 <unknown>
+#9 0x601b13278061 <unknown>
+#10 0x601b13261919 <unknown>
+#11 0x601b13278c2e <unknown>
+#12 0x601b13247c90 <unknown>
+#13 0x601b1329d358 <unknown>
+#14 0x601b1329d528 <unknown>
+#15 0x601b132af353 <unknown>
+#16 0x7c5a3249caa4 <unknown>
+#17 0x7c5a32529c6c <unknown>
+
+2026-02-11 14:47:25,671 - __main__ - INFO - Retrying in 5.36 seconds...
+2026-02-11 14:47:25,701 - __main__ - ERROR - Error scraping https://acukwik.com/Airport-Info/OBBI (attempt 1): Message: session not created: Chrome instance exited. Examine ChromeDriver verbose log to determine the cause.
+Stacktrace:
+#0 0x61f35532fd0a <unknown>
+#1 0x61f354d3f682 <unknown>
+#2 0x61f354d7d23b <unknown>
+#3 0x61f354d77f09 <unknown>
+#4 0x61f354dc98de <unknown>
+#5 0x61f354dc8fcc <unknown>
+#6 0x61f354d8688f <unknown>
+#7 0x61f354d87651 <unknown>
+#8 0x61f3552f4159 <unknown>
+#9 0x61f3552f7061 <unknown>
+#10 0x61f3552e0919 <unknown>
+#11 0x61f3552f7c2e <unknown>
+#12 0x61f3552c6c90 <unknown>
+#13 0x61f35531c358 <unknown>
+#14 0x61f35531c528 <unknown>
+#15 0x61f35532e353 <unknown>
+#16 0x71ebafc9caa4 <unknown>
+#17 0x71ebafd29c6c <unknown>
+
+2026-02-11 14:47:25,701 - __main__ - INFO - Retrying in 5.24 seconds...
+2026-02-11 14:47:25,716 - __main__ - ERROR - Error scraping https://acukwik.com/Airport-Info/SACO (attempt 1): Message: session not created: Chrome instance exited. Examine ChromeDriver verbose log to determine the cause.
+Stacktrace:
+#0 0x5727cb862d0a <unknown>
+#1 0x5727cb272682 <unknown>
+#2 0x5727cb2b023b <unknown>
+#3 0x5727cb2aaf09 <unknown>
+#4 0x5727cb2fc8de <unknown>
+#5 0x5727cb2fbfcc <unknown>
+#6 0x5727cb2b988f <unknown>
+#7 0x5727cb2ba651 <unknown>
+#8 0x5727cb827159 <unknown>
+#9 0x5727cb82a061 <unknown>
+#10 0x5727cb813919 <unknown>
+#11 0x5727cb82ac2e <unknown>
+#12 0x5727cb7f9c90 <unknown>
+#13 0x5727cb84f358 <unknown>
+#14 0x5727cb84f528 <unknown>
+#15 0x5727cb861353 <unknown>
+#16 0x77190ae9caa4 <unknown>
+#17 0x77190af29c6c <unknown>
+
+2026-02-11 14:47:25,716 - __main__ - INFO - Retrying in 5.30 seconds...
+2026-02-11 14:47:25,717 - __main__ - ERROR - Error scraping https://acukwik.com/Airport-Info/LOWW (attempt 1): Message: session not created: Chrome instance exited. Examine ChromeDriver verbose log to determine the cause.
+Stacktrace:
+#0 0x61391270dd0a <unknown>
+#1 0x61391211d682 <unknown>
+#2 0x61391215b23b <unknown>
+#3 0x613912155f09 <unknown>
+#4 0x6139121a78de <unknown>
+#5 0x6139121a6fcc <unknown>
+#6 0x61391216488f <unknown>
+#7 0x613912165651 <unknown>
+#8 0x6139126d2159 <unknown>
+#9 0x6139126d5061 <unknown>
+#10 0x6139126be919 <unknown>
+#11 0x6139126d5c2e <unknown>
+#12 0x6139126a4c90 <unknown>
+#13 0x6139126fa358 <unknown>
+#14 0x6139126fa528 <unknown>
+#15 0x61391270c353 <unknown>
+#16 0x7c61b069caa4 <unknown>
+#17 0x7c61b0729c6c <unknown>
+
+2026-02-11 14:47:25,718 - __main__ - INFO - Retrying in 5.48 seconds...
+2026-02-11 14:47:25,828 - __main__ - ERROR - Error scraping https://acukwik.com/Airport-Info/MYNN (attempt 1): Message: session not created: Chrome instance exited. Examine ChromeDriver verbose log to determine the cause.
+Stacktrace:
+#0 0x5ffcfb6b7d0a <unknown>
+#1 0x5ffcfb0c7682 <unknown>
+#2 0x5ffcfb10523b <unknown>
+#3 0x5ffcfb0fff09 <unknown>
+#4 0x5ffcfb1518de <unknown>
+#5 0x5ffcfb150fcc <unknown>
+#6 0x5ffcfb10e88f <unknown>
+#7 0x5ffcfb10f651 <unknown>
+#8 0x5ffcfb67c159 <unknown>
+#9 0x5ffcfb67f061 <unknown>
+#10 0x5ffcfb668919 <unknown>
+#11 0x5ffcfb67fc2e <unknown>
+#12 0x5ffcfb64ec90 <unknown>
+#13 0x5ffcfb6a4358 <unknown>
+#14 0x5ffcfb6a4528 <unknown>
+#15 0x5ffcfb6b6353 <unknown>
+#16 0x7d9d2fc9caa4 <unknown>
+#17 0x7d9d2fd29c6c <unknown>
+
+2026-02-11 14:47:25,828 - __main__ - INFO - Retrying in 5.35 seconds...
+2026-02-11 14:47:25,914 - __main__ - ERROR - Error scraping https://acukwik.com/Airport-Info/LOWG (attempt 1): Message: session not created: Chrome instance exited. Examine ChromeDriver verbose log to determine the cause.
+Stacktrace:
+#0 0x59b6c3210d0a <unknown>
+#1 0x59b6c2c20682 <unknown>
+#2 0x59b6c2c5e23b <unknown>
+#3 0x59b6c2c58f09 <unknown>
+#4 0x59b6c2caa8de <unknown>
+#5 0x59b6c2ca9fcc <unknown>
+#6 0x59b6c2c6788f <unknown>
+#7 0x59b6c2c68651 <unknown>
+#8 0x59b6c31d5159 <unknown>
+#9 0x59b6c31d8061 <unknown>
+#10 0x59b6c31c1919 <unknown>
+#11 0x59b6c31d8c2e <unknown>
+#12 0x59b6c31a7c90 <unknown>
+#13 0x59b6c31fd358 <unknown>
+#14 0x59b6c31fd528 <unknown>
+#15 0x59b6c320f353 <unknown>
+#16 0x7a0c5509caa4 <unknown>
+#17 0x7a0c55129c6c <unknown>
+
+2026-02-11 14:47:25,915 - __main__ - INFO - Retrying in 5.44 seconds...
+2026-02-11 14:47:29,219 - __main__ - WARNING - Scraping interrupted by user
+2026-02-11 14:47:29,220 - output - INFO - All batches flushed
+2026-02-11 14:47:29,220 - __main__ - INFO - Scraper shutdown complete
+2026-02-11 14:47:31,462 - __main__ - ERROR - Error scraping https://acukwik.com/Airport-Info/OBBI (attempt 2): Message: session not created: Chrome instance exited. Examine ChromeDriver verbose log to determine the cause.
+Stacktrace:
+#0 0x5cc0aeeebd0a <unknown>
+#1 0x5cc0ae8fb682 <unknown>
+#2 0x5cc0ae93923b <unknown>
+#3 0x5cc0ae933f09 <unknown>
+#4 0x5cc0ae9858de <unknown>
+#5 0x5cc0ae984fcc <unknown>
+#6 0x5cc0ae94288f <unknown>
+#7 0x5cc0ae943651 <unknown>
+#8 0x5cc0aeeb0159 <unknown>
+#9 0x5cc0aeeb3061 <unknown>
+#10 0x5cc0aee9c919 <unknown>
+#11 0x5cc0aeeb3c2e <unknown>
+#12 0x5cc0aee82c90 <unknown>
+#13 0x5cc0aeed8358 <unknown>
+#14 0x5cc0aeed8528 <unknown>
+#15 0x5cc0aeeea353 <unknown>
+#16 0x7c6171c9caa4 <unknown>
+#17 0x7c6171d29c6c <unknown>
+
+2026-02-11 14:47:31,463 - __main__ - INFO - Retrying in 10.22 seconds...
+2026-02-11 14:47:31,550 - __main__ - ERROR - Error scraping https://acukwik.com/Airport-Info/SACO (attempt 2): Message: session not created: Chrome instance exited. Examine ChromeDriver verbose log to determine the cause.
+Stacktrace:
+#0 0x5c232b67cd0a <unknown>
+#1 0x5c232b08c682 <unknown>
+#2 0x5c232b0ca23b <unknown>
+#3 0x5c232b0c4f09 <unknown>
+#4 0x5c232b1168de <unknown>
+#5 0x5c232b115fcc <unknown>
+#6 0x5c232b0d388f <unknown>
+#7 0x5c232b0d4651 <unknown>
+#8 0x5c232b641159 <unknown>
+#9 0x5c232b644061 <unknown>
+#10 0x5c232b62d919 <unknown>
+#11 0x5c232b644c2e <unknown>
+#12 0x5c232b613c90 <unknown>
+#13 0x5c232b669358 <unknown>
+#14 0x5c232b669528 <unknown>
+#15 0x5c232b67b353 <unknown>
+#16 0x73e16be9caa4 <unknown>
+#17 0x73e16bf29c6c <unknown>
+
+2026-02-11 14:47:31,550 - __main__ - INFO - Retrying in 10.80 seconds...
+2026-02-11 14:47:31,556 - __main__ - ERROR - Error scraping https://acukwik.com/Airport-Info/LOWG (attempt 2): Message: session not created: Chrome instance exited. Examine ChromeDriver verbose log to determine the cause.
+Stacktrace:
+#0 0x62097a88ed0a <unknown>
+#1 0x62097a29e682 <unknown>
+#2 0x62097a2dc23b <unknown>
+#3 0x62097a2d6f09 <unknown>
+#4 0x62097a3288de <unknown>
+#5 0x62097a327fcc <unknown>
+#6 0x62097a2e588f <unknown>
+#7 0x62097a2e6651 <unknown>
+#8 0x62097a853159 <unknown>
+#9 0x62097a856061 <unknown>
+#10 0x62097a83f919 <unknown>
+#11 0x62097a856c2e <unknown>
+#12 0x62097a825c90 <unknown>
+#13 0x62097a87b358 <unknown>
+#14 0x62097a87b528 <unknown>
+#15 0x62097a88d353 <unknown>
+#16 0x7cc0e169caa4 <unknown>
+#17 0x7cc0e1729c6c <unknown>
+
+2026-02-11 14:47:31,556 - __main__ - INFO - Retrying in 10.51 seconds...
+2026-02-11 14:47:31,587 - __main__ - ERROR - Error scraping https://acukwik.com/Airport-Info/SABE (attempt 2): Message: session not created: Chrome instance exited. Examine ChromeDriver verbose log to determine the cause.
+Stacktrace:
+#0 0x5a9d9156ed0a <unknown>
+#1 0x5a9d90f7e682 <unknown>
+#2 0x5a9d90fbc23b <unknown>
+#3 0x5a9d90fb6f09 <unknown>
+#4 0x5a9d910088de <unknown>
+#5 0x5a9d91007fcc <unknown>
+#6 0x5a9d90fc588f <unknown>
+#7 0x5a9d90fc6651 <unknown>
+#8 0x5a9d91533159 <unknown>
+#9 0x5a9d91536061 <unknown>
+#10 0x5a9d9151f919 <unknown>
+#11 0x5a9d91536c2e <unknown>
+#12 0x5a9d91505c90 <unknown>
+#13 0x5a9d9155b358 <unknown>
+#14 0x5a9d9155b528 <unknown>
+#15 0x5a9d9156d353 <unknown>
+#16 0x7b837449caa4 <unknown>
+#17 0x7b8374529c6c <unknown>
+
+2026-02-11 14:47:31,588 - __main__ - INFO - Retrying in 10.60 seconds...
+2026-02-11 14:47:31,623 - __main__ - ERROR - Error scraping https://acukwik.com/Airport-Info/MYNN (attempt 2): Message: session not created: Chrome instance exited. Examine ChromeDriver verbose log to determine the cause.
+Stacktrace:
+#0 0x60637ef30d0a <unknown>
+#1 0x60637e940682 <unknown>
+#2 0x60637e97e23b <unknown>
+#3 0x60637e978f09 <unknown>
+#4 0x60637e9ca8de <unknown>
+#5 0x60637e9c9fcc <unknown>
+#6 0x60637e98788f <unknown>
+#7 0x60637e988651 <unknown>
+#8 0x60637eef5159 <unknown>
+#9 0x60637eef8061 <unknown>
+#10 0x60637eee1919 <unknown>
+#11 0x60637eef8c2e <unknown>
+#12 0x60637eec7c90 <unknown>
+#13 0x60637ef1d358 <unknown>
+#14 0x60637ef1d528 <unknown>
+#15 0x60637ef2f353 <unknown>
+#16 0x705af149caa4 <unknown>
+#17 0x705af1529c6c <unknown>
+
+2026-02-11 14:47:31,623 - __main__ - INFO - Retrying in 10.87 seconds...
+2026-02-11 14:47:31,721 - __main__ - ERROR - Error scraping https://acukwik.com/Airport-Info/LOWW (attempt 2): Message: session not created: Chrome instance exited. Examine ChromeDriver verbose log to determine the cause.
+Stacktrace:
+#0 0x555c52b89d0a <unknown>
+#1 0x555c52599682 <unknown>
+#2 0x555c525d723b <unknown>
+#3 0x555c525d1f09 <unknown>
+#4 0x555c526238de <unknown>
+#5 0x555c52622fcc <unknown>
+#6 0x555c525e088f <unknown>
+#7 0x555c525e1651 <unknown>
+#8 0x555c52b4e159 <unknown>
+#9 0x555c52b51061 <unknown>
+#10 0x555c52b3a919 <unknown>
+#11 0x555c52b51c2e <unknown>
+#12 0x555c52b20c90 <unknown>
+#13 0x555c52b76358 <unknown>
+#14 0x555c52b76528 <unknown>
+#15 0x555c52b88353 <unknown>
+#16 0x756c70e9caa4 <unknown>
+#17 0x756c70f29c6c <unknown>
+
+2026-02-11 14:47:31,721 - __main__ - INFO - Retrying in 10.38 seconds...

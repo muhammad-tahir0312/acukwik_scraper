@@ -1,0 +1,101 @@
+2026-02-11 12:59:05,447 - __main__ - INFO - Logging initialized. Log file: logs/scraper_20260211_115905.log
+2026-02-11 12:59:05,453 - config_loader - INFO - Loaded configuration from: config.yaml
+2026-02-11 12:59:05,453 - config_loader - INFO - Configuration validated successfully
+2026-02-11 12:59:05,453 - output - INFO - Output writer initialized. Success file: output/scraped_records_20260211_115905.jsonl
+2026-02-11 12:59:05,453 - output - INFO - Failed records file: output/failed_records_20260211_115905.jsonl
+2026-02-11 12:59:05,454 - progress - INFO - No existing progress file found, starting fresh
+2026-02-11 12:59:05,454 - progress - INFO - Progress tracker initialized with 0 completed IDs
+2026-02-11 12:59:05,454 - __main__ - INFO - Scraper orchestrator initialized for source: acukwik
+2026-02-11 12:59:05,454 - __main__ - INFO - ============================================================
+2026-02-11 12:59:05,454 - __main__ - INFO - Starting Aviation Data Scraper
+2026-02-11 12:59:05,454 - __main__ - INFO - ============================================================
+2026-02-11 12:59:05,454 - __main__ - INFO - Using existing cookies (age: 0.0 days)
+2026-02-11 12:59:05,454 - __main__ - INFO - Loading input from: ../data.csv
+2026-02-11 12:59:05,455 - __main__ - INFO - Loaded 1 records from ../data.csv
+2026-02-11 12:59:05,455 - __main__ - INFO - Total records loaded: 1
+2026-02-11 12:59:05,455 - __main__ - INFO - Starting sequential scraping
+2026-02-11 12:59:05,455 - __main__ - INFO - Total records to process: 1
+2026-02-11 12:59:21,175 - __main__ - ERROR - Error scraping https://acukwik.com/Airport-Info/OBBI (attempt 1): Message: session not created: Chrome instance exited. Examine ChromeDriver verbose log to determine the cause.
+Stacktrace:
+#0 0x578f46280d0a <unknown>
+#1 0x578f45c90682 <unknown>
+#2 0x578f45cce23b <unknown>
+#3 0x578f45cc8f09 <unknown>
+#4 0x578f45d1a8de <unknown>
+#5 0x578f45d19fcc <unknown>
+#6 0x578f45cd788f <unknown>
+#7 0x578f45cd8651 <unknown>
+#8 0x578f46245159 <unknown>
+#9 0x578f46248061 <unknown>
+#10 0x578f46231919 <unknown>
+#11 0x578f46248c2e <unknown>
+#12 0x578f46217c90 <unknown>
+#13 0x578f4626d358 <unknown>
+#14 0x578f4626d528 <unknown>
+#15 0x578f4627f353 <unknown>
+#16 0x74424829caa4 <unknown>
+#17 0x744248329c6c <unknown>
+
+2026-02-11 12:59:21,176 - __main__ - INFO - Retrying in 5.11 seconds...
+2026-02-11 12:59:26,469 - __main__ - ERROR - Error scraping https://acukwik.com/Airport-Info/OBBI (attempt 2): Message: session not created: Chrome instance exited. Examine ChromeDriver verbose log to determine the cause.
+Stacktrace:
+#0 0x573eaa705d0a <unknown>
+#1 0x573eaa115682 <unknown>
+#2 0x573eaa15323b <unknown>
+#3 0x573eaa14df09 <unknown>
+#4 0x573eaa19f8de <unknown>
+#5 0x573eaa19efcc <unknown>
+#6 0x573eaa15c88f <unknown>
+#7 0x573eaa15d651 <unknown>
+#8 0x573eaa6ca159 <unknown>
+#9 0x573eaa6cd061 <unknown>
+#10 0x573eaa6b6919 <unknown>
+#11 0x573eaa6cdc2e <unknown>
+#12 0x573eaa69cc90 <unknown>
+#13 0x573eaa6f2358 <unknown>
+#14 0x573eaa6f2528 <unknown>
+#15 0x573eaa704353 <unknown>
+#16 0x711de229caa4 <unknown>
+#17 0x711de2329c6c <unknown>
+
+2026-02-11 12:59:26,469 - __main__ - INFO - Retrying in 10.64 seconds...
+2026-02-11 12:59:37,291 - __main__ - ERROR - Error scraping https://acukwik.com/Airport-Info/OBBI (attempt 3): Message: session not created: Chrome instance exited. Examine ChromeDriver verbose log to determine the cause.
+Stacktrace:
+#0 0x64ef62e54d0a <unknown>
+#1 0x64ef62864682 <unknown>
+#2 0x64ef628a223b <unknown>
+#3 0x64ef6289cf09 <unknown>
+#4 0x64ef628ee8de <unknown>
+#5 0x64ef628edfcc <unknown>
+#6 0x64ef628ab88f <unknown>
+#7 0x64ef628ac651 <unknown>
+#8 0x64ef62e19159 <unknown>
+#9 0x64ef62e1c061 <unknown>
+#10 0x64ef62e05919 <unknown>
+#11 0x64ef62e1cc2e <unknown>
+#12 0x64ef62debc90 <unknown>
+#13 0x64ef62e41358 <unknown>
+#14 0x64ef62e41528 <unknown>
+#15 0x64ef62e53353 <unknown>
+#16 0x712872a9caa4 <unknown>
+#17 0x712872b29c6c <unknown>
+
+2026-02-11 12:59:37,292 - progress - WARNING - Failed attempt 1 for acukwik_airport_defa72cc
+2026-02-11 12:59:37,292 - output - INFO - Flushed 1 failed records
+2026-02-11 12:59:37,293 - output - INFO - All batches flushed
+2026-02-11 12:59:37,294 - __main__ - INFO - Sequential scraping completed
+2026-02-11 12:59:37,294 - __main__ - INFO - ============================================================
+2026-02-11 12:59:37,294 - __main__ - INFO - SCRAPING COMPLETED
+2026-02-11 12:59:37,294 - __main__ - INFO - ============================================================
+2026-02-11 12:59:37,294 - __main__ - INFO - Total processed:  1
+2026-02-11 12:59:37,294 - __main__ - INFO - Successful:       0
+2026-02-11 12:59:37,294 - __main__ - INFO - Failed:           1
+2026-02-11 12:59:37,294 - __main__ - INFO - Skipped:          0
+2026-02-11 12:59:37,294 - __main__ - INFO - Duration:         31.84 seconds
+2026-02-11 12:59:37,294 - __main__ - INFO - Success rate:     0.00%
+2026-02-11 12:59:37,294 - __main__ - INFO - Output records:   0
+2026-02-11 12:59:37,295 - __main__ - INFO - Failed records:   1
+2026-02-11 12:59:37,295 - __main__ - INFO - Completed IDs:    0
+2026-02-11 12:59:37,295 - __main__ - INFO - ============================================================
+2026-02-11 12:59:37,295 - __main__ - INFO - Scraper shutdown complete
+2026-02-11 12:59:37,295 - output - INFO - All batches flushed
