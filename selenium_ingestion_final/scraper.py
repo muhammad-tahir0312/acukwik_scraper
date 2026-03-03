@@ -670,34 +670,34 @@ class ScraperOrchestrator:
 
                     scraping_cfg = self.config.get("scraping", {})
 
-                    # # Scrape Clearance tab
-                    # if icao and scraping_cfg.get("scrape_clearance", True):
-                    #     try:
-                    #         clearance_url = f"https://acukwik.com/Clearance-Overview/{icao}"
-                    #         clearance_parser = ClearanceParser(driver)
-                    #         clearance_entity = clearance_parser.parse(clearance_url, icao)
-                    #         if clearance_entity:
-                    #             entities.append(clearance_entity)
-                    #     except Exception as ce:
-                    #         logger.warning(f"Clearance scrape failed for {icao}: {ce}")
+                    # Scrape Clearance tab
+                    if icao and scraping_cfg.get("scrape_clearance", True):
+                        try:
+                            clearance_url = f"https://acukwik.com/Clearance-Overview/{icao}"
+                            clearance_parser = ClearanceParser(driver)
+                            clearance_entity = clearance_parser.parse(clearance_url, icao)
+                            if clearance_entity:
+                                entities.append(clearance_entity)
+                        except Exception as ce:
+                            logger.warning(f"Clearance scrape failed for {icao}: {ce}")
 
-                    # # Scrape Nearby tab
-                    # if icao and scraping_cfg.get("scrape_nearby", True):
-                    #     try:
-                    #         nearby_url = f"https://acukwik.com/Nearby/{icao}"
-                    #         nearby_parser = NearbyParser(driver)
-                    #         nearby_entity = nearby_parser.parse(nearby_url, icao)
-                    #         if nearby_entity:
-                    #             entities.append(nearby_entity)
-                    #     except Exception as ne:
-                    #         logger.warning(f"Nearby scrape failed for {icao}: {ne}")
+                    # Scrape Nearby tab
+                    if icao and scraping_cfg.get("scrape_nearby", True):
+                        try:
+                            nearby_url = f"https://acukwik.com/Nearby/{icao}"
+                            nearby_parser = NearbyParser(driver)
+                            nearby_entity = nearby_parser.parse(nearby_url, icao)
+                            if nearby_entity:
+                                entities.append(nearby_entity)
+                        except Exception as ne:
+                            logger.warning(f"Nearby scrape failed for {icao}: {ne}")
 
-                # else:
-                #     # Legacy organization scraping (single entity)
-                #     parser = OrganizationParser(driver)
-                #     associated_airport = record.get("airport_icao")
-                #     single_entity = parser.parse(url, associated_airport)
-                #     entities = [single_entity]
+                else:
+                    # Legacy organization scraping (single entity)
+                    parser = OrganizationParser(driver)
+                    associated_airport = record.get("airport_icao")
+                    single_entity = parser.parse(url, associated_airport)
+                    entities = [single_entity]
                 
                 # Validate, optionally screenshot, and write all entities
                 for entity in entities:

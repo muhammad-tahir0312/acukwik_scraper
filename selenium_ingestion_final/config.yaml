@@ -8,8 +8,8 @@ source:
 input:
   # Single CSV file or list of CSV files
   csv_paths:
-    - "../pakistani.csv" # Example of single file
-    # - "../country_links.csv"
+    # - "../pakistani.csv" # Example of single file
+    - "../country_links.csv"
   
   # Expected CSV columns (flexible - will look for these names):
   # - url, link, or "Airport Link": URL to scrape (REQUIRED)
@@ -29,7 +29,7 @@ progress:
 
 # Scraping configuration
 scraping:
-  parallel_workers: 1  # Number of parallel workers (1 for sequential - RECOMMENDED for debugging)
+  parallel_workers: 20  # Number of parallel workers (1 for sequential - RECOMMENDED for debugging)
   max_retries: 3  # Maximum retry attempts per URL
   retry_backoff: 5  # Base backoff in seconds (exponential)
   delay_between_requests: 3  # Delay in seconds between requests (increased for stability)
