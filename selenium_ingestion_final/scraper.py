@@ -82,6 +82,8 @@ def auto_login_if_needed(config: Dict[str, Any]) -> bool:
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
         options.add_argument("--disable-blink-features=AutomationControlled")
+        options.add_argument("--disable-gpu")  # Helps in headless mode
+        options.add_argument("--remote-debugging-port=9222")  # Ensures DevTools communication
         
         driver = webdriver.Chrome(options=options)
         driver.set_page_load_timeout(30)
