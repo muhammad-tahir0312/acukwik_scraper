@@ -28,6 +28,8 @@ wheels/
 # =============== SCRAPY / LOGS (CRITICAL FIX) ===============
 # IGNORE ENTIRE DIRECTORY – not just specific extensions
 acukwik_scraper/spiders/scraped_logs/
+selenium_integration/logs/
+selenium_integration_final/venv
 
 # General log patterns
 *.log

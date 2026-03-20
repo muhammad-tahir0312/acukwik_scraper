@@ -6,6 +6,7 @@ import logging
 import re
 import time
 import json
+import os
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timezone
 from pathlib import Path
@@ -488,7 +489,8 @@ class AirportPageParser:
 
             if field_name in boolean_fields:
                 data[field_name] = bool(value and value.lower() not in ["no", "false", "n/a", ""])
-                (observed if data[field_name] else missing).append(field_name)
+                observed.append(field_name)
+                return
             else:
                 if value:
                     # UTC offset: strip time portion e.g. "9:10:16 AM (0.00)" -> "0.00"
@@ -496,9 +498,45 @@ class AirportPageParser:
                         offset_match = re.search(r'\(([+-]?\d+\.\d+)\)', value)
                         if offset_match:
                             value = offset_match.group(1)
-                    # Airport Email: skip "Show Email" placeholder
-                    if field_name == "airport_email" and value.lower() == "show email":
-                        missing.append(field_name)
+                    # Airport Email: handle button click to reveal email
+                    if field_name == "airport_email":
+                        try:
+                            # Check if there's a button to click
+                            button = value_elem.find_element(By.CSS_SELECTOR, "button.aEmail")
+                            # Use JavaScript click to ensure it works
+                            self.driver.execute_script("arguments[0].click();", button)
+                            # Wait for the a tag to appear
+                            self.wait.until(lambda driver: value_elem.find_elements(By.TAG_NAME, "a"))
+                            # Now find the a tag
+                            link = value_elem.find_element(By.TAG_NAME, "a")
+                            email = link.get_attribute("href")
+                            if email and email.startswith("mailto:"):
+                                data[field_name] = email.replace("mailto:", "")
+                                observed.append(field_name)
+                            else:
+                                missing.append(field_name)
+                        except Exception as e:
+                            logger.warning(f"Failed to extract airport_email via button click: {e}")
+                            # Take screenshot for debugging
+                            screenshot_path = f"screenshot_airport_email_button_{int(time.time())}.png"
+                            self.driver.save_screenshot(screenshot_path)
+                            logger.info(f"Screenshot saved: {screenshot_path}")
+                            # Try to get href directly if already revealed
+                            try:
+                                link = value_elem.find_element(By.TAG_NAME, "a")
+                                email = link.get_attribute("href")
+                                if email and email.startswith("mailto:"):
+                                    data[field_name] = email.replace("mailto:", "")
+                                    observed.append(field_name)
+                                else:
+                                    missing.append(field_name)
+                            except Exception as e2:
+                                logger.warning(f"Failed to extract airport_email directly: {e2}")
+                                # Take another screenshot
+                                screenshot_path2 = f"screenshot_airport_email_direct_{int(time.time())}.png"
+                                self.driver.save_screenshot(screenshot_path2)
+                                logger.info(f"Screenshot saved: {screenshot_path2}")
+                                missing.append(field_name)
                         return
                     # Airport Website: grab actual href from <a> tag
                     if field_name == "airport_website":
