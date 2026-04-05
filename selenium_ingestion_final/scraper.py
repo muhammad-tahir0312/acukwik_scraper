@@ -484,6 +484,14 @@ class ScraperOrchestrator:
             options = FirefoxOptions()
             if headless:
                 options.add_argument("--headless")
+
+            options.binary_location = "/opt/firefox/firefox"
+
+            # Optional but recommended
+            options.set_preference("general.useragent.override",
+                self.config["selenium"].get("user_agent", "Mozilla/5.0"))
+
+            print("🔥 Using Firefox binary:", options.binary_location)
             
             driver = webdriver.Firefox(options=options)
             
