@@ -18,6 +18,7 @@ from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import WebDriverException, TimeoutException
+from selenium.webdriver.firefox.service import Service as FirefoxService
 
 from config_loader import load_config
 from auth import CookieAuthentication
@@ -485,15 +486,16 @@ class ScraperOrchestrator:
             if headless:
                 options.add_argument("--headless")
 
+            # ✅ Set correct Firefox binary
             options.binary_location = "/opt/firefox/firefox"
 
-            # Optional but recommended
-            options.set_preference("general.useragent.override",
-                self.config["selenium"].get("user_agent", "Mozilla/5.0"))
+            # ✅ Force geckodriver path (THIS FIXES YOUR ISSUE)
+            service = FirefoxService(executable_path="/usr/local/bin/geckodriver")
 
             print("🔥 Using Firefox binary:", options.binary_location)
+            print("🔥 Using GeckoDriver:", "/usr/local/bin/geckodriver")
             
-            driver = webdriver.Firefox(options=options)
+            driver = webdriver.Firefox(service=service, options=options)
             
         else:
             raise ValueError(f"Unsupported browser: {browser}")
