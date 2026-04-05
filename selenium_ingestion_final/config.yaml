@@ -38,7 +38,7 @@ scraping:
 
 # Selenium configuration
 selenium:
-  browser: "firefox"  # chrome or firefox
+  browser: "chrome"  # chrome or firefox
   headless: true  # Run browser in headless mode
   page_load_timeout: 100  # Page load timeout in seconds (increased for slow pages)
   implicit_wait: 15  # Implicit wait in seconds
