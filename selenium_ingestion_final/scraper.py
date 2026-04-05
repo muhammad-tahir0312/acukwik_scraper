@@ -18,6 +18,7 @@ from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import WebDriverException, TimeoutException
+from selenium.webdriver.chrome.service import Service
 
 from config_loader import load_config
 from auth import CookieAuthentication
@@ -478,7 +479,8 @@ class ScraperOrchestrator:
             # Add user agent
             options.add_argument(f"user-agent={self.config['selenium'].get('user_agent', 'Mozilla/5.0')}")
             
-            driver = webdriver.Chrome(options=options)
+            service = Service("/usr/local/bin/chromedriver")
+            driver = webdriver.Chrome(service=service, options=options)
             
         elif browser == "firefox":
             options = FirefoxOptions()
