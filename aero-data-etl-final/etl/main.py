@@ -84,7 +84,12 @@ def main(input_path):
 if __name__ == "__main__":
     # Automatically detect .jsonl files in acukwik_data folder
     data_dir = os.path.join(os.path.dirname(__file__), '../acukwik_data')
-    jsonl_files = [os.path.join(data_dir, f) for f in os.listdir(data_dir) if f.endswith('.jsonl')]
+    # Sort by filename so part files run in a stable, predictable order.
+    jsonl_files = [
+        os.path.join(data_dir, f)
+        for f in sorted(os.listdir(data_dir))
+        if f.endswith('.jsonl')
+    ]
     if not jsonl_files:
         print("No .jsonl files found in acukwik_data folder.")
         exit(1)

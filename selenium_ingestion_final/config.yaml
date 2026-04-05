@@ -29,7 +29,7 @@ progress:
 
 # Scraping configuration
 scraping:
-  parallel_workers: 20  # Number of parallel workers (1 for sequential - RECOMMENDED for debugging)
+  parallel_workers: 30  # Number of parallel workers (1 for sequential - RECOMMENDED for debugging)
   max_retries: 3  # Maximum retry attempts per URL
   retry_backoff: 5  # Base backoff in seconds (exponential)
   delay_between_requests: 3  # Delay in seconds between requests (increased for stability)
@@ -38,7 +38,7 @@ scraping:
 
 # Selenium configuration
 selenium:
-  browser: "chrome"  # chrome or firefox
+  browser: "firefox"  # chrome or firefox
   headless: true  # Run browser in headless mode
   page_load_timeout: 100  # Page load timeout in seconds (increased for slow pages)
   implicit_wait: 15  # Implicit wait in seconds

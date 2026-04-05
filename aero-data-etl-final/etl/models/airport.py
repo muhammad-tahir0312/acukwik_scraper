@@ -7,13 +7,14 @@ INSERT INTO airports (
     fuel_available, approaches, runway_surface, longest_runway_length_ft, longest_runway_width_ft, longest_runway_ident, utc_offset,
     pcn, url, scrape_status, external_id, observed_fields, missing_fields,
     afs_aftn, airport_general_remarks, airport_hours, airport_light_intensity, airport_manager_phone,
+    airport_email,
     airport_of_entry, airport_of_entry_remarks, airport_ownership, airport_website, atis_frequency,
     control_tower_hours, coordinates_raw, ctaf_frequency, customs, distance_from_city, dst, elevation_raw,
     faa_id, facility_use, fire_category, fire_category_remarks, handling_mandatory, local_standard_time,
     longest_runway_raw, open_24h, slots_required, sunrise, sunset, tower_frequency, us_customs_pre_clearance, variation,
     errors, extra
 )
-VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
 ON CONFLICT (icao) DO UPDATE SET
     iata = COALESCE(EXCLUDED.iata, airports.iata),
     name = COALESCE(EXCLUDED.name, airports.name),
@@ -41,6 +42,7 @@ ON CONFLICT (icao) DO UPDATE SET
     airport_hours = COALESCE(EXCLUDED.airport_hours, airports.airport_hours),
     airport_light_intensity = COALESCE(EXCLUDED.airport_light_intensity, airports.airport_light_intensity),
     airport_manager_phone = COALESCE(EXCLUDED.airport_manager_phone, airports.airport_manager_phone),
+    airport_email = COALESCE(EXCLUDED.airport_email, airports.airport_email),
     airport_of_entry = COALESCE(EXCLUDED.airport_of_entry, airports.airport_of_entry),
     airport_of_entry_remarks = COALESCE(EXCLUDED.airport_of_entry_remarks, airports.airport_of_entry_remarks),
     airport_ownership = COALESCE(EXCLUDED.airport_ownership, airports.airport_ownership),

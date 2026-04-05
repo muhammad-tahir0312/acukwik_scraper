@@ -95,6 +95,33 @@ class CookieAuthentication:
                         cookie_dict["httpOnly"] = cookie["httpOnly"]
                     if "sameSite" in cookie:
                         cookie_dict["sameSite"] = cookie["sameSite"]
+
+                    # Firefox/WebDriver requires SameSite=None cookies to also be Secure.
+                    # Normalize SameSite values from common browser export formats.
+                    same_site = cookie_dict.get("sameSite")
+                    if isinstance(same_site, str):
+                        same_site_normalized = same_site.strip().lower()
+                        same_site_map = {
+                            "none": "None",
+                            "no_restriction": "None",
+                            "lax": "Lax",
+                            "strict": "Strict",
+                        }
+                        if same_site_normalized in same_site_map:
+                            cookie_dict["sameSite"] = same_site_map[same_site_normalized]
+                        else:
+                            # Drop unsupported sameSite values rather than failing cookie insertion.
+                            cookie_dict.pop("sameSite", None)
+
+                    if cookie_dict.get("sameSite") == "None" and not cookie_dict.get("secure", False):
+                        cookie_dict["secure"] = True
+
+                    # Remove invalid expiry values that can break add_cookie on some drivers.
+                    if "expiry" in cookie_dict:
+                        try:
+                            cookie_dict["expiry"] = int(cookie_dict["expiry"])
+                        except Exception:
+                            cookie_dict.pop("expiry", None)
                     
                     driver.add_cookie(cookie_dict)
                     cookies_added += 1

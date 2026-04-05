@@ -186,9 +186,22 @@ def upsert_nearby_airports(nearby, airport_id=None):
     external_id = nearby.get('external_id') or (
         f"nearby_{url.rstrip('/').split('/')[-1]}" if url else None
     )
+    items = nearby.get('nearby_airports') or []
+    nearby_icaos = [item.get('icao') for item in items]
+    nearby_names = [item.get('name') for item in items]
+    nearby_urls = [item.get('url') for item in items]
+    nearby_primary_runways = [item.get('primary_runway') for item in items]
+    nearby_airport_types = [item.get('airport_type') for item in items]
+    nearby_cities = [item.get('city') for item in items]
     with get_db_cursor(commit=True) as cur:
         cur.execute(NEARBY_AIRPORTS_UPSERT, [
             nearby.get('associated_airports') or [],
+            nearby_icaos,
+            nearby_names,
+            nearby_urls,
+            nearby_primary_runways,
+            nearby_airport_types,
+            nearby_cities,
             url, nearby.get('scrape_status'),
             external_id, nearby.get('observed_fields'), nearby.get('missing_fields'),
             json.dumps(nearby.get('errors')) if nearby.get('errors') else None,

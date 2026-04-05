@@ -91,6 +91,7 @@ def upsert_airport(data):
     airport_hours = data.get('airport_hours')
     airport_light_intensity = data.get('airport_light_intensity')
     airport_manager_phone = data.get('airport_manager_phone')
+    airport_email = data.get('airport_email')
     airport_of_entry = data.get('airport_of_entry')
     airport_of_entry_remarks = data.get('airport_of_entry_remarks')
     airport_ownership = data.get('airport_ownership')
@@ -120,7 +121,7 @@ def upsert_airport(data):
         'icao', 'iata', 'name', 'airport_type', 'city', 'country', 'coordinates_raw', 'elevation_raw',
         'fuel_available', 'approaches', 'runway_surface', 'longest_runway_raw', 'pcn', 'utc_offset',
         'external_id', 'url', 'scrape_status', 'observed_fields', 'missing_fields', 'errors',
-        'afs_aftn', 'airport_general_remarks', 'airport_hours', 'airport_light_intensity', 'airport_manager_phone',
+        'afs_aftn', 'airport_general_remarks', 'airport_hours', 'airport_light_intensity', 'airport_manager_phone', 'airport_email',
         'airport_of_entry', 'airport_of_entry_remarks', 'airport_ownership', 'airport_website', 'atis_frequency',
         'control_tower_hours', 'ctaf_frequency', 'customs', 'distance_from_city', 'dst', 'faa_id', 'facility_use',
         'fire_category', 'fire_category_remarks', 'handling_mandatory', 'local_standard_time', 'open_24h',
@@ -137,6 +138,7 @@ def upsert_airport(data):
             pcn, url, scrape_status,
             external_id, observed_fields, missing_fields,
             afs_aftn, airport_general_remarks, airport_hours, airport_light_intensity, airport_manager_phone,
+            airport_email,
             airport_of_entry, airport_of_entry_remarks, airport_ownership, airport_website, atis_frequency,
             control_tower_hours, coord_raw, ctaf_frequency, customs, distance_from_city, dst, data.get('elevation_raw'),
             faa_id, facility_use, fire_category, fire_category_remarks, handling_mandatory, local_standard_time,

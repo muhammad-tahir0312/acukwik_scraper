@@ -1,0 +1,234 @@
+[
+  {
+    "name": "dnn_IsMobile",
+    "value": "False",
+    "path": "/",
+    "domain": "acukwik.com",
+    "secure": true,
+    "httpOnly": true,
+    "sameSite": "Lax"
+  },
+  {
+    "name": "language",
+    "value": "en-US",
+    "path": "/",
+    "domain": "acukwik.com",
+    "secure": true,
+    "httpOnly": true,
+    "sameSite": "Lax"
+  },
+  {
+    "name": ".ASPXANONYMOUS",
+    "value": "FfAXugXz_RYLLBIoCjutC6Ixog7dxAkidUuMHkfBpHzPYmvnVWjkfjoUr51aFw3Guf7pVGyhPPyAOqdAGhKINtEndQ346kPKURGUZEeCg5f1garF0",
+    "path": "/",
+    "domain": "acukwik.com",
+    "secure": true,
+    "httpOnly": true,
+    "expiry": 1781357525,
+    "sameSite": "Lax"
+  },
+  {
+    "name": "__cf_bm",
+    "value": "6BOhZXq6OK.bB4lJg_._UQnELpWvwXaBpyxQN6YJn5I-1775357522.7761688-1.0.1.1-zA0.mX7d4dFK659ruenZ6DuJ1t.ewFkPMGoBM2yBfYYpsD3XBmmv6G.skvsj0ca9GWTMh8uQXFmURmgfe.dkg8YAKKdM7UrvPku2919ey5iXCD5fclDfd6SqBpsFcItV",
+    "path": "/",
+    "domain": ".acukwik.com",
+    "secure": true,
+    "httpOnly": true,
+    "expiry": 1775359326,
+    "sameSite": "None"
+  },
+  {
+    "name": "AMCVS_DD4C6A00570E3C0F7F000101%40AdobeOrg",
+    "value": "1",
+    "path": "/",
+    "domain": ".acukwik.com",
+    "secure": false,
+    "httpOnly": false,
+    "sameSite": "None"
+  },
+  {
+    "name": "__td_signed",
+    "value": "true",
+    "path": "/",
+    "domain": ".acukwik.com",
+    "secure": true,
+    "httpOnly": false,
+    "expiry": 1809917529,
+    "sameSite": "None"
+  },
+  {
+    "name": "_gcl_au",
+    "value": "1.1.724578609.1775357529",
+    "path": "/",
+    "domain": ".acukwik.com",
+    "secure": false,
+    "httpOnly": false,
+    "expiry": 1783133529,
+    "sameSite": "None"
+  },
+  {
+    "name": "AMCV_DD4C6A00570E3C0F7F000101%40AdobeOrg",
+    "value": "-432600572%7CMCIDTS%7C20549%7CMCMID%7C77568146816227494912757817044941802157%7CMCAAMLH-1775962327%7C3%7CMCAAMB-1775962327%7C6G1ynYcLPuiQxYZrsz_pkqfLG9yMXBpb2zX5dvJdYQJzPXImdj0y%7CMCOPTOUT-1775364727s%7CNONE%7CMCSYNCSOP%7C411-20556%7CvVersion%7C4.5.2",
+    "path": "/",
+    "domain": ".acukwik.com",
+    "secure": false,
+    "httpOnly": false,
+    "expiry": 1809917530,
+    "sameSite": "None"
+  },
+  {
+    "name": "__gads",
+    "value": "ID=ea288d6f1ae9eabb:T=1775357530:RT=1775357530:S=ALNI_MYwyF3IEjXSfYsP7Birezk4vuY0QA",
+    "path": "/",
+    "domain": ".acukwik.com",
+    "secure": true,
+    "httpOnly": false,
+    "expiry": 1809053530,
+    "sameSite": "None"
+  },
+  {
+    "name": "__gpi",
+    "value": "UID=0000123b7d116690:T=1775357530:RT=1775357530:S=ALNI_MZQ-AnlVp89f6zWc2qejHottI1kjg",
+    "path": "/",
+    "domain": ".acukwik.com",
+    "secure": true,
+    "httpOnly": false,
+    "expiry": 1809053530,
+    "sameSite": "None"
+  },
+  {
+    "name": "__eoi",
+    "value": "ID=27284fc4e5626f67:T=1775357530:RT=1775357530:S=AA-AfjYpgcCE1SKmIMSwkDd3G_wr",
+    "path": "/",
+    "domain": ".acukwik.com",
+    "secure": true,
+    "httpOnly": false,
+    "expiry": 1790909530,
+    "sameSite": "None"
+  },
+  {
+    "name": "_td_global",
+    "value": "324af97e-4377-4a44-a282-086f4dea8fa3",
+    "path": "/",
+    "domain": "acukwik.com",
+    "secure": true,
+    "httpOnly": false,
+    "expiry": 1775363531,
+    "sameSite": "None"
+  },
+  {
+    "name": "s_cc",
+    "value": "true",
+    "path": "/",
+    "domain": ".acukwik.com",
+    "secure": false,
+    "httpOnly": false,
+    "sameSite": "None"
+  },
+  {
+    "name": "acu_login_success",
+    "value": "1",
+    "path": "/",
+    "domain": "acukwik.com",
+    "secure": true,
+    "httpOnly": false,
+    "sameSite": "Lax"
+  },
+  {
+    "name": ".DOTNETNUKE",
+    "value": "8BC6475B29A91B2FFEC577301E20BAAC0F376137595F39C1220559E472E18522FFA662931AD24B9B07262A4AE53A6D2DF3AD4D9B0D465EC70F140CFF1513B6AA187E1F872328FE5902C35B78935951046CCADE50C0987583DEC6F498",
+    "path": "/",
+    "domain": "acukwik.com",
+    "secure": true,
+    "httpOnly": true,
+    "expiry": 1777949557,
+    "sameSite": "Lax"
+  },
+  {
+    "name": "LastPageId",
+    "value": "0:55",
+    "path": "/",
+    "domain": "acukwik.com",
+    "secure": true,
+    "httpOnly": true,
+    "sameSite": "Lax"
+  },
+  {
+    "name": "_iris_duid",
+    "value": "48de3c60-8bea-477b-8a31-13407be95908",
+    "path": "/",
+    "domain": "acukwik.com",
+    "secure": false,
+    "httpOnly": false,
+    "sameSite": "None"
+  },
+  {
+    "name": "_sp_ses.5f31",
+    "value": "*",
+    "path": "/",
+    "domain": ".acukwik.com",
+    "secure": true,
+    "httpOnly": false,
+    "expiry": 1775359358,
+    "sameSite": "Lax"
+  },
+  {
+    "name": "_sp_id.5f31",
+    "value": "48de3c60-8bea-477b-8a31-13407be95908.1775357530.1.1775357558..f8f2c5ca-ba12-492d-b455-8a75c044c4ee..a67220b9-43f5-4b63-afb5-2476b77de461.1775357529803.4",
+    "path": "/",
+    "domain": ".acukwik.com",
+    "secure": true,
+    "httpOnly": false,
+    "expiry": 1809917558,
+    "sameSite": "Lax"
+  },
+  {
+    "name": "sp",
+    "value": "6c598109-0990-4141-8d24-03d4501fae58",
+    "path": "/",
+    "domain": ".acukwik.com",
+    "secure": true,
+    "httpOnly": true,
+    "expiry": 1806893558,
+    "sameSite": "Lax"
+  },
+  {
+    "name": "_td",
+    "value": "5a3a48bf-8ba6-4ce4-a7a9-1f1c92406cb8",
+    "path": "/",
+    "domain": ".acukwik.com",
+    "secure": true,
+    "httpOnly": false,
+    "expiry": 1809917559,
+    "sameSite": "None"
+  },
+  {
+    "name": "_zitok",
+    "value": "f17c81cb41f28e9447971775357531",
+    "path": "/",
+    "domain": ".acukwik.com",
+    "secure": true,
+    "httpOnly": false,
+    "expiry": 1806893559,
+    "sameSite": "Strict"
+  },
+  {
+    "name": "gpv",
+    "value": "AC-U-KWIK%3AHome",
+    "path": "/",
+    "domain": ".acukwik.com",
+    "secure": true,
+    "httpOnly": false,
+    "expiry": 1775359359,
+    "sameSite": "None"
+  },
+  {
+    "name": "s_sq",
+    "value": "%5B%5BB%5D%5D",
+    "path": "/",
+    "domain": ".acukwik.com",
+    "secure": false,
+    "httpOnly": false,
+    "sameSite": "None"
+  }
+]

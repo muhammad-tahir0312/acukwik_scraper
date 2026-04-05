@@ -73,11 +73,18 @@ RETURNING id;
 # Nearby airports upsert and link
 NEARBY_AIRPORTS_UPSERT = """
 INSERT INTO nearby_airports (
-    associated_airports, url, scrape_status, external_id, observed_fields, missing_fields, errors, extra
+    associated_airports, icaos, names, urls, primary_runways, airport_types, cities,
+    url, scrape_status, external_id, observed_fields, missing_fields, errors, extra
 )
-VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
 ON CONFLICT (external_id) DO UPDATE SET
     associated_airports = COALESCE(EXCLUDED.associated_airports, nearby_airports.associated_airports),
+    icaos = COALESCE(EXCLUDED.icaos, nearby_airports.icaos),
+    names = COALESCE(EXCLUDED.names, nearby_airports.names),
+    urls = COALESCE(EXCLUDED.urls, nearby_airports.urls),
+    primary_runways = COALESCE(EXCLUDED.primary_runways, nearby_airports.primary_runways),
+    airport_types = COALESCE(EXCLUDED.airport_types, nearby_airports.airport_types),
+    cities = COALESCE(EXCLUDED.cities, nearby_airports.cities),
     url = COALESCE(EXCLUDED.url, nearby_airports.url),
     scrape_status = COALESCE(EXCLUDED.scrape_status, nearby_airports.scrape_status),
     external_id = COALESCE(EXCLUDED.external_id, nearby_airports.external_id),

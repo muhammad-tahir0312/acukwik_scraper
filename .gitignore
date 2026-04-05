@@ -30,6 +30,7 @@ wheels/
 acukwik_scraper/spiders/scraped_logs/
 selenium_integration/logs/
 selenium_integration_final/venv
+selenium_ingestion_final/.selenium_tmp/
 
 # General log patterns
 *.log
