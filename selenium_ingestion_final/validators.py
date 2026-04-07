@@ -229,6 +229,7 @@ def _validate_organization_data(data: Dict[str, Any]) -> List[str]:
         "HANDLER",
         "SUPERVISING_AGENT",
         "FUEL_SUPPLIER",
+        "FLIGHT_SUPPORT",
         "FLIGHT_SUPPORT_ORGANIZATION",
         "CATERING",
         "GROUND_TRANSPORTATION",

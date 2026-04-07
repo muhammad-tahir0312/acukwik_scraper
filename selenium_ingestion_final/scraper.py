@@ -479,8 +479,8 @@ class ScraperOrchestrator:
             # Add user agent
             options.add_argument(f"user-agent={self.config['selenium'].get('user_agent', 'Mozilla/5.0')}")
             
-            service = Service("/usr/local/bin/chromedriver")
-            driver = webdriver.Chrome(service=service, options=options)
+            # service = Service("/usr/local/bin/chromedriver")
+            driver = webdriver.Chrome(options=options)
             
         elif browser == "firefox":
             options = FirefoxOptions()

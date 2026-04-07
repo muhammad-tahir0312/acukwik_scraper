@@ -3,6 +3,8 @@ Airport ETL: upserts normalized airport data.
 """
 from etl.models.airport import AIRPORT_UPSERT
 from etl.db import get_db_cursor
+from etl.services.location_lookup import match_country, match_state, match_city
+import json
 
 def parse_latlong(coord_raw):
     # Example: 'N55-07.6/E030-21.0'
@@ -26,42 +28,7 @@ def parse_runway(runway_raw):
         return length, width, ident
     return None, None, None
 
-def get_city_id(city, cur):
-    # city: str or (city, country_id) tuple
-    if not city:
-        return None
-    if isinstance(city, tuple):
-        city_name, country_id = city
-    else:
-        city_name, country_id = city, None
-    if not city_name:
-        return None
-    if country_id:
-        cur.execute("SELECT id, country_id FROM cities WHERE name=%s", [city_name])
-        row = cur.fetchone()
-        if row:
-            if not row['country_id']:
-                cur.execute("UPDATE cities SET country_id=%s WHERE id=%s", [country_id, row['id']])
-            return row['id']
-        cur.execute("INSERT INTO cities (name, country_id) VALUES (%s, %s) RETURNING id", [city_name, country_id])
-        return cur.fetchone()['id']
-    else:
-        cur.execute("SELECT id FROM cities WHERE name=%s", [city_name])
-        row = cur.fetchone()
-        if row:
-            return row['id']
-        cur.execute("INSERT INTO cities (name) VALUES (%s) RETURNING id", [city_name])
-        return cur.fetchone()['id']
-
-def get_country_id(country, cur):
-    if not country:
-        return None
-    cur.execute("SELECT id FROM countries WHERE name=%s", [country])
-    row = cur.fetchone()
-    if row:
-        return row['id']
-    cur.execute("INSERT INTO countries (name) VALUES (%s) RETURNING id", [country])
-    return cur.fetchone()['id']
+# Note: We DO NOT insert new countries/states/cities. Match against authoritative tables only.
 
 def upsert_airport(data):
     icao = data.get('icao')
@@ -129,20 +96,44 @@ def upsert_airport(data):
     }
     extra = {k: v for k, v in data.items() if k not in known_fields}
     import json
+    raw_city = city
+    raw_state = data.get('state') or data.get('region')
+    raw_country = country
     with get_db_cursor(commit=True) as cur:
-        country_id = get_country_id(country, cur)
-        city_id = get_city_id((city, country_id), cur)
+        # Match country -> state -> city. Do not create new normalized rows.
+        country_id, country_candidates = match_country(raw_country, cur)
+        state_id, state_candidates = (None, [])
+        city_id, city_candidates = (None, [])
+        if raw_state:
+            state_id, state_candidates = match_state(raw_state, country_id, cur)
+        if raw_city:
+            city_id, city_candidates = match_city(raw_city, country_id, state_id, cur)
+
+        # If any of the lookups produced ambiguous or empty results, insert a review row
+        candidates = {}
+        if country_candidates:
+            candidates['country'] = country_candidates
+        if state_candidates:
+            candidates['state'] = state_candidates
+        if city_candidates:
+            candidates['city'] = city_candidates
+        if candidates:
+            cur.execute(
+                "INSERT INTO airport_location_review (external_id, icao, raw_country, raw_state, raw_city, candidates) VALUES (%s, %s, %s, %s, %s, %s)",
+                [external_id, icao, raw_country, raw_state, raw_city, json.dumps(candidates)]
+            )
+
         cur.execute(AIRPORT_UPSERT, [
-            icao, iata, name, airport_type, city_id, country_id, lat_deg, lon_deg, elevation_ft,
+            icao, iata, name, airport_type, city_id, country_id, state_id, lat_deg, lon_deg, elevation_ft,
             fuel_available, approaches, runway_surface, length_ft, width_ft, ident, utc_offset,
-            pcn, url, scrape_status,
-            external_id, observed_fields, missing_fields,
+            pcn, url, scrape_status, external_id, observed_fields, missing_fields,
             afs_aftn, airport_general_remarks, airport_hours, airport_light_intensity, airport_manager_phone,
             airport_email,
             airport_of_entry, airport_of_entry_remarks, airport_ownership, airport_website, atis_frequency,
             control_tower_hours, coord_raw, ctaf_frequency, customs, distance_from_city, dst, data.get('elevation_raw'),
             faa_id, facility_use, fire_category, fire_category_remarks, handling_mandatory, local_standard_time,
             longest_runway_raw, open_24h, slots_required, sunrise, sunset, tower_frequency, us_customs_pre_clearance, variation,
+            raw_city, raw_state, raw_country,
             json.dumps(errors) if errors else None, json.dumps(extra) if extra else '{}'
         ])
         return cur.fetchone()['id']

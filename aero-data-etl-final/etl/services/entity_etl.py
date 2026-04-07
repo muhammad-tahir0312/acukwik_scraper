@@ -59,25 +59,16 @@ def upsert_entity(org, airport_id=None):
         postal_code = address.get('postal_code')
         country = address.get('country')
         city = address.get('city')
+        # Match against normalized tables; do NOT create new country/city rows.
+        from etl.services.location_lookup import match_country, match_city, match_state
         with get_db_cursor(commit=True) as cur:
-            country_id = None
-            city_id = None
-            if country:
-                cur.execute("SELECT id FROM countries WHERE name=%s", [country])
-                row = cur.fetchone()
-                if row:
-                    country_id = row['id']
-                else:
-                    cur.execute("INSERT INTO countries (name) VALUES (%s) RETURNING id", [country])
-                    country_id = cur.fetchone()['id']
-            if city:
-                cur.execute("SELECT id FROM cities WHERE name=%s AND country_id=%s", [city, country_id])
-                row = cur.fetchone()
-                if row:
-                    city_id = row['id']
-                else:
-                    cur.execute("INSERT INTO cities (name, country_id) VALUES (%s, %s) RETURNING id", [city, country_id])
-                    city_id = cur.fetchone()['id']
+            country_id, _ = match_country(country, cur)
+            # If address provided state/region, try match_state for completeness
+            state = address.get('state') or address.get('region')
+            state_id = None
+            if state:
+                state_id, _ = match_state(state, country_id, cur)
+            city_id, _ = match_city(city, country_id, state_id, cur)
             cur.execute(
                 "INSERT INTO addresses (city_id, country_id, street, full_address, postal_code) VALUES (%s, %s, %s, %s, %s) RETURNING id",
                 [city_id, country_id, address.get('street'), address.get('full'), address.get('postal_code')]

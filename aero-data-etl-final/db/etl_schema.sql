@@ -7,6 +7,12 @@ CREATE TABLE public.airports (
     airport_type TEXT,
     city_id INTEGER REFERENCES public.cities(id),
     country_id INTEGER REFERENCES public.countries(id),
+    state_id INTEGER REFERENCES public.states(id),
+    -- raw name fields populated when normalized match is NOT found
+    country_name TEXT,
+    state_name TEXT,
+    city_name TEXT,
+    
     latitude DOUBLE PRECISION,
     longitude DOUBLE PRECISION,
     elevation_ft INTEGER,
@@ -89,7 +95,10 @@ CREATE TABLE public.organizations (
     missing_fields TEXT[],
     contacts JSONB,
     associated_airports TEXT[],
+    is_featured BOOLEAN DEFAULT FALSE,
+    featured_order INTEGER,
     roles TEXT[],
+    profile JSONB DEFAULT '{}'::jsonb,
     errors JSONB,
     extra JSONB DEFAULT '{}'::jsonb,
     address_id INTEGER REFERENCES public.addresses(id),
@@ -196,6 +205,13 @@ CREATE TABLE public.cities (
     country_id INTEGER REFERENCES public.countries(id)
 );
 
+CREATE TABLE public.states (
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
+    country_id INTEGER REFERENCES public.countries(id),
+    iso2 TEXT
+);
+
 CREATE TABLE public.addresses (
     id SERIAL PRIMARY KEY,
     city_id INTEGER REFERENCES public.cities(id),
@@ -252,6 +268,18 @@ CREATE TABLE public.app_logs (
     message TEXT,
     context JSONB,
     user_id UUID,
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- REVIEW TABLE: store unresolved or ambiguous location matches for manual inspection
+CREATE TABLE public.airport_location_review (
+    id BIGSERIAL PRIMARY KEY,
+    external_id TEXT,
+    icao TEXT,
+    raw_country TEXT,
+    raw_state TEXT,
+    raw_city TEXT,
+    candidates JSONB,
     created_at TIMESTAMPTZ DEFAULT now()
 );
 

@@ -605,13 +605,28 @@ class AirportPageParser:
         """
         contacts = []
         try:
-            # The section is usually under a heading containing "Restrictions"
-            section_rows = self.driver.find_elements(
-                By.XPATH,
-                "//table[.//th[contains(text(),'Airport Information') or contains(text(),'Restrictions')]]//tr[position()>1]"
-                " | //div[contains(@class,'restrictionRow') or contains(@class,'restriction-row')]"
-            )
-            # Fallback: generic table rows in the restriction panel
+            # FNLU renders this section as result rows instead of a table.
+            section_container = None
+            try:
+                heading = self.driver.find_element(
+                    By.XPATH,
+                    "//div[contains(@class,'h1') and contains(normalize-space(.),'Airport Restrictions and Information')]"
+                )
+                section_container = heading.find_element(By.XPATH, "./ancestor::div[contains(@class,'mb44px')][1]")
+            except Exception:
+                section_container = None
+
+            section_rows = []
+            if section_container:
+                section_rows = section_container.find_elements(By.CSS_SELECTOR, ".results-content .clearfix.result")
+
+            # Fallbacks for alternate layouts.
+            if not section_rows:
+                section_rows = self.driver.find_elements(
+                    By.XPATH,
+                    "//table[.//th[contains(text(),'Airport Information') or contains(text(),'Restrictions')]]//tr[position()>1]"
+                    " | //div[contains(@class,'restrictionRow') or contains(@class,'restriction-row')]"
+                )
             if not section_rows:
                 section_rows = self.driver.find_elements(
                     By.XPATH,
@@ -621,20 +636,22 @@ class AirportPageParser:
 
             for row in section_rows:
                 try:
-                    cells = row.find_elements(By.TAG_NAME, "td")
-                    if len(cells) < 2:
-                        continue
                     entry: Dict[str, Any] = {}
-                    # Column 0: section title / info label
-                    entry["section"] = cells[0].text.strip() if cells else ""
-                    # Column 1: frequency (may be empty)
+                    cells = row.find_elements(By.CSS_SELECTOR, ".w31p, .w17p, .w30p, .w22p, td")
+                    cell_texts = [cell.text.strip() for cell in cells if cell.text.strip()]
+
+                    if cell_texts:
+                        entry["section"] = cell_texts[0]
+
                     if len(cells) > 1:
                         freq = cells[1].text.strip()
                         if freq:
                             entry["frequency"] = freq
-                    # Column 2: phone / fax (combined or split)
+
                     if len(cells) > 2:
                         pf_text = cells[2].text.strip()
+                        if not pf_text:
+                            pf_text = " ".join([line.text.strip() for line in cells[2].find_elements(By.XPATH, ".//*[self::div or self::a]") if line.text.strip()])
                         phone_match = re.search(r'(?:Phone|Tel)[:\s]+([+\d\s\-().]+)', pf_text, re.IGNORECASE)
                         fax_match = re.search(r'Fax[:\s]+([+\d\s\-().]+)', pf_text, re.IGNORECASE)
                         if phone_match:
@@ -643,7 +660,7 @@ class AirportPageParser:
                             entry["fax"] = fax_match.group(1).strip()
                         if not phone_match and not fax_match and pf_text:
                             entry["contact_raw"] = pf_text
-                    # Column 3: email / website
+
                     if len(cells) > 3:
                         ew_text = cells[3].text.strip()
                         try:
@@ -760,7 +777,7 @@ class AirportPageParser:
             "Handlers": "HANDLER",
             "Supervising Agents": "SUPERVISING_AGENT",
             "Fuel Only": "FUEL_SUPPLIER",
-            "Flight Support Organizations": "FLIGHT_SUPPORT",
+            "Flight Support Organizations": "FLIGHT_SUPPORT_ORGANIZATION",
             "Caterers": "CATERING",
             "Limo": "GROUND_TRANSPORTATION",
             "Maintenance": "MAINTENANCE",
@@ -791,16 +808,52 @@ class AirportPageParser:
             # Car Rental has special handling
             if section_name == "Car Rental":
                 return self._extract_car_rentals(url, airport_icao)
-            
-            # Find section by heading text
-            section_xpath = f"//h3[contains(text(), '{section_name}')] | //h2[contains(text(), '{section_name}')]"
-            section_elements = self.driver.find_elements(By.XPATH, section_xpath)
-            
-            if not section_elements:
+
+            # FBO section has a dedicated container in this page layout.
+            if section_name == "FBOs":
+                vendor_blocks = self.driver.find_elements(By.CSS_SELECTOR, "div.fbo div.vendor")
+                for vendor_block in vendor_blocks:
+                    try:
+                        org = self._extract_single_vendor(vendor_block, role, url, airport_icao)
+                        if org:
+                            vendors.append(org)
+                    except Exception as e:
+                        logger.debug(f"Error extracting single vendor: {e}")
                 return vendors
             
-            # Find all .vendor blocks in this section
-            vendor_blocks = self.driver.find_elements(By.CSS_SELECTOR, ".vendor, .advertPR .vendor")
+            # Map known sections to stable panel IDs so we can scope vendor extraction correctly.
+            panel_id_map = {
+                "Handlers": "dnn_ctr422_VDC_ctl00_pnlHandlers",
+                "Supervising Agents": "dnn_ctr422_VDC_ctl00_pnlSupervising_Agents",
+                "Fuel Only": "dnn_ctr422_VDC_ctl00_pnlFuel",
+                "Flight Support Organizations": "dnn_ctr422_VDC_ctl00_pnlFSO",
+                "Caterers": "dnn_ctr422_VDC_ctl00_pnlCaterers",
+                "Maintenance": "dnn_ctr422_VDC_ctl00_pnlMaintenance",
+                "Limo": "dnn_ctr422_VDC_ctl00_pnlLimo",
+            }
+
+            section_container = None
+            panel_id = panel_id_map.get(section_name)
+            if panel_id:
+                found = self.driver.find_elements(By.ID, panel_id)
+                if found:
+                    section_container = found[0]
+
+            # Fallback for layout variations where IDs differ but title text is present.
+            if not section_container:
+                fallback_xpath = (
+                    "//div[contains(@class,'bluePanel')][.//div[contains(@class,'bluePanelTitle') "
+                    f"and contains(normalize-space(.), '{section_name}')]]"
+                )
+                found = self.driver.find_elements(By.XPATH, fallback_xpath)
+                if found:
+                    section_container = found[0]
+
+            if not section_container:
+                return vendors
+
+            # IMPORTANT: only search vendor blocks inside the resolved section.
+            vendor_blocks = section_container.find_elements(By.CSS_SELECTOR, ".vendor, .advertPR.vendor, .advertPR .vendor")
             
             for vendor_block in vendor_blocks:
                 try:
@@ -825,9 +878,36 @@ class AirportPageParser:
         errors = []
         
         try:
-            # Extract name (from strong.fs18px or first strong)
-            name_elem = vendor_block.find_element(By.CSS_SELECTOR, "strong.fs18px, .vendorName strong, strong")
-            name = name_elem.text.strip()
+            # Extract vendor name across multiple page layouts.
+            name = None
+            name_selectors = [
+                ".clearboth.vendorName a strong.fs18px",
+                ".clearboth.vendorName strong.fs18px",
+                ".clearboth.vendorName a",
+                ".clearboth.vendorName strong",
+                ".clearboth.vendorName",
+                "strong.fs18px",
+                ".vendorName strong",
+                "strong",
+            ]
+
+            for selector in name_selectors:
+                elems = vendor_block.find_elements(By.CSS_SELECTOR, selector)
+                for elem in elems:
+                    text = elem.text.strip()
+                    if text:
+                        name = text.split("\n")[0].strip()
+                        break
+                if name:
+                    break
+
+            # Fallback: derive a readable name from data-anchor-id when text nodes are redacted.
+            if not name:
+                anchor_elems = vendor_block.find_elements(By.XPATH, ".//a[@data-anchor-id and string-length(@data-anchor-id)>0]")
+                if anchor_elems:
+                    anchor_name = anchor_elems[0].get_attribute("data-anchor-id")
+                    if anchor_name:
+                        name = anchor_name.strip()
             
             if not name:
                 return None
@@ -835,7 +915,7 @@ class AirportPageParser:
             # Filter out generic labels
             generic_labels = ["Address", "Phone", "Fax", "Email", "Website", "INTERNATIONAL", 
                             "Distance", "Price range", "Remarks", "SITA", "Frequency", "Brand"]
-            if name in generic_labels or len(name) < 3:
+            if name in generic_labels or name.upper() == "INTERNATIONAL" or len(name) < 3:
                 return None
             
             observed_fields.append("name")
@@ -1114,8 +1194,18 @@ class AirportPageParser:
                     errors = []
                     
                     # Extract hotel name
-                    name_elem = hotel_row.find_element(By.CSS_SELECTOR, "div.fs18px.bold, .bold.fs18px")
+                    name_elem = hotel_row.find_element(By.CSS_SELECTOR, "div.fs18px.bold, .bold.fs18px, .bluePanelRow .fs18px")
                     name = name_elem.text.strip()
+
+                    if name.upper() == "INTERNATIONAL":
+                        anchor = hotel_row.find_elements(By.CSS_SELECTOR, "a[data-anchor-id]")
+                        if anchor:
+                            anchor_name = anchor[0].get_attribute("data-anchor-id") or ""
+                            name = anchor_name.replace("-", " ").strip()
+                        else:
+                            alt = hotel_row.find_elements(By.CSS_SELECTOR, "a[href*='/Basic-Info/'] strong")
+                            if alt:
+                                name = alt[0].text.strip()
                     
                     if not name or len(name) < 3:
                         continue
@@ -1123,6 +1213,8 @@ class AirportPageParser:
                     # Filter out generic labels
                     generic_labels = ["Phone", "Fax", "Address", "Distance", "Price range", "Name and Contact Info"]
                     if name in generic_labels:
+                        continue
+                    if name.upper() == "INTERNATIONAL":
                         continue
                     
                     observed_fields.append("name")
@@ -1619,9 +1711,12 @@ class NearbyParser:
                 "external_id": f"acukwik_nearby_{icao}",
                 "url": url,
                 "scrape_status": "FAILED",
-                "data": {},
+                "data": {
+                    "associated_airports": [icao] if icao else [],
+                    "nearby_airports": [],
+                },
                 "observed_fields": [],
-                "missing_fields": [],
+                "missing_fields": ["nearby_airports"],
                 "errors": [{"error": str(e)}],
             }
 
