@@ -21,7 +21,7 @@ input:
 output:
   directory: "output"
   batch_size: 1          # Records buffered in memory before flushing to disk
-  records_per_file: 5000   # Max records per output file (rolls to next part after)
+  records_per_file: 20000   # Max records per output file (rolls to next part after)
 
 # Progress tracking
 progress:
@@ -29,7 +29,7 @@ progress:
 
 # Scraping configuration
 scraping:
-  parallel_workers: 1  # Number of parallel workers (1 for sequential - RECOMMENDED for debugging)
+  parallel_workers: 30  # Number of parallel workers (1 for sequential - RECOMMENDED for debugging)
   max_retries: 3  # Maximum retry attempts per URL
   retry_backoff: 5  # Base backoff in seconds (exponential)
   delay_between_requests: 3  # Delay in seconds between requests (increased for stability)
