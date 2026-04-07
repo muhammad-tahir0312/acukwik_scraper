@@ -8,8 +8,8 @@ source:
 input:
   # Single CSV file or list of CSV files
   csv_paths:
-    - "../pakistani.csv" # Example of single file
-    # - "../country_links.csv"
+    # - "../pakistani.csv" # Example of single file
+    - "../country_links.csv"
   
   # Expected CSV columns (flexible - will look for these names):
   # - url, link, or "Airport Link": URL to scrape (REQUIRED)
@@ -35,6 +35,7 @@ scraping:
   delay_between_requests: 3  # Delay in seconds between requests (increased for stability)
   scrape_clearance: true   # Scrape the Clearance tab (/Clearance-Overview/{ICAO})
   scrape_nearby: true      # Scrape the Nearby tab (/Nearby/{ICAO})
+  keep_html_cache: false    # Keep fetched HTML files in html_cache for inspection
 
 # Selenium configuration
 selenium:

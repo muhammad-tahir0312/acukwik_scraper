@@ -3,10 +3,10 @@ Organization/entity upsert and lookup queries.
 """
 ORG_UPSERT = """
 INSERT INTO organizations (
-    name, description, website, email, phone, address_id, distance_from_airport, price_range, sita_code, aftn_code, brand, frequency, phone_after_hours, fax, postal_code, label, url, scrape_status, external_id, observed_fields, missing_fields, contacts, associated_airports, roles, errors, extra
+    name, description, website, email, phone, address_id, distance_from_airport, price_range, sita_code, aftn_code, brand, frequency, phone_after_hours, fax, postal_code, label, url, scrape_status, external_id, observed_fields, missing_fields, contacts, roles, errors, extra
 )
-Values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-ON CONFLICT (name) DO UPDATE SET
+Values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+ON CONFLICT (external_id) DO UPDATE SET
     description = COALESCE(EXCLUDED.description, organizations.description),
     website = COALESCE(EXCLUDED.website, organizations.website),
     email = COALESCE(EXCLUDED.email, organizations.email),
@@ -28,7 +28,6 @@ ON CONFLICT (name) DO UPDATE SET
     observed_fields = COALESCE(EXCLUDED.observed_fields, organizations.observed_fields),
     missing_fields = COALESCE(EXCLUDED.missing_fields, organizations.missing_fields),
     contacts = COALESCE(EXCLUDED.contacts, organizations.contacts),
-    associated_airports = COALESCE(EXCLUDED.associated_airports, organizations.associated_airports),
     roles = COALESCE(EXCLUDED.roles, organizations.roles),
     errors = COALESCE(EXCLUDED.errors, organizations.errors),
     extra = COALESCE(EXCLUDED.extra, organizations.extra)

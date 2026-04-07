@@ -500,6 +500,16 @@ class AirportPageParser:
                             value = offset_match.group(1)
                     # Airport Email: handle button click to reveal email
                     if field_name == "airport_email":
+                        resolver = getattr(self.driver, "email_resolver", None)
+                        if callable(resolver):
+                            try:
+                                email = resolver(value_elem.find_element(By.CSS_SELECTOR, "button.aEmail"))
+                                if email:
+                                    data[field_name] = email
+                                    observed.append(field_name)
+                                    return
+                            except Exception as e:
+                                logger.debug(f"Cached airport_email resolution failed: {e}")
                         try:
                             # Check if there's a button to click
                             button = value_elem.find_element(By.CSS_SELECTOR, "button.aEmail")
@@ -928,19 +938,34 @@ class AirportPageParser:
             remarks = None
             brands = []
             
-            # Find all contact rows (div.clearfix.mb9px or variations)
-            contact_rows = vendor_block.find_elements(By.XPATH, ".//div[contains(@class, 'clearfix') and (contains(@class, 'mb9px') or contains(@class, 'mb9pxx'))]")
+            # Find all contact rows, including AC-U-KWIK's inconsistent class spellings and rows without mb9px.
+            contact_rows = vendor_block.find_elements(
+                By.XPATH,
+                ".//div[(contains(@class, 'clearfix') or contains(@class, 'clearfi') or contains(@class, 'clearboth')) "
+                "and .//div[contains(@class, 'w35p') and (contains(@class, 'bold') or contains(@class, 'fl'))]]"
+            )
             
             for row in contact_rows:
                 try:
                     # Extract label and value elements
                     label_elem = row.find_element(By.CSS_SELECTOR, "div.fl.w35p.bold, div.fl.w35p")
-                    label = label_elem.text.strip().lower().replace(':', '')
+                    label = label_elem.text.strip().lower().replace(':', '').replace('&', 'and')
+                    label = re.sub(r"\s+", " ", label)
                     
                     value_elem = row.find_element(By.CSS_SELECTOR, "div.fl.w65p, div.fl.w60p")
                     
                     # Email - click button if present then read mailto/text
                     if label == "email":
+                        email_resolver = getattr(self.driver, "email_resolver", None)
+                        if callable(email_resolver):
+                            try:
+                                email = email_resolver(value_elem.find_element(By.CSS_SELECTOR, "button.ghEmail, button.sEmail"))
+                                if email:
+                                    contacts.append({"type": "email", "value": email})
+                                    observed_fields.append("email")
+                                    continue
+                            except Exception as e:
+                                logger.debug(f"Cached email resolution failed: {e}")
                         try:
                             button = value_elem.find_element(By.CSS_SELECTOR, "button.ghEmail, button.sEmail")
                             try:
@@ -991,7 +1016,7 @@ class AirportPageParser:
                             pass
                     
                     # Phone
-                    elif label == "phone":
+                    elif label in {"phone", "tel", "telephone"}:
                         phone = value_elem.text.strip()
                         if phone:
                             contacts.append({"type": "phone", "value": phone, "label": "Primary"})
@@ -1440,8 +1465,8 @@ class ClearanceParser:
         self.driver = driver
         self.wait = WebDriverWait(driver, 10)
 
-    def parse(self, url: str, icao: str) -> Optional[Dict[str, Any]]:
-        """Navigate to the clearance URL and scrape all clearance fields."""
+    def parse(self, url: str, icao: str, load_page: bool = True) -> Optional[Dict[str, Any]]:
+        """Scrape all clearance fields from the current page or from the live clearance URL."""
         import time
         observed_fields: List[str] = []
         missing_fields: List[str] = []
@@ -1449,7 +1474,8 @@ class ClearanceParser:
         data: Dict[str, Any] = {"associated_airports": [icao]}
 
         try:
-            self.driver.get(url)
+            if load_page:
+                self.driver.get(url)
             print(f"Parsing clearance for {icao} at {url}")
             try:
                 self.wait.until(EC.presence_of_element_located((By.TAG_NAME, "body")))
@@ -1657,8 +1683,8 @@ class NearbyParser:
         self.driver = driver
         self.wait = WebDriverWait(driver, 10)
 
-    def parse(self, url: str, icao: str) -> Optional[Dict[str, Any]]:
-        """Navigate to the nearby URL and scrape all pages of the nearby airports table."""
+    def parse(self, url: str, icao: str, load_page: bool = True) -> Optional[Dict[str, Any]]:
+        """Scrape the nearby airports table from the current page or from the live nearby URL."""
         import time
         observed_fields: List[str] = []
         missing_fields: List[str] = []
@@ -1666,7 +1692,8 @@ class NearbyParser:
         nearby_airports: List[Dict[str, Any]] = []
 
         try:
-            self.driver.get(url)
+            if load_page:
+                self.driver.get(url)
             try:
                 self.wait.until(EC.presence_of_element_located((By.TAG_NAME, "body")))
             except TimeoutException:

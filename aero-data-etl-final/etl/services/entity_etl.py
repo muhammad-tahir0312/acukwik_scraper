@@ -1,9 +1,57 @@
 """
 Entity (organization) ETL: upserts normalized orgs and contacts, never overwrites claimed/user-edited data.
 """
-from etl.models.entity import ORG_UPSERT, ORG_AIRPORT_LINK, CLEARANCE_UPSERT, NEARBY_AIRPORTS_UPSERT
+from etl.models.entity import ORG_AIRPORT_LINK, CLEARANCE_UPSERT, NEARBY_AIRPORTS_UPSERT
 from etl.models.airport import AIRPORT_CLEARANCE_LINK, AIRPORT_NEARBY_LINK
 from etl.db import get_db_cursor
+import logging
+
+
+logger = logging.getLogger(__name__)
+
+
+ORG_INSERT = """
+INSERT INTO organizations (
+    name, description, website, email, phone, address_id, distance_from_airport, price_range,
+    sita_code, aftn_code, brand, frequency, phone_after_hours, fax, postal_code, label,
+    url, scrape_status, external_id, observed_fields, missing_fields, contacts,
+    roles, errors, extra
+)
+VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+RETURNING id;
+"""
+
+ORG_UPDATE_BY_ID = """
+UPDATE organizations SET
+    name = COALESCE(%s, name),
+    description = COALESCE(%s, description),
+    website = COALESCE(%s, website),
+    email = COALESCE(%s, email),
+    phone = COALESCE(%s, phone),
+    address_id = COALESCE(%s, address_id),
+    distance_from_airport = COALESCE(%s, distance_from_airport),
+    price_range = COALESCE(%s, price_range),
+    sita_code = COALESCE(%s, sita_code),
+    aftn_code = COALESCE(%s, aftn_code),
+    brand = COALESCE(%s, brand),
+    frequency = COALESCE(%s, frequency),
+    phone_after_hours = COALESCE(%s, phone_after_hours),
+    fax = COALESCE(%s, fax),
+    postal_code = COALESCE(%s, postal_code),
+    label = COALESCE(%s, label),
+    url = COALESCE(%s, url),
+    scrape_status = COALESCE(%s, scrape_status),
+    external_id = COALESCE(%s, external_id),
+    observed_fields = COALESCE(%s, observed_fields),
+    missing_fields = COALESCE(%s, missing_fields),
+    contacts = COALESCE(%s, contacts),
+    roles = COALESCE(%s, roles),
+    errors = COALESCE(%s, errors),
+    extra = COALESCE(%s, extra),
+    updated_at = NOW()
+WHERE id = %s
+RETURNING id;
+"""
 
 def extract_contacts(org):
     phone_list, fax_list, email_list, website = [], [], [], None
@@ -55,6 +103,8 @@ def upsert_entity(org, airport_id=None):
     label = None
     # Extract postal_code and label from address/contacts if present
     address_id = None
+    country = None
+    city = None
     if address and isinstance(address, dict):
         postal_code = address.get('postal_code')
         country = address.get('country')
@@ -69,11 +119,29 @@ def upsert_entity(org, airport_id=None):
             if state:
                 state_id, _ = match_state(state, country_id, cur)
             city_id, _ = match_city(city, country_id, state_id, cur)
+            street = address.get('street')
+            full_addr = address.get('full')
             cur.execute(
-                "INSERT INTO addresses (city_id, country_id, street, full_address, postal_code) VALUES (%s, %s, %s, %s, %s) RETURNING id",
-                [city_id, country_id, address.get('street'), address.get('full'), address.get('postal_code')]
+                """
+                SELECT id FROM addresses
+                WHERE city_id IS NOT DISTINCT FROM %s
+                  AND country_id IS NOT DISTINCT FROM %s
+                  AND street IS NOT DISTINCT FROM %s
+                  AND full_address IS NOT DISTINCT FROM %s
+                  AND postal_code IS NOT DISTINCT FROM %s
+                LIMIT 1
+                """,
+                [city_id, country_id, street, full_addr, address.get('postal_code')]
             )
-            address_id = cur.fetchone()['id']
+            existing_addr = cur.fetchone()
+            if existing_addr:
+                address_id = existing_addr['id']
+            else:
+                cur.execute(
+                    "INSERT INTO addresses (city_id, country_id, street, full_address, postal_code) VALUES (%s, %s, %s, %s, %s) RETURNING id",
+                    [city_id, country_id, street, full_addr, address.get('postal_code')]
+                )
+                address_id = cur.fetchone()['id']
     contacts = org.get('contacts') or []
     for contact in contacts:
         if contact.get('label'):
@@ -82,6 +150,35 @@ def upsert_entity(org, airport_id=None):
     url = org.get('url')
     scrape_status = org.get('scrape_status')
     external_id = org.get('external_id')
+
+    # Some scraped org rows arrive with empty associated_airports; derive from airport URL when available.
+    if not associated_airports and url:
+        import re
+        m = re.search(r"/Airport-Info/([A-Za-z0-9]+)", url)
+        if m:
+            associated_airports = [m.group(1).upper()]
+
+    def _normalize_url(value):
+        if not value:
+            return None
+        return value.rstrip('/').lower()
+
+    normalized_url = _normalize_url(url)
+
+    # Disambiguate generic external IDs (e.g., ENTERPRISE/HERTZ) that can repeat across airports.
+    if external_id and associated_airports:
+        airport_hint = associated_airports[0]
+        if not external_id.endswith(f"_{airport_hint}"):
+            external_id = f"{external_id}_{airport_hint}"
+
+    if not external_id:
+        airport_hint = associated_airports[0] if associated_airports else None
+        if airport_hint:
+            external_id = f"org_{name}_{airport_hint}" if name else None
+        elif normalized_url:
+            external_id = f"org_{name}_{abs(hash(normalized_url))}" if name else None
+        else:
+            external_id = f"org_{name}" if name else None
     observed_fields = org.get('observed_fields')
     missing_fields = org.get('missing_fields')
     # Store any extra fields not mapped above
@@ -93,19 +190,44 @@ def upsert_entity(org, airport_id=None):
     extra = {k: v for k, v in org.items() if k not in known_fields}
     import json
     with get_db_cursor(commit=True) as cur:
-        cur.execute(ORG_UPSERT, [
-            name, description, website, email, phone,
-            address_id,
-            distance_from_airport, price_range, sita_code, aftn_code, brand, frequency, phone_after_hours,
-            fax, postal_code, label, url, scrape_status, external_id,
-            observed_fields, missing_fields,
-            json.dumps(org.get('contacts')) if org.get('contacts') else None,
-            org.get('associated_airports') or [],
-            org.get('roles') or [],
-            json.dumps(org.get('errors')) if org.get('errors') else None,
-            json.dumps(extra) if extra else '{}'
-        ])
-        org_id = cur.fetchone()['id']
+        contacts_json = json.dumps(org.get('contacts')) if org.get('contacts') else None
+        errors_json = json.dumps(org.get('errors')) if org.get('errors') else None
+        extra_json = json.dumps(extra) if extra else '{}'
+
+        org_id = None
+        if external_id:
+            cur.execute("SELECT id FROM organizations WHERE external_id=%s", [external_id])
+            row = cur.fetchone()
+            if row:
+                org_id = row['id']
+
+        if org_id:
+            cur.execute(ORG_UPDATE_BY_ID, [
+                name, description, website, email, phone,
+                address_id,
+                distance_from_airport, price_range, sita_code, aftn_code, brand, frequency, phone_after_hours,
+                fax, postal_code, label, url, scrape_status, external_id,
+                observed_fields, missing_fields,
+                contacts_json,
+                roles or [],
+                errors_json,
+                extra_json,
+                org_id
+            ])
+            org_id = cur.fetchone()['id']
+        else:
+            cur.execute(ORG_INSERT, [
+                name, description, website, email, phone,
+                address_id,
+                distance_from_airport, price_range, sita_code, aftn_code, brand, frequency, phone_after_hours,
+                fax, postal_code, label, url, scrape_status, external_id,
+                observed_fields, missing_fields,
+                contacts_json,
+                roles or [],
+                errors_json,
+                extra_json
+            ])
+            org_id = cur.fetchone()['id']
         # Link to airport if provided
         if airport_id:
             cur.execute(ORG_AIRPORT_LINK, [org_id, airport_id])
@@ -115,6 +237,17 @@ def upsert_entity(org, airport_id=None):
             airport_row = cur.fetchone()
             if airport_row:
                 cur.execute(ORG_AIRPORT_LINK, [org_id, airport_row['id']])
+
+        # Fallback: if no explicit associated_airports, link via shared airport page URL.
+        if not associated_airports and normalized_url:
+            cur.execute(
+                "SELECT id FROM airports WHERE lower(regexp_replace(COALESCE(url, ''), '/+$', ''))=%s",
+                [normalized_url]
+            )
+            airport_row = cur.fetchone()
+            if airport_row:
+                cur.execute(ORG_AIRPORT_LINK, [org_id, airport_row['id']])
+
         # Upsert roles and link
         upsert_roles(org_id, roles, cur)
     return org_id, False
@@ -224,3 +357,73 @@ def upsert_nearby_airports(nearby, airport_id=None):
 def insert_contacts(entity_id, org):
     # Implement if airport_contacts table exists
     pass
+
+
+def backfill_association_links():
+    """Backfill link tables for records that arrived before their related airport rows."""
+    with get_db_cursor(commit=True) as cur:
+        cur.execute(
+            """
+            INSERT INTO organization_airports (organization_id, airport_id)
+            SELECT o.id, a.id
+            FROM organizations o
+                        JOIN airports a
+                            ON lower(regexp_replace(COALESCE(a.url, ''), '/+$', '')) = lower(regexp_replace(COALESCE(o.url, ''), '/+$', ''))
+            ON CONFLICT DO NOTHING
+            """
+        )
+
+        cur.execute(
+            """
+            INSERT INTO airport_clearances (airport_id, clearance_id)
+            SELECT a.id, c.id
+            FROM clearances c
+            JOIN LATERAL unnest(COALESCE(c.associated_airports, ARRAY[]::text[])) AS assoc(icao) ON TRUE
+            JOIN airports a ON a.icao = assoc.icao
+            ON CONFLICT DO NOTHING
+            """
+        )
+
+        cur.execute(
+            """
+            INSERT INTO airport_nearby_airports (airport_id, nearby_airport_id)
+            SELECT DISTINCT src.id, dst.id
+            FROM nearby_airports n
+            JOIN LATERAL unnest(COALESCE(n.associated_airports, ARRAY[]::text[])) AS src_icao(icao) ON TRUE
+            JOIN airports src ON src.icao = src_icao.icao
+            JOIN LATERAL unnest(COALESCE(n.icaos, ARRAY[]::text[])) AS dst_icao(icao) ON TRUE
+            JOIN airports dst ON dst.icao = dst_icao.icao
+            ON CONFLICT DO NOTHING
+            """
+        )
+
+
+def audit_unmapped_organizations(limit=25):
+    """Return count and sample of organizations that are not linked to any airport."""
+    with get_db_cursor(commit=False) as cur:
+        cur.execute(
+            """
+            SELECT COUNT(*) AS cnt
+            FROM organizations o
+            LEFT JOIN organization_airports oa ON oa.organization_id = o.id
+            WHERE oa.organization_id IS NULL
+            """
+        )
+        total = cur.fetchone()['cnt']
+
+        cur.execute(
+            """
+            SELECT o.id, o.name, o.external_id, o.url, o.created_at
+            FROM organizations o
+            LEFT JOIN organization_airports oa ON oa.organization_id = o.id
+            WHERE oa.organization_id IS NULL
+            ORDER BY o.created_at DESC
+            LIMIT %s
+            """,
+            [limit]
+        )
+        rows = cur.fetchall()
+
+    if total:
+        logger.warning(f"Unmapped organizations detected: {total}")
+    return total, rows

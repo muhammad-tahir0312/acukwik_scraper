@@ -86,8 +86,23 @@ def match_country(raw_name, cur=None):
         candidates = [{'id': r['id'], 'name': r['name']} for r in rows]
         return None, candidates
 
-    # Tokenize and try tokens (e.g., "State, Country")
-    for token in _split_candidates(name):
+    # Tokenize and try tokens (e.g., "State, Country").
+    # Try from right-to-left so "CA, USA" resolves to USA first, not Canada (CA).
+    tokens = _split_candidates(name)
+
+    # Common aliases for United States in scraped country fields.
+    us_aliases = {"usa", "us", "u.s.", "u.s.a", "united states", "united states of america"}
+    for token in reversed(tokens):
+        if token.lower() in us_aliases:
+            cur.execute(
+                "SELECT id, name FROM countries WHERE LOWER(name) IN ('united states', 'united states of america') OR LOWER(iso2)='us' OR LOWER(iso3)='usa' LIMIT 1"
+            )
+            row = cur.fetchone()
+            if row:
+                _cache['countries'][name] = row['id']
+                return row['id'], []
+
+    for token in reversed(tokens):
         cur.execute("SELECT id, name FROM countries WHERE name ILIKE %s", [token])
         rows = cur.fetchall()
         if len(rows) == 1:

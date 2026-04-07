@@ -73,7 +73,7 @@ CREATE TABLE public.airports (
 -- ORGANIZATIONS
 CREATE TABLE public.organizations (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name TEXT UNIQUE NOT NULL,
+    name TEXT NOT NULL,
     description TEXT,
     website TEXT,
     email TEXT,
@@ -90,11 +90,10 @@ CREATE TABLE public.organizations (
     label TEXT,
     url TEXT,
     scrape_status TEXT,
-    external_id TEXT,
+    external_id TEXT UNIQUE,
     observed_fields TEXT[],
     missing_fields TEXT[],
     contacts JSONB,
-    associated_airports TEXT[],
     is_featured BOOLEAN DEFAULT FALSE,
     featured_order INTEGER,
     roles TEXT[],
@@ -301,3 +300,9 @@ CREATE TABLE public.scraped_records (
 CREATE INDEX idx_raw_entity ON public.scraped_records (entity_type);
 CREATE INDEX idx_raw_external_id ON public.scraped_records (external_id);
 CREATE INDEX idx_raw_data_gin ON public.scraped_records USING GIN (data);
+
+CREATE INDEX idx_organizations_url_norm
+ON public.organizations ((lower(regexp_replace(COALESCE(url, ''), '/+$', ''))));
+
+CREATE INDEX idx_airports_url_norm
+ON public.airports ((lower(regexp_replace(COALESCE(url, ''), '/+$', ''))));

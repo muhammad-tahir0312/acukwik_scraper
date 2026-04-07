@@ -5,17 +5,48 @@ from etl.models.airport import AIRPORT_UPSERT
 from etl.db import get_db_cursor
 from etl.services.location_lookup import match_country, match_state, match_city
 import json
+from datetime import timedelta
 
 def parse_latlong(coord_raw):
     # Example: 'N55-07.6/E030-21.0'
     import re
-    lat_match = re.search(r'N(\d+)-(\d+\.\d+)', coord_raw)
-    lon_match = re.search(r'E(\d+)-(\d+\.\d+)', coord_raw)
+    lat_match = re.search(r'([NS])(\d+)-(\d+(?:\.\d+)?)', coord_raw)
+    lon_match = re.search(r'([EW])(\d+)-(\d+(?:\.\d+)?)', coord_raw)
     if lat_match and lon_match:
-        lat_deg = float(lat_match.group(1)) + float(lat_match.group(2))/60
-        lon_deg = float(lon_match.group(1)) + float(lon_match.group(2))/60
+        lat_deg = float(lat_match.group(2)) + float(lat_match.group(3))/60
+        lon_deg = float(lon_match.group(2)) + float(lon_match.group(3))/60
+        if lat_match.group(1) == 'S':
+            lat_deg = -lat_deg
+        if lon_match.group(1) == 'W':
+            lon_deg = -lon_deg
         return lat_deg, lon_deg
     return None, None
+
+
+def parse_elevation_ft(elevation_raw):
+    if elevation_raw is None:
+        return None
+    if isinstance(elevation_raw, (int, float)):
+        return int(elevation_raw)
+    import re
+    text = str(elevation_raw).replace(',', '').strip()
+    match = re.search(r'-?\d+', text)
+    if not match:
+        return None
+    return int(match.group(0))
+
+
+def parse_utc_offset_interval(utc_raw):
+    if not utc_raw:
+        return None
+    try:
+        value = str(utc_raw).strip()
+        if value.startswith('UTC'):
+            value = value[3:].strip()
+        hours = float(value)
+        return timedelta(hours=hours)
+    except Exception:
+        return None
 
 def parse_runway(runway_raw):
     # Example: '8550 x 138, 05/23'
@@ -39,13 +70,13 @@ def upsert_airport(data):
     country = data.get('country')
     coord_raw = data.get('coordinates_raw')
     lat_deg, lon_deg = parse_latlong(coord_raw) if coord_raw else (None, None)
-    elevation_ft = int(data.get('elevation_raw')) if data.get('elevation_raw') else None
+    elevation_ft = parse_elevation_ft(data.get('elevation_raw'))
     fuel_available = data.get('fuel_available')
     approaches = data.get('approaches')
     runway_surface = data.get('runway_surface')
     longest_runway_raw = data.get('longest_runway_raw')
     length_ft, width_ft, ident = parse_runway(longest_runway_raw) if longest_runway_raw else (None, None, None)
-    utc_offset = data.get('utc_offset')
+    utc_offset = parse_utc_offset_interval(data.get('utc_offset'))
     pcn = data.get('pcn')
     url = data.get('url')
     scrape_status = data.get('scrape_status')

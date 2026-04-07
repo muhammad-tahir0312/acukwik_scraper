@@ -6,11 +6,13 @@ import csv
 import logging
 import time
 import json
+import re
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 import random
+import requests
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options as ChromeOptions
@@ -22,6 +24,7 @@ from selenium.webdriver.chrome.service import Service
 
 from config_loader import load_config
 from auth import CookieAuthentication
+from html_driver import HtmlDriver
 from parsers import AirportPageParser, AirportParser, OrganizationParser, ClearanceParser, NearbyParser
 from validators import validate_record
 from output import BatchOutputWriter
@@ -442,6 +445,10 @@ class ScraperOrchestrator:
         self.progress_tracker = ProgressTracker(
             progress_file=self.config["progress"]["file"]
         )
+
+        self.html_cache_dir = Path(__file__).resolve().parent.parent / "html_cache"
+        self.html_cache_dir.mkdir(parents=True, exist_ok=True)
+        self.keep_html_cache = self.config.get("scraping", {}).get("keep_html_cache", False)
         
         # Stats
         self.stats = {
@@ -453,6 +460,128 @@ class ScraperOrchestrator:
         }
         
         logger.info(f"Scraper orchestrator initialized for source: {self.source}")
+
+    def _build_requests_session(self) -> requests.Session:
+        """Build a requests session that reuses the saved AC-U-KWIK cookies."""
+        session = requests.Session()
+        session.headers.update({
+            "User-Agent": self.config["selenium"].get(
+                "user_agent",
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+            )
+        })
+
+        auth_config = self.config.get("authentication", {})
+        cookies_file = auth_config.get("cookies_file")
+        if cookies_file:
+            cookies_path = Path(cookies_file)
+            if not cookies_path.is_absolute():
+                cookies_path = Path(__file__).parent / cookies_path
+
+            if cookies_path.exists():
+                try:
+                    auth = CookieAuthentication(str(cookies_path))
+                    for cookie in auth.cookies:
+                        name = cookie.get("name")
+                        value = cookie.get("value")
+                        if not name or value is None:
+                            continue
+                        session.cookies.set(
+                            name,
+                            value,
+                            domain=cookie.get("domain") or "acukwik.com",
+                            path=cookie.get("path") or "/",
+                        )
+                except Exception as e:
+                    logger.warning(f"Failed to load cookies into requests session: {e}")
+
+        return session
+
+    def _fetch_html_to_cache(self, url: str, external_id: str, page_label: str) -> Path:
+        """Fetch HTML with requests, store it in the cache folder, and return the file path."""
+        return self._fetch_html_to_cache_with_session(url, external_id, page_label, self._build_requests_session())
+
+    def _fetch_html_to_cache_with_session(
+        self,
+        url: str,
+        external_id: str,
+        page_label: str,
+        session: requests.Session,
+    ) -> Path:
+        """Fetch HTML with a provided requests session, store it in the cache folder, and return the file path."""
+        safe_external_id = re.sub(r"[^A-Za-z0-9_.-]+", "_", external_id)
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S_%f")
+        cache_file = self.html_cache_dir / f"{safe_external_id}_{page_label}_{timestamp}.html"
+
+        response = session.get(
+            url,
+            timeout=(15, 45),
+            headers={"User-Agent": self.config["selenium"].get("user_agent", "Mozilla/5.0")},
+        )
+        response.raise_for_status()
+
+        cache_file.write_text(response.text, encoding="utf-8")
+        return cache_file
+
+    def _build_email_resolver(self, session: requests.Session):
+        """Build a resolver that can expand AC-U-KWIK email buttons via the authenticated API."""
+        base_url = self.config.get("authentication", {}).get("base_url", "https://acukwik.com").rstrip("/")
+
+        def _resolve(button) -> Optional[str]:
+            try:
+                class_name = (button.get_attribute("class") or "").lower()
+                data_id = button.get_attribute("data-id")
+                service_type_id = button.get_attribute("data-service")
+                if not data_id:
+                    return None
+
+                if "semail" in class_name:
+                    endpoint = "/desktopmodules/Services/api/FunctionsWS/GetSupplierEmail"
+                    params = {"SUPPLIER_ID": data_id, "Service_Type_ID": service_type_id or ""}
+                else:
+                    endpoint = "/desktopmodules/Services/api/FunctionsWS/GetGHEmail"
+                    params = {"GROUND_HANDLER_ID": data_id, "Service_Type_ID": service_type_id or ""}
+
+                response = session.get(
+                    f"{base_url}{endpoint}",
+                    params=params,
+                    timeout=(15, 45),
+                    headers={"User-Agent": self.config["selenium"].get("user_agent", "Mozilla/5.0")},
+                )
+                response.raise_for_status()
+
+                payload = response.json()
+                email_html = payload.get("emailHtml") if isinstance(payload, dict) else None
+                if not email_html:
+                    return None
+
+                mailto_match = re.search(r"mailto:([^\"'<>\s]+)", email_html, re.IGNORECASE)
+                if mailto_match:
+                    return mailto_match.group(1).strip()
+
+                stripped = re.sub(r"<[^>]+>", " ", email_html).strip()
+                if "@" in stripped:
+                    return stripped
+            except Exception as e:
+                logger.debug(f"Email resolver failed: {e}")
+            return None
+
+        return _resolve
+
+    @staticmethod
+    def _load_cached_html(driver: webdriver.Remote, html_path: Path) -> None:
+        """Load a cached HTML file into the browser for DOM parsing."""
+        driver.get(html_path.resolve().as_uri())
+
+    @staticmethod
+    def _delete_cached_html(html_path: Optional[Path]) -> None:
+        """Delete a cached HTML file if it still exists."""
+        if not html_path:
+            return
+        try:
+            html_path.unlink(missing_ok=True)
+        except Exception:
+            pass
     
     def create_driver(self) -> webdriver.Remote:
         """
@@ -633,32 +762,26 @@ class ScraperOrchestrator:
         
         # Attempt scraping with retries
         for attempt in range(max_retries):
-            driver = None
+            cached_pages: List[Path] = []
+            session = self._build_requests_session()
             try:
-                # Create driver
-                driver = self.create_driver()
-                self.authenticate_driver(driver)
-                
-                # Navigate to URL
                 logger.info(f"Scraping {url} (attempt {attempt + 1}/{max_retries})")
-                
-                try:
-                    driver.get(url)
-                except TimeoutException:
-                    logger.warning(f"Page load timeout for {url}, continuing anyway...")
-                    # Page might have partially loaded, try to parse
-                
-                # Wait for page load
-                time.sleep(self.config["scraping"].get("delay_between_requests", 2))
-                
-                # Check for authentication issues
-                self._verify_authentication(driver, url, external_id)
+
+                # Fetch the live page to a local HTML cache, then parse the local file.
+                airport_html = self._fetch_html_to_cache_with_session(url, external_id, "airport", session)
+                cached_pages.append(airport_html)
+
+                email_resolver = self._build_email_resolver(session)
+                airport_driver = HtmlDriver.from_file(airport_html, current_url=url, email_resolver=email_resolver)
+
+                # Check for authentication issues on the cached page contents.
+                self._verify_authentication(airport_driver, url, external_id)
                 
                 # Parse based on entity type
                 entities = []
                 if entity_type == "airport":
                     # Use new AirportPageParser that returns multiple entities
-                    parser = AirportPageParser(driver)
+                    parser = AirportPageParser(airport_driver)
                     entities = parser.parse(url)  # Returns list of entities (airport + orgs)
 
                     # Use ICAO from CSV if not found on page (for first entity - airport)
@@ -678,8 +801,11 @@ class ScraperOrchestrator:
                     if icao and scraping_cfg.get("scrape_clearance", True):
                         try:
                             clearance_url = f"https://acukwik.com/Clearance-Overview/{icao}"
-                            clearance_parser = ClearanceParser(driver)
-                            clearance_entity = clearance_parser.parse(clearance_url, icao)
+                            clearance_html = self._fetch_html_to_cache_with_session(clearance_url, external_id, "clearance", session)
+                            cached_pages.append(clearance_html)
+                            clearance_driver = HtmlDriver.from_file(clearance_html, current_url=clearance_url)
+                            clearance_parser = ClearanceParser(clearance_driver)
+                            clearance_entity = clearance_parser.parse(clearance_url, icao, load_page=False)
                             if clearance_entity:
                                 entities.append(clearance_entity)
                         except Exception as ce:
@@ -689,8 +815,11 @@ class ScraperOrchestrator:
                     if icao and scraping_cfg.get("scrape_nearby", True):
                         try:
                             nearby_url = f"https://acukwik.com/Nearby/{icao}"
-                            nearby_parser = NearbyParser(driver)
-                            nearby_entity = nearby_parser.parse(nearby_url, icao)
+                            nearby_html = self._fetch_html_to_cache_with_session(nearby_url, external_id, "nearby", session)
+                            cached_pages.append(nearby_html)
+                            nearby_driver = HtmlDriver.from_file(nearby_html, current_url=nearby_url)
+                            nearby_parser = NearbyParser(nearby_driver)
+                            nearby_entity = nearby_parser.parse(nearby_url, icao, load_page=False)
                             if nearby_entity:
                                 entities.append(nearby_entity)
                         except Exception as ne:
@@ -739,11 +868,9 @@ class ScraperOrchestrator:
                     return None
             
             finally:
-                if driver:
-                    try:
-                        driver.quit()
-                    except:
-                        pass
+                if not self.keep_html_cache:
+                    for cached_page in cached_pages:
+                        self._delete_cached_html(cached_page)
         
         return None
     

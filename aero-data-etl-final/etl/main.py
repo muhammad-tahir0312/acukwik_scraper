@@ -9,7 +9,14 @@ from etl.utils.json_reader import stream_jsonl
 from etl.utils.batching import batch_iterable
 from etl.services.raw_ingest import insert_raw
 from etl.services.airport_etl import upsert_airport
-from etl.services.entity_etl import upsert_entity, insert_contacts, upsert_clearance, upsert_nearby_airports
+from etl.services.entity_etl import (
+    upsert_entity,
+    insert_contacts,
+    upsert_clearance,
+    upsert_nearby_airports,
+    backfill_association_links,
+    audit_unmapped_organizations,
+)
 from etl.services.etl_logger import log_progress, log_error
 from etl.db import get_db_cursor
 
@@ -26,7 +33,12 @@ VALUES ('ERROR', %s, %s);
 def main(input_path):
     count = 0
     # Try to infer source/entity_type from first record
-    first_record = next(stream_jsonl(input_path))
+    record_stream = stream_jsonl(input_path)
+    try:
+        first_record = next(record_stream)
+    except StopIteration:
+        print(f"Skipping empty file: {input_path}")
+        return
     entity_type = first_record.get('entity_type') if isinstance(first_record, dict) else None
     with get_db_cursor(commit=True) as cur:
         cur.execute(ETL_RUN_INSERT, [entity_type])
@@ -34,12 +46,18 @@ def main(input_path):
     # Rewind file for full processing
     def full_stream():
         yield first_record
-        for r in stream_jsonl(input_path):
+        for r in record_stream:
             yield r
 
     for batch in batch_iterable(full_stream(), Config.BATCH_SIZE):
         for record in batch:
             try:
+                # Keep failed/raw records even when structured data is absent.
+                if isinstance(record, dict) and record.get("scrape_status") == "FAILED" and "data" not in record:
+                    insert_raw(record)
+                    count += 1
+                    continue
+
                 # Validate minimal identity fields
                 if not isinstance(record, dict) or 'entity_type' not in record or 'data' not in record:
                     raise ValueError("Missing entity_type or data")
@@ -79,6 +97,15 @@ def main(input_path):
                 log_error(str(e), exc=stack )
                 with get_db_cursor(commit=True) as cur:
                     cur.execute(APP_LOG_INSERT, [str(e), json.dumps({'stack': stack, 'raw': record})])
+        # Repair any links that could not be established due to out-of-order records.
+        backfill_association_links()
+    backfill_association_links()
+    unmapped_count, unmapped_sample = audit_unmapped_organizations(limit=20)
+    if unmapped_count:
+        log_error(
+            f"Unmapped organizations after processing: {unmapped_count}",
+            raw={"sample": unmapped_sample}
+        )
     log_progress(count)
 
 if __name__ == "__main__":

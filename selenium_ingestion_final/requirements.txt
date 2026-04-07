@@ -11,11 +11,6 @@ python-dotenv>=0.19.0
 # For better logging (optional)
 colorlog>=6.0.0
 
-# For CSV handling (usually included in Python)
-# csv - built-in
-
-# For date/time handling (usually included in Python)
-# datetime - built-in
-
-# WebDriver managers (optional, for easier driver management)
 webdriver-manager>=3.8.0
+lxml
+cssselect==1.2.0
