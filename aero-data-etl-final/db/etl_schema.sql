@@ -1,3 +1,33 @@
+-- USERS & AUTH
+CREATE TABLE public.users (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    professional_title TEXT,
+    bio TEXT,
+    full_name TEXT,
+    avatar TEXT,
+    role TEXT CHECK (role IN ('admin', 'member')) DEFAULT 'member',
+    membership_status TEXT CHECK (membership_status IN ('free', 'active', 'expired')) DEFAULT 'free',
+    is_active BOOLEAN DEFAULT TRUE,
+    email_verified BOOLEAN DEFAULT FALSE,
+    membership_expires_at TIMESTAMPTZ,
+    created_by UUID REFERENCES public.users(id),
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_by UUID REFERENCES public.users(id),
+    updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE public.user_sessions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES public.users(id) ON DELETE CASCADE,
+    refresh_token TEXT UNIQUE NOT NULL,
+    ip_address TEXT,
+    user_agent TEXT,
+    expires_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
 -- AIRPORTS
 CREATE TABLE public.airports (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -75,17 +105,17 @@ CREATE TABLE public.organizations (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name TEXT NOT NULL,
     description TEXT,
-    website TEXT,
-    email TEXT,
-    phone TEXT,
+    website TEXT[],
+    email TEXT[],
+    phone TEXT[],
     distance_from_airport TEXT,
     price_range TEXT,
     sita_code TEXT,
     aftn_code TEXT,
     brand TEXT,
     frequency TEXT,
-    phone_after_hours TEXT,
-    fax TEXT,
+    phone_after_hours TEXT[],
+    fax TEXT[],
     postal_code TEXT,
     label TEXT,
     url TEXT,
@@ -93,7 +123,6 @@ CREATE TABLE public.organizations (
     external_id TEXT UNIQUE,
     observed_fields TEXT[],
     missing_fields TEXT[],
-    contacts JSONB,
     is_featured BOOLEAN DEFAULT FALSE,
     featured_order INTEGER,
     roles TEXT[],
@@ -106,6 +135,11 @@ CREATE TABLE public.organizations (
     updated_by TEXT DEFAULT 'SYSTEM',
     updated_at TIMESTAMPTZ DEFAULT now()
 );
+
+-- Add a unique index to prevent duplicate organization names after normalization
+CREATE UNIQUE INDEX IF NOT EXISTS organizations_name_norm_uniq
+ON public.organizations (lower(trim(name)))
+WHERE name IS NOT NULL;
 
 -- CLEARANCES
 CREATE TABLE public.clearances (
@@ -218,15 +252,6 @@ CREATE TABLE public.addresses (
     country_id INTEGER REFERENCES public.countries(id),
     full_address TEXT,
     postal_code VARCHAR(50)
-);
-
-CREATE TABLE public.contacts (
-    id SERIAL PRIMARY KEY,
-    entity_id UUID,
-    type TEXT,
-    value TEXT,
-    label TEXT,
-    UNIQUE (entity_id, type, value)
 );
 
 CREATE TABLE public.organization_roles (

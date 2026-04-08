@@ -14,10 +14,10 @@ ORG_INSERT = """
 INSERT INTO organizations (
     name, description, website, email, phone, address_id, distance_from_airport, price_range,
     sita_code, aftn_code, brand, frequency, phone_after_hours, fax, postal_code, label,
-    url, scrape_status, external_id, observed_fields, missing_fields, contacts,
+    url, scrape_status, external_id, observed_fields, missing_fields,
     roles, errors, extra
 )
-VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
 RETURNING id;
 """
 
@@ -44,7 +44,6 @@ UPDATE organizations SET
     external_id = COALESCE(%s, external_id),
     observed_fields = COALESCE(%s, observed_fields),
     missing_fields = COALESCE(%s, missing_fields),
-    contacts = COALESCE(%s, contacts),
     roles = COALESCE(%s, roles),
     errors = COALESCE(%s, errors),
     extra = COALESCE(%s, extra),
@@ -53,25 +52,72 @@ WHERE id = %s
 RETURNING id;
 """
 
-def extract_contacts(org):
-    phone_list, fax_list, email_list, website = [], [], [], None
-    contacts = org.get('contacts')
-    if not contacts:
-        contacts = []
-    for contact in contacts:
-        if contact['type'] == 'phone':
-            phone_list.append(contact['value'])
-        elif contact['type'] == 'fax':
-            fax_list.append(contact['value'])
-        elif contact['type'] == 'email':
-            email_list.append(contact['value'])
-        elif contact['type'] == 'website':
-            website = contact['value']
-    return phone_list, fax_list, email_list, website
+def _normalize_contact_value(contact_type, value):
+    if value is None:
+        return None
+    text = str(value).strip()
+    if not text:
+        return None
+    if contact_type == 'website':
+        return text.lower().rstrip('/')
+    if contact_type == 'email':
+        return text.lower()
+    if contact_type in {'phone', 'fax', 'phone_after_hours'}:
+        import re
+        text = re.sub(r'[^\d+]', '', text)
+        return text or None
+    return text
+
+
+def _unique_preserve_order(values):
+    seen = set()
+    result = []
+    for value in values:
+        if value is None:
+            continue
+        if value in seen:
+            continue
+        seen.add(value)
+        result.append(value)
+    return result
+
+
+def _merge_lists(existing_values, new_values):
+    return _unique_preserve_order((existing_values or []) + (new_values or []))
+
+
+def extract_contact_arrays(org):
+    arrays = {
+        'website': [],
+        'email': [],
+        'phone': [],
+        'fax': [],
+        'phone_after_hours': [],
+    }
+
+    def add_value(contact_type, value):
+        normalized = _normalize_contact_value(contact_type, value)
+        if normalized:
+            arrays[contact_type].append(normalized)
+
+    for contact in org.get('contacts') or []:
+        contact_type = str(contact.get('type', '')).strip().lower()
+        if contact_type in arrays:
+            add_value(contact_type, contact.get('value'))
+
+    for field_name in ['website', 'email', 'phone', 'fax', 'phone_after_hours']:
+        field_value = org.get(field_name)
+        if isinstance(field_value, list):
+            for value in field_value:
+                add_value(field_name, value)
+        else:
+            add_value(field_name, field_value)
+
+    return {key: _unique_preserve_order(values) for key, values in arrays.items()}
+
 
 def upsert_roles(org_id, roles, cur):
     for role in roles:
-        # Upsert role
         cur.execute("SELECT id FROM organization_roles WHERE name=%s", [role])
         row = cur.fetchone()
         if row:
@@ -79,18 +125,23 @@ def upsert_roles(org_id, roles, cur):
         else:
             cur.execute("INSERT INTO organization_roles (name) VALUES (%s) RETURNING id", [role])
             role_id = cur.fetchone()['id']
-        # Link org to role
         cur.execute("INSERT INTO organization_role_map (organization_id, role_id) VALUES (%s, %s) ON CONFLICT DO NOTHING", [org_id, role_id])
 
+
 def upsert_entity(org, airport_id=None):
+    import json
+    import re
+
     name = org.get('name')
     description = org.get('description')
-    phone_list, fax_list, email_list, website = extract_contacts(org)
-    email = email_list[0] if email_list else None
-    phone = phone_list[0] if phone_list else None
-    fax = fax_list[0] if fax_list else None
-    roles = org.get('roles', [])
-    associated_airports = org.get('associated_airports', [])
+    contact_arrays = extract_contact_arrays(org)
+    website = contact_arrays['website']
+    email = contact_arrays['email']
+    phone = contact_arrays['phone']
+    fax = contact_arrays['fax']
+    phone_after_hours = contact_arrays['phone_after_hours']
+    roles = org.get('roles', []) or []
+    associated_airports = set(org.get('associated_airports', []) or [])
     address = org.get('address')
     distance_from_airport = org.get('distance_from_airport')
     price_range = org.get('price_range')
@@ -98,22 +149,19 @@ def upsert_entity(org, airport_id=None):
     aftn_code = org.get('aftn_code')
     brand = org.get('brand')
     frequency = org.get('frequency')
-    phone_after_hours = org.get('phone_after_hours')
     postal_code = None
     label = None
-    # Extract postal_code and label from address/contacts if present
     address_id = None
     country = None
     city = None
+
     if address and isinstance(address, dict):
         postal_code = address.get('postal_code')
         country = address.get('country')
         city = address.get('city')
-        # Match against normalized tables; do NOT create new country/city rows.
         from etl.services.location_lookup import match_country, match_city, match_state
         with get_db_cursor(commit=True) as cur:
             country_id, _ = match_country(country, cur)
-            # If address provided state/region, try match_state for completeness
             state = address.get('state') or address.get('region')
             state_id = None
             if state:
@@ -142,21 +190,20 @@ def upsert_entity(org, airport_id=None):
                     [city_id, country_id, street, full_addr, address.get('postal_code')]
                 )
                 address_id = cur.fetchone()['id']
-    contacts = org.get('contacts') or []
-    for contact in contacts:
+
+    for contact in org.get('contacts') or []:
         if contact.get('label'):
             label = contact['label']
             break
+
     url = org.get('url')
     scrape_status = org.get('scrape_status')
     external_id = org.get('external_id')
 
-    # Some scraped org rows arrive with empty associated_airports; derive from airport URL when available.
     if not associated_airports and url:
-        import re
-        m = re.search(r"/Airport-Info/([A-Za-z0-9]+)", url)
-        if m:
-            associated_airports = [m.group(1).upper()]
+        match = re.search(r"/Airport-Info/([A-Za-z0-9]+)", url)
+        if match:
+            associated_airports.add(match.group(1).upper())
 
     def _normalize_url(value):
         if not value:
@@ -165,80 +212,109 @@ def upsert_entity(org, airport_id=None):
 
     normalized_url = _normalize_url(url)
 
-    # Disambiguate generic external IDs (e.g., ENTERPRISE/HERTZ) that can repeat across airports.
     if external_id and associated_airports:
-        airport_hint = associated_airports[0]
+        airport_hint = sorted(associated_airports)[0]
         if not external_id.endswith(f"_{airport_hint}"):
             external_id = f"{external_id}_{airport_hint}"
 
     if not external_id:
-        airport_hint = associated_airports[0] if associated_airports else None
+        airport_hint = sorted(associated_airports)[0] if associated_airports else None
         if airport_hint:
             external_id = f"org_{name}_{airport_hint}" if name else None
         elif normalized_url:
             external_id = f"org_{name}_{abs(hash(normalized_url))}" if name else None
         else:
             external_id = f"org_{name}" if name else None
+
     observed_fields = org.get('observed_fields')
     missing_fields = org.get('missing_fields')
-    # Store any extra fields not mapped above
     known_fields = {
-        'name', 'description', 'website', 'email', 'phone', 'contacts', 'roles', 'associated_airports',
-        'address', 'distance_from_airport', 'price_range', 'sita_code', 'aftn_code', 'brand', 'frequency', 'phone_after_hours',
-        'fax', 'postal_code', 'label', 'url', 'scrape_status', 'external_id', 'observed_fields', 'missing_fields', 'errors'
+        'name', 'description', 'website', 'email', 'phone', 'fax', 'phone_after_hours', 'contacts', 'roles',
+        'associated_airports', 'address', 'distance_from_airport', 'price_range', 'sita_code', 'aftn_code',
+        'brand', 'frequency', 'postal_code', 'label', 'url', 'scrape_status', 'external_id', 'observed_fields',
+        'missing_fields', 'errors'
     }
     extra = {k: v for k, v in org.items() if k not in known_fields}
-    import json
+    errors_json = json.dumps(org.get('errors')) if org.get('errors') else None
+    extra_json = json.dumps(extra) if extra else '{}'
+
     with get_db_cursor(commit=True) as cur:
-        contacts_json = json.dumps(org.get('contacts')) if org.get('contacts') else None
-        errors_json = json.dumps(org.get('errors')) if org.get('errors') else None
-        extra_json = json.dumps(extra) if extra else '{}'
-
-        org_id = None
-        if external_id:
-            cur.execute("SELECT id FROM organizations WHERE external_id=%s", [external_id])
+        row = None
+        if name and phone:
+            cur.execute(
+                """
+                SELECT * FROM organizations
+                WHERE lower(trim(name)) = lower(trim(%s))
+                  AND COALESCE(phone, ARRAY[]::text[]) && %s::text[]
+                LIMIT 1
+                """,
+                [name, phone]
+            )
             row = cur.fetchone()
-            if row:
-                org_id = row['id']
+        if not row and name and website:
+            cur.execute(
+                """
+                SELECT * FROM organizations
+                WHERE lower(trim(name)) = lower(trim(%s))
+                  AND COALESCE(website, ARRAY[]::text[]) && %s::text[]
+                LIMIT 1
+                """,
+                [name, website]
+            )
+            row = cur.fetchone()
+        if not row and name and email:
+            cur.execute(
+                """
+                SELECT * FROM organizations
+                WHERE lower(trim(name)) = lower(trim(%s))
+                  AND COALESCE(email, ARRAY[]::text[]) && %s::text[]
+                LIMIT 1
+                """,
+                [name, email]
+            )
+            row = cur.fetchone()
+        if not row and name:
+            cur.execute("SELECT * FROM organizations WHERE lower(trim(name)) = lower(trim(%s)) LIMIT 1", [name])
+            row = cur.fetchone()
+        if not row and external_id:
+            cur.execute("SELECT * FROM organizations WHERE external_id=%s LIMIT 1", [external_id])
+            row = cur.fetchone()
 
-        if org_id:
+        if row:
+            org_id = row['id']
+            merged_website = _merge_lists(row['website'], website)
+            merged_email = _merge_lists(row['email'], email)
+            merged_phone = _merge_lists(row['phone'], phone)
+            merged_phone_after_hours = _merge_lists(row['phone_after_hours'], phone_after_hours)
+            merged_fax = _merge_lists(row['fax'], fax)
+            merged_roles = _merge_lists(row['roles'], roles)
+            associated_airports = set(row.get('associated_airports', []) or []).union(associated_airports)
+
             cur.execute(ORG_UPDATE_BY_ID, [
-                name, description, website, email, phone,
-                address_id,
-                distance_from_airport, price_range, sita_code, aftn_code, brand, frequency, phone_after_hours,
-                fax, postal_code, label, url, scrape_status, external_id,
-                observed_fields, missing_fields,
-                contacts_json,
-                roles or [],
-                errors_json,
-                extra_json,
-                org_id
+                name, description, merged_website, merged_email, merged_phone,
+                address_id, distance_from_airport, price_range, sita_code, aftn_code, brand, frequency,
+                merged_phone_after_hours, merged_fax, postal_code, label, url, scrape_status, external_id,
+                observed_fields, missing_fields, merged_roles, errors_json, extra_json, org_id
             ])
             org_id = cur.fetchone()['id']
         else:
             cur.execute(ORG_INSERT, [
                 name, description, website, email, phone,
-                address_id,
-                distance_from_airport, price_range, sita_code, aftn_code, brand, frequency, phone_after_hours,
-                fax, postal_code, label, url, scrape_status, external_id,
-                observed_fields, missing_fields,
-                contacts_json,
-                roles or [],
-                errors_json,
-                extra_json
+                address_id, distance_from_airport, price_range, sita_code, aftn_code, brand, frequency,
+                phone_after_hours, fax, postal_code, label, url, scrape_status, external_id,
+                observed_fields, missing_fields, roles, errors_json, extra_json
             ])
             org_id = cur.fetchone()['id']
-        # Link to airport if provided
+
         if airport_id:
             cur.execute(ORG_AIRPORT_LINK, [org_id, airport_id])
-        # Link to associated airports
+
         for assoc_icao in associated_airports:
             cur.execute("SELECT id FROM airports WHERE icao=%s", [assoc_icao])
             airport_row = cur.fetchone()
             if airport_row:
                 cur.execute(ORG_AIRPORT_LINK, [org_id, airport_row['id']])
 
-        # Fallback: if no explicit associated_airports, link via shared airport page URL.
         if not associated_airports and normalized_url:
             cur.execute(
                 "SELECT id FROM airports WHERE lower(regexp_replace(COALESCE(url, ''), '/+$', ''))=%s",
@@ -248,8 +324,8 @@ def upsert_entity(org, airport_id=None):
             if airport_row:
                 cur.execute(ORG_AIRPORT_LINK, [org_id, airport_row['id']])
 
-        # Upsert roles and link
         upsert_roles(org_id, roles, cur)
+
     return org_id, False
 
 def upsert_clearance(clearance, airport_id=None):
