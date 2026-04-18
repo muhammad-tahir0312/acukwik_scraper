@@ -331,3 +331,28 @@ ON public.organizations ((lower(regexp_replace(COALESCE(url, ''), '/+$', ''))));
 
 CREATE INDEX idx_airports_url_norm
 ON public.airports ((lower(regexp_replace(COALESCE(url, ''), '/+$', ''))));
+
+CREATE TABLE public.organization_profile_views (
+    id BIGSERIAL PRIMARY KEY,
+    organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+    view_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    view_count INTEGER DEFAULT 1,
+    first_viewed_at TIMESTAMPTZ DEFAULT now(),
+    last_viewed_at TIMESTAMPTZ DEFAULT now(),
+    ip_address TEXT,
+    user_agent TEXT,
+    geo_country_code TEXT,
+    geo_region TEXT,
+    geo_city TEXT,
+    UNIQUE (organization_id, user_id, view_date)
+);
+
+CREATE INDEX idx_organization_profile_views_organization_id
+ON public.organization_profile_views (organization_id);
+
+CREATE INDEX idx_organization_profile_views_user_id
+ON public.organization_profile_views (user_id);
+
+CREATE INDEX idx_organization_profile_views_view_date
+ON public.organization_profile_views (view_date DESC);
