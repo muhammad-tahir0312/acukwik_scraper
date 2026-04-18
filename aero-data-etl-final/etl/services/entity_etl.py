@@ -86,6 +86,22 @@ def _merge_lists(existing_values, new_values):
     return _unique_preserve_order((existing_values or []) + (new_values or []))
 
 
+def _as_text_array(value):
+    if value is None:
+        return []
+
+    values = value if isinstance(value, list) else [value]
+    normalized = []
+    for item in values:
+        if item is None:
+            continue
+        text = str(item).strip()
+        if text:
+            normalized.append(text)
+
+    return _unique_preserve_order(normalized)
+
+
 def extract_contact_arrays(org):
     arrays = {
         'website': [],
@@ -140,7 +156,7 @@ def upsert_entity(org, airport_id=None):
     phone = contact_arrays['phone']
     fax = contact_arrays['fax']
     phone_after_hours = contact_arrays['phone_after_hours']
-    roles = org.get('roles', []) or []
+    roles = _as_text_array(org.get('roles', []) or [])
     associated_airports = set(org.get('associated_airports', []) or [])
     address = org.get('address')
     distance_from_airport = org.get('distance_from_airport')
@@ -150,7 +166,7 @@ def upsert_entity(org, airport_id=None):
     brand = org.get('brand')
     frequency = org.get('frequency')
     postal_code = None
-    label = None
+    label = []
     address_id = None
     country = None
     city = None
@@ -193,7 +209,7 @@ def upsert_entity(org, airport_id=None):
 
     for contact in org.get('contacts') or []:
         if contact.get('label'):
-            label = contact['label']
+            label = _as_text_array(contact['label'])
             break
 
     url = org.get('url')
