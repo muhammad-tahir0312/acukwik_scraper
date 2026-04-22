@@ -31,6 +31,8 @@ acukwik_scraper/spiders/scraped_logs/
 selenium_integration/logs/
 selenium_integration_final/venv
 selenium_ingestion_final/.selenium_tmp/
+runway_diagrams/raw/
+runway_diagrams/cleaned/
 
 # General log patterns
 *.log
