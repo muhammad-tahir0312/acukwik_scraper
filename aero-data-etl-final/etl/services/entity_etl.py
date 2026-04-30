@@ -13,11 +13,11 @@ logger = logging.getLogger(__name__)
 ORG_INSERT = """
 INSERT INTO organizations (
     name, description, website, email, phone, address_id, distance_from_airport, price_range,
-    sita_code, aftn_code, brand, frequency, phone_after_hours, fax, postal_code, label,
+    sita_code, aftn_code, brand, frequency, toll_free, remarks, phone_after_hours, fax, postal_code, label,
     url, scrape_status, external_id, observed_fields, missing_fields,
     roles, errors, extra
 )
-VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
 RETURNING id;
 """
 
@@ -35,6 +35,8 @@ UPDATE organizations SET
     aftn_code = COALESCE(%s, aftn_code),
     brand = COALESCE(%s, brand),
     frequency = COALESCE(%s, frequency),
+    toll_free = COALESCE(%s, toll_free),
+    remarks = COALESCE(%s, remarks),
     phone_after_hours = COALESCE(%s, phone_after_hours),
     fax = COALESCE(%s, fax),
     postal_code = COALESCE(%s, postal_code),
@@ -163,8 +165,35 @@ def upsert_entity(org, airport_id=None):
     price_range = org.get('price_range')
     sita_code = org.get('sita_code')
     aftn_code = org.get('aftn_code')
-    brand = org.get('brand')
+    contacts = org.get('contacts') or []
+
+    brand = _as_text_array(org.get('brand'))
+    if not brand:
+        brand_values = [
+            str(c.get('value')).strip()
+            for c in contacts
+            if str(c.get('type', '')).strip().lower() == 'brand' and c.get('value')
+        ]
+        if brand_values:
+            brand = _as_text_array(brand_values)
+
     frequency = org.get('frequency')
+    if not frequency:
+        frequency_values = [
+            str(c.get('value')).strip()
+            for c in contacts
+            if str(c.get('type', '')).strip().lower() == 'frequency' and c.get('value')
+        ]
+        if frequency_values:
+            frequency = ", ".join(dict.fromkeys(frequency_values))
+    toll_free = _as_text_array(org.get('toll_free'))
+    if not toll_free:
+        toll_free = _as_text_array([
+            c.get('value')
+            for c in contacts
+            if str(c.get('type', '')).strip().lower() in {'toll_free', 'tollfree', 'toll-free'}
+        ])
+    remarks = org.get('remarks')
     postal_code = None
     label = []
     address_id = None
@@ -247,7 +276,7 @@ def upsert_entity(org, airport_id=None):
     known_fields = {
         'name', 'description', 'website', 'email', 'phone', 'fax', 'phone_after_hours', 'contacts', 'roles',
         'associated_airports', 'address', 'distance_from_airport', 'price_range', 'sita_code', 'aftn_code',
-        'brand', 'frequency', 'postal_code', 'label', 'url', 'scrape_status', 'external_id', 'observed_fields',
+        'brand', 'frequency', 'toll_free', 'remarks', 'postal_code', 'label', 'url', 'scrape_status', 'external_id', 'observed_fields',
         'missing_fields', 'errors'
     }
     extra = {k: v for k, v in org.items() if k not in known_fields}
@@ -308,7 +337,7 @@ def upsert_entity(org, airport_id=None):
 
             cur.execute(ORG_UPDATE_BY_ID, [
                 name, description, merged_website, merged_email, merged_phone,
-                address_id, distance_from_airport, price_range, sita_code, aftn_code, brand, frequency,
+                address_id, distance_from_airport, price_range, sita_code, aftn_code, brand, frequency, toll_free, remarks,
                 merged_phone_after_hours, merged_fax, postal_code, label, url, scrape_status, external_id,
                 observed_fields, missing_fields, merged_roles, errors_json, extra_json, org_id
             ])
@@ -316,7 +345,7 @@ def upsert_entity(org, airport_id=None):
         else:
             cur.execute(ORG_INSERT, [
                 name, description, website, email, phone,
-                address_id, distance_from_airport, price_range, sita_code, aftn_code, brand, frequency,
+                address_id, distance_from_airport, price_range, sita_code, aftn_code, brand, frequency, toll_free, remarks,
                 phone_after_hours, fax, postal_code, label, url, scrape_status, external_id,
                 observed_fields, missing_fields, roles, errors_json, extra_json
             ])

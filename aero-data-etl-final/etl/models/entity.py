@@ -3,9 +3,9 @@ Organization/entity upsert and lookup queries.
 """
 ORG_UPSERT = """
 INSERT INTO organizations (
-    name, description, website, email, phone, address_id, distance_from_airport, price_range, sita_code, aftn_code, brand, frequency, phone_after_hours, fax, postal_code, label, url, scrape_status, external_id, observed_fields, missing_fields, roles, errors, extra
+    name, description, website, email, phone, address_id, distance_from_airport, price_range, sita_code, aftn_code, brand, frequency, toll_free, remarks, phone_after_hours, fax, postal_code, label, url, scrape_status, external_id, observed_fields, missing_fields, roles, errors, extra
 )
-Values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+Values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
 ON CONFLICT (external_id) DO UPDATE SET
     description = COALESCE(EXCLUDED.description, organizations.description),
     website = COALESCE(EXCLUDED.website, organizations.website),
@@ -18,6 +18,8 @@ ON CONFLICT (external_id) DO UPDATE SET
     aftn_code = COALESCE(EXCLUDED.aftn_code, organizations.aftn_code),
     brand = COALESCE(EXCLUDED.brand, organizations.brand),
     frequency = COALESCE(EXCLUDED.frequency, organizations.frequency),
+    toll_free = COALESCE(EXCLUDED.toll_free, organizations.toll_free),
+    remarks = COALESCE(EXCLUDED.remarks, organizations.remarks),
     phone_after_hours = COALESCE(EXCLUDED.phone_after_hours, organizations.phone_after_hours),
     fax = COALESCE(EXCLUDED.fax, organizations.fax),
     postal_code = COALESCE(EXCLUDED.postal_code, organizations.postal_code),
