@@ -1165,7 +1165,9 @@ class AirportPageParser:
             if src:
                 media.append({"url": urljoin(url, src), "alt": image.get_attribute("alt") or ""})
 
-        identity_payload = source_profile_url or json.dumps(identifiers, sort_keys=True) or name.lower()
+        identity_payload = source_profile_url or (
+            json.dumps(identifiers, sort_keys=True) if identifiers else name.lower()
+        )
         source_listing_key = hashlib.sha256(
             f"{airport_icao or ''}|{identity_payload}".encode("utf-8")
         ).hexdigest()[:24]

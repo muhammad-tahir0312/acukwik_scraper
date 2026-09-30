@@ -385,7 +385,71 @@ PYTHONPATH=selenium_ingestion_final \
 
 Python compilation also completed successfully for the scraper and ETL packages.
 
-## Requested 20-airport live validation
+## Headless Selenium script repair (2026-09-30)
+
+The maintained script now uses headless Selenium by default for page retrieval,
+with shared login/retrieval browser settings and a complete user agent derived
+from the installed Chrome. Local credentials load from ignored `.env` files;
+environment variables still take precedence. Login refresh retains saved site
+cookies, email requests reuse the authenticated Selenium session, and `--limit`
+supports bounded runs. Authentication failures now produce a failing exit status.
+
+The live check deliberately removed the account authentication cookie while
+retaining the site's other cookies. The script automatically logged in headlessly,
+saved a new account session, and retrieved 20 airports without visible windows
+or manual interaction. An entirely empty cookie jar still encountered a site
+challenge; this verifies automatic account-session refresh with saved site
+clearance, not unrestricted access from a new session.
+
+Output verification also caught a truncated source ID for code-less airport
+`ACKTNON`. The script now retains the complete source ID for clearance and nearby
+URLs. A targeted headless retry replaced that airport's three records in the
+verified deliverable.
+
+Final result: 20 airports, 47 organizations, 20 clearance records, 20 nearby
+records, 107 records total, and zero schema-validation errors. All 15 tests pass.
+Artifacts are in `runs/airports20_20260930_114217/headless/verified/`.
+
+## PostgreSQL ETL verification (2026-09-30)
+
+The 107 verified records were imported into the separate local PostgreSQL 17
+database `acukwik_etl_check_20260930`. Existing application databases were not
+modified. The base schema and migrations `002` and `003` executed successfully
+after moving referenced location/address tables before airports/organizations.
+
+The database check exposed a scraper identity bug: serializing empty source
+identifiers produced the truthy string `{}`, so unrelated hotels shared one
+listing key. The parser now falls back to the hotel name, and the ETL separates
+older identifier-free records and retires their superseded collision rows on
+re-import. All 47 source listings are retained across 42 canonical organizations.
+
+The ETL now finalizes `etl_runs` with processed/failed counts and a completion
+time, returns a failing exit code for record errors, and preserves the raw input
+data before adding normalized metadata. The launcher accepts explicit JSONL
+paths from any directory, reuses the shared environment, and loads database
+settings from `.env`/environment, including `DATABASE_URL`.
+
+Final verified database contents:
+
+- 20 fully scraped airports plus 41 nearby-airport stubs.
+- 42 canonical organizations and 47 airport listings.
+- 47 listing-role rows and 47 organization-airport-role rows.
+- 20 clearance records and 20 nearby-page records.
+- 20 airport-clearance links and 139 nearby-airport links.
+- Zero orphaned organizations, failed input records, or SQL error logs.
+
+Every source listing's contacts, raw fields, attributes, links, media, and roles
+were compared with the database. All airport raw fields, clearance raw fields,
+nearby rows, and the latest 107 raw input payloads were also checked. Re-importing
+left normalized entity IDs and relationship rows unchanged; audit records append
+by design. Results are in `runs/etl_check_20260930/validation_summary.json`.
+
+All 18 tests pass: 16 scraper/schema tests and 2 real-PostgreSQL tests. The latter
+exercise schema/migration installation, hotel collisions, airport-specific and
+multi-role mappings, repeat imports, raw preservation, and failure exit codes in
+disposable schemas. Production-database migration remains outside this check.
+
+## Earlier 20-airport live validation
 
 The normal scraper entry point was run first against 20 airports. All 20 direct
 HTTP requests received `403 Forbidden`, and WebDriver was presented with

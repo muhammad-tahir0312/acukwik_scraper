@@ -4,6 +4,18 @@ from roles import SECTION_ROLES
 from validators import validate_record
 
 
+def test_hotels_without_source_ids_get_distinct_listing_keys():
+    html = '''<html><body><div id="dnn_ctr422_VDC_ctl00_pnlHotels" class="Hotels">
+      <div class="bluePanelRow"><div class="fs18px bold">First Hotel</div></div>
+      <div class="bluePanelRow"><div class="fs18px bold">Second Hotel</div></div>
+    </div></body></html>'''
+    parser = AirportPageParser(HtmlDriver(html))
+    rows = parser._extract_vendors_from_section('Hotels', 'HOTEL', 'https://acukwik.com/Airport-Info/TEST', 'TEST')
+    assert len(rows) == 2
+    assert len({row['data']['source_listing_key'] for row in rows}) == 2
+    assert len({row['external_id'] for row in rows}) == 2
+
+
 def _vendor(name: str, source_id: str) -> str:
     return f"""
     <div class="vendor" id="listing-{source_id}">

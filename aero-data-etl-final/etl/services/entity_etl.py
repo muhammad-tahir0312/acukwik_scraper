@@ -195,7 +195,14 @@ def organization_names_are_aliases(left, right):
 def upsert_airport_listing(cur, org_id, airport_id, org, roles):
     """Upsert the lossless airport-specific listing and its scoped roles."""
     listing_key = org.get('source_listing_key')
-    if not listing_key:
+    # Older scrapes hashed an empty identifier object as "{}", giving every
+    # unlinked hotel at an airport the same key. Derive a name-specific key
+    # when no source identifier exists, for old and new input alike.
+    has_source_identity = (
+        org.get('source_profile_url') or org.get('source_listing_id')
+        or org.get('source_identifiers')
+    )
+    if not listing_key or not has_source_identity:
         identity = '|'.join([
             str(airport_id),
             org.get('source_profile_url') or '',
@@ -274,6 +281,17 @@ def upsert_airport_listing(cur, org_id, airport_id, org, roles):
         cur.execute(
             "INSERT INTO organization_airport_roles (organization_id, airport_id, role_id) VALUES (%s, %s, %s) ON CONFLICT DO NOTHING",
             [org_id, airport_id, role_id]
+        )
+    # Retire this organization's old, identifier-free collision row only after
+    # its replacement has been written. Raw imports remain available for audit.
+    old_key = org.get('source_listing_key')
+    if old_key and old_key != listing_key and not has_source_identity:
+        cur.execute(
+            """DELETE FROM organization_airport_listings
+               WHERE airport_id=%s AND organization_id=%s AND listing_key=%s
+                 AND source_profile_url IS NULL AND source_listing_id IS NULL
+                 AND source_identifiers='{}'::jsonb""",
+            [airport_id, org_id, old_key],
         )
     return listing_id
 

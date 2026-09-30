@@ -15,7 +15,8 @@ progress:
   file: progress/scraping_progress.json
 
 scraping:
-  parallel_workers: 30
+  fetch_mode: selenium
+  parallel_workers: 4
   max_retries: 3
   retry_backoff: 5
   delay_between_requests: 3
@@ -27,15 +28,16 @@ selenium:
   browser: chrome
   headless: true
   page_load_timeout: 100
-  implicit_wait: 15
-  user_agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
+  implicit_wait: 0
+  # null selects a complete user agent for the installed browser.
+  user_agent: null
 
 authentication:
   enabled: true
   cookies_file: ../cookies.json
   base_url: https://acukwik.com
   login_url: https://acukwik.com/Login
-  # Supply these only through the environment; never commit credentials.
+  # Loaded from ignored .env or environment variables; never commit credentials.
   email: null
   password: null
 

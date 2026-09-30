@@ -1,3 +1,33 @@
+-- LOCATION TABLES (referenced by airports and organizations)
+CREATE TABLE public.countries (
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
+    iso2 TEXT,
+    iso3 TEXT
+);
+
+CREATE TABLE public.cities (
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
+    country_id INTEGER REFERENCES public.countries(id)
+);
+
+CREATE TABLE public.states (
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
+    country_id INTEGER REFERENCES public.countries(id),
+    iso2 TEXT
+);
+
+CREATE TABLE public.addresses (
+    id SERIAL PRIMARY KEY,
+    city_id INTEGER REFERENCES public.cities(id),
+    street VARCHAR(255),
+    country_id INTEGER REFERENCES public.countries(id),
+    full_address TEXT,
+    postal_code VARCHAR(50)
+);
+
 -- USERS & AUTH
 CREATE TABLE public.users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -259,36 +289,6 @@ CREATE TABLE public.airport_nearby_airports (
     created_at TIMESTAMPTZ DEFAULT now(),
     updated_by TEXT DEFAULT 'SYSTEM',
     updated_at TIMESTAMPTZ DEFAULT now()
-);
-
--- SUPPORTING TABLES
-CREATE TABLE public.countries (
-    id SERIAL PRIMARY KEY,
-    name TEXT NOT NULL,
-    iso2 TEXT,
-    iso3 TEXT
-);
-
-CREATE TABLE public.cities (
-    id SERIAL PRIMARY KEY,
-    name TEXT NOT NULL,
-    country_id INTEGER REFERENCES public.countries(id)
-);
-
-CREATE TABLE public.states (
-    id SERIAL PRIMARY KEY,
-    name TEXT NOT NULL,
-    country_id INTEGER REFERENCES public.countries(id),
-    iso2 TEXT
-);
-
-CREATE TABLE public.addresses (
-    id SERIAL PRIMARY KEY,
-    city_id INTEGER REFERENCES public.cities(id),
-    street VARCHAR(255),
-    country_id INTEGER REFERENCES public.countries(id),
-    full_address TEXT,
-    postal_code VARCHAR(50)
 );
 
 CREATE TABLE public.organization_roles (

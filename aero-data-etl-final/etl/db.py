@@ -9,13 +9,13 @@ from .config import Config
 
 @contextmanager
 def get_db_conn():
-    conn = psycopg2.connect(
-        host=Config.DB_HOST,
-        port=Config.DB_PORT,
-        dbname=Config.DB_NAME,
-        user=Config.DB_USER,
-        password=Config.DB_PASSWORD,
-    )
+    if Config.DATABASE_URL:
+        conn = psycopg2.connect(Config.DATABASE_URL, connect_timeout=10)
+    else:
+        conn = psycopg2.connect(
+            host=Config.DB_HOST, port=Config.DB_PORT, dbname=Config.DB_NAME,
+            user=Config.DB_USER, password=Config.DB_PASSWORD, connect_timeout=10,
+        )
     try:
         yield conn
     finally:

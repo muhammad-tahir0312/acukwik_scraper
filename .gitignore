@@ -40,6 +40,7 @@ runway_diagrams/raw/
 runway_diagrams/cleaned/
 
 # Scraper-generated data and resumable state
+runs/
 output/
 **/output/
 html_cache/

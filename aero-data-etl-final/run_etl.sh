@@ -1,22 +1,13 @@
 #!/bin/bash
-# Crash-safe ETL runner: creates venv, installs dependencies, runs ETL
-set -e
-
-VENV_DIR=".venv"
-REQUIREMENTS="psycopg2-binary"
-
-# Create venv if not exists or if pip shebang is broken (e.g. venv was moved)
-VENV_PIP="$VENV_DIR/bin/pip"
-if [ ! -d "$VENV_DIR" ] || [ ! -f "$VENV_PIP" ] || ! "$VENV_PIP" --version &>/dev/null; then
-  rm -rf "$VENV_DIR"
-  python3 -m venv "$VENV_DIR"
+# Run from any directory; use the shared environment without deleting it.
+set -euo pipefail
+ETL_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+ETL_VENV="${ETL_VENV_DIR:-$ETL_DIR/../.venv}"
+if [ ! -x "$ETL_VENV/bin/python" ]; then
+  python3 -m venv "$ETL_VENV"
 fi
-
-source "$VENV_DIR/bin/activate"
-
-# Install required libraries using venv pip explicitly
-"$VENV_DIR/bin/pip" install --upgrade pip
-"$VENV_DIR/bin/pip" install $REQUIREMENTS
-
-# Run ETL (auto-detects files in acukwik_data)
-"$VENV_DIR/bin/python" -m etl.main
+if ! "$ETL_VENV/bin/python" -c 'import psycopg2, dotenv' 2>/dev/null; then
+  "$ETL_VENV/bin/python" -m pip install -r "$ETL_DIR/requirements.txt"
+fi
+export PYTHONPATH="$ETL_DIR${PYTHONPATH:+:$PYTHONPATH}"
+exec "$ETL_VENV/bin/python" -m etl.main "$@"

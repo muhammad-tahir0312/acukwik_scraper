@@ -1,4 +1,54 @@
 from scraper import ScraperOrchestrator
+import json
+from pathlib import Path
+import pytest
+
+
+def test_local_credentials_load_without_overriding_environment(tmp_path, monkeypatch):
+    from config_loader import load_config
+    config_path = tmp_path / "config.yaml"
+    config_path.write_text(Path(__file__).parents[1].joinpath("config.yaml").read_text())
+    (tmp_path / ".env").write_text("AUTH_EMAIL=local@example.test\nAUTH_PASSWORD='literal${VALUE}'\n")
+    monkeypatch.setenv("AUTH_EMAIL", "environment@example.test")
+    monkeypatch.delenv("AUTH_PASSWORD", raising=False)
+    config = load_config(str(config_path))
+    assert config["authentication"]["email"] == "environment@example.test"
+    assert config["authentication"]["password"] == "literal${VALUE}"
+
+
+def test_selenium_mode_does_not_send_http_request(tmp_path):
+    class Driver:
+        title = "Airport information"
+        page_source = "<h1>Test airport</h1>"
+
+        def get(self, url):
+            self.url = url
+
+    driver = Driver()
+    orchestrator = object.__new__(ScraperOrchestrator)
+    orchestrator.config = {"scraping": {"fetch_mode": "selenium"}}
+    orchestrator.html_cache_dir = tmp_path
+    orchestrator._fetch_html_to_cache_with_session = lambda *args: pytest.fail("HTTP used in Selenium mode")
+    path = orchestrator._fetch_page_to_cache(
+        "https://acukwik.com/Airport-Info/TEST", "TEST", "airport", object(), {"driver": driver}
+    )
+    assert path.read_text() == driver.page_source
+    assert driver.url.endswith("/TEST")
+
+
+def test_input_limit_bounds_the_run(tmp_path):
+    source = tmp_path / "input.csv"
+    source.write_text("ICAO,Airport Link\nONE,https://example.test/ONE\nTWO,https://example.test/TWO\n")
+    orchestrator = object.__new__(ScraperOrchestrator)
+    orchestrator.config = {"input": {"csv_paths": [str(source)]}}
+    orchestrator.limit = 1
+    assert [row["ICAO"] for row in orchestrator.load_input_data()] == ["ONE"]
+
+
+def test_full_source_id_is_retained_for_airports_without_icao():
+    orchestrator = object.__new__(ScraperOrchestrator)
+    assert orchestrator._extract_airport_id_from_url("https://acukwik.com/Airport-Info/ACKTNON") == "ACKTNON"
+    assert orchestrator._extract_airport_id_from_url("https://acukwik.com/Airport-Info/HCMB?x=1") == "HCMB"
 
 
 class _Button:
@@ -53,3 +103,56 @@ def test_email_resolver_routes_all_button_types():
         "SUPPLIER_ID": "99",
         "Service_Type_ID": "7",
     }
+
+
+def test_email_resolver_reuses_selenium_session():
+    class Browser:
+        def execute_async_script(self, script, url, params):
+            assert url.endswith("/GetARPTEmail")
+            assert params == {"ICAO": "TEST"}
+            return {"status": 200, "body": json.dumps({"emailHtml": '<a href="mailto:test@example.test">Email</a>'})}
+
+    orchestrator = object.__new__(ScraperOrchestrator)
+    orchestrator.config = {"authentication": {"base_url": "https://acukwik.com"}}
+    assert orchestrator._build_email_resolver(None, Browser())(_Button("aEmail", "TEST")) == "test@example.test"
+
+
+def test_failed_authentication_is_not_a_successful_run(monkeypatch):
+    import scraper
+    orchestrator = object.__new__(ScraperOrchestrator)
+    orchestrator.config = {}
+    monkeypatch.setattr(scraper, "auto_login_if_needed", lambda _: False)
+    with pytest.raises(RuntimeError, match="Failed to obtain valid cookies"):
+        orchestrator.run()
+
+
+def test_headless_driver_uses_complete_installed_browser_user_agent(monkeypatch):
+    import browser
+    captured = {}
+
+    class Driver:
+        def execute_script(self, script):
+            return "Mozilla/5.0 TestPlatform HeadlessChrome/154.0.0.0 Safari/537.36"
+
+        def execute_cdp_cmd(self, command, values):
+            captured[command] = values
+
+        def set_page_load_timeout(self, seconds):
+            pass
+
+        def set_script_timeout(self, seconds):
+            pass
+
+        def implicitly_wait(self, seconds):
+            pass
+
+    def launch(options):
+        captured["arguments"] = options.arguments
+        return Driver()
+
+    monkeypatch.setattr(browser.webdriver, "Chrome", launch)
+    browser.create_driver({"selenium": {"headless": True, "user_agent": None}})
+    assert "--headless=new" in captured["arguments"]
+    assert captured["Network.setUserAgentOverride"]["userAgent"] == (
+        "Mozilla/5.0 TestPlatform Chrome/154.0.0.0 Safari/537.36"
+    )

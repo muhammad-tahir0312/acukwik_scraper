@@ -5,6 +5,7 @@ Loads and validates configuration from YAML files.
 import yaml
 import os
 import logging
+from dotenv import dotenv_values
 from pathlib import Path
 from typing import Dict, Any, Optional
 
@@ -39,6 +40,17 @@ def load_config(config_path: str = "config.yaml") -> Dict[str, Any]:
         
         logger.info(f"Loaded configuration from: {config_path}")
         
+        # Load ignored local credentials, without changing the process environment.
+        # Explicit environment variables still take precedence below.
+        base_dir = config_file.resolve().parent
+        local_env = {}
+        for env_path in (base_dir.parent / ".env", base_dir / ".env"):
+            if env_path.is_file():
+                local_env.update(dotenv_values(env_path, interpolate=False))
+        for name, key in (("AUTH_EMAIL", "email"), ("AUTH_PASSWORD", "password")):
+            if local_env.get(name):
+                config.setdefault("authentication", {})[key] = local_env[name]
+
         # Apply environment variable overrides
         config = _apply_env_overrides(config)
 
@@ -103,6 +115,9 @@ def _apply_env_overrides(config: Dict[str, Any]) -> Dict[str, Any]:
     
     if os.getenv("MAX_RETRIES"):
         config.setdefault("scraping", {})["max_retries"] = int(os.getenv("MAX_RETRIES"))
+
+    if os.getenv("FETCH_MODE"):
+        config.setdefault("scraping", {})["fetch_mode"] = os.getenv("FETCH_MODE").lower()
     
     # Selenium configuration
     if os.getenv("BROWSER"):
@@ -162,6 +177,8 @@ def _validate_config(config: Dict[str, Any]) -> None:
     
     # Validate scraping configuration
     scraping = config["scraping"]
+    if scraping.get("fetch_mode", "auto") not in {"selenium", "http", "auto"}:
+        raise ValueError("scraping.fetch_mode must be selenium, http, or auto")
     if "parallel_workers" not in scraping:
         raise ValueError("Missing required field: scraping.parallel_workers")
     

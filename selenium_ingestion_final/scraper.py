@@ -29,6 +29,7 @@ from parsers import AirportPageParser, AirportParser, OrganizationParser, Cleara
 from validators import validate_record
 from output import BatchOutputWriter
 from progress import ProgressTracker
+from browser import create_driver as create_browser_driver
 
 logger = logging.getLogger(__name__)
 
@@ -97,22 +98,17 @@ def auto_login_if_needed(config: Dict[str, Any]) -> bool:
         from selenium.webdriver.support.ui import WebDriverWait
         from selenium.webdriver.support import expected_conditions as EC
         
-        options = ChromeOptions()
-        # Respect the configured mode so an authorized interactive browser can
-        # be used when a site challenge rejects headless automation.
-        if config.get("selenium", {}).get("headless", True):
-            options.add_argument("--headless")
-        options.add_argument("--no-sandbox")
-        options.add_argument("--disable-dev-shm-usage")
-        options.add_argument("--disable-gpu")  # Helps in headless mode
-        
-        driver = webdriver.Chrome(options=options)
-        driver.set_page_load_timeout(30)
+        driver = create_browser_driver(config)
         
         # Navigate to homepage
         base_url = auth_config.get("base_url", "https://acukwik.com")
         logger.info(f"Navigating to {base_url}")
-        driver.get(base_url)
+        # Keep unexpired site/clearance cookies when refreshing the account
+        # login. An expired account cookie does not invalidate the whole jar.
+        if cookies_file.exists():
+            CookieAuthentication(str(cookies_file)).apply_cookies(driver, base_url)
+        else:
+            driver.get(base_url)
         time.sleep(3)
 
         if "just a moment" in driver.title.lower() or "challenge-platform" in driver.page_source.lower():
@@ -427,10 +423,13 @@ def auto_login_if_needed(config: Dict[str, Any]) -> bool:
         # Get and save cookies
         cookies = driver.get_cookies()
         
-        if len(cookies) == 0:
-            logger.error("✗ No cookies found - login likely failed")
+        if not any(cookie.get("name") == ".DOTNETNUKE" for cookie in cookies):
+            logger.error("Login did not return an authenticated session cookie")
             return False
-        
+
+        cookies_file.parent.mkdir(parents=True, exist_ok=True)
+        cookies_file.touch(mode=0o600, exist_ok=True)
+        cookies_file.chmod(0o600)
         with open(cookies_file, 'w') as f:
             json.dump(cookies, f, indent=2)
         
@@ -449,7 +448,7 @@ def auto_login_if_needed(config: Dict[str, Any]) -> bool:
 class ScraperOrchestrator:
     """Main orchestrator for the scraping process."""
     
-    def __init__(self, config_path: str = "config.yaml"):
+    def __init__(self, config_path: str = "config.yaml", limit: Optional[int] = None):
         """
         Initialize scraper orchestrator.
         
@@ -457,6 +456,7 @@ class ScraperOrchestrator:
             config_path: Path to configuration file
         """
         self.config = load_config(config_path)
+        self.limit = limit
         self.source = self.config["source"]["name"]
         
         # Initialize components
@@ -555,18 +555,20 @@ class ScraperOrchestrator:
         session: requests.Session,
         browser_holder: Dict[str, Any],
     ) -> Path:
-        """Use fast HTTP retrieval, falling back to an authenticated browser."""
-        try:
-            return self._fetch_html_to_cache_with_session(
-                url, external_id, page_label, session
-            )
-        except requests.HTTPError as exc:
-            status = exc.response.status_code if exc.response is not None else None
-            if status not in {401, 403, 429}:
-                raise
-            logger.warning(
-                f"HTTP fetch returned {status} for {url}; using browser fallback"
-            )
+        """Retrieve with the configured transport; Selenium keeps the login session."""
+        mode = self.config.get("scraping", {}).get("fetch_mode", "auto")
+        if mode != "selenium":
+            try:
+                return self._fetch_html_to_cache_with_session(
+                    url, external_id, page_label, session
+                )
+            except requests.HTTPError as exc:
+                status = exc.response.status_code if exc.response is not None else None
+                if mode == "http" or status not in {401, 403, 429}:
+                    raise
+                logger.warning(
+                    f"HTTP fetch returned {status} for {url}; using browser fallback"
+                )
 
         driver = browser_holder.get("driver")
         if driver is None:
@@ -586,7 +588,7 @@ class ScraperOrchestrator:
         cache_file.write_text(driver.page_source, encoding="utf-8")
         return cache_file
 
-    def _build_email_resolver(self, session: requests.Session):
+    def _build_email_resolver(self, session: requests.Session, browser=None):
         """Build a resolver that can expand AC-U-KWIK email buttons via the authenticated API."""
         base_url = self.config.get("authentication", {}).get("base_url", "https://acukwik.com").rstrip("/")
 
@@ -608,15 +610,24 @@ class ScraperOrchestrator:
                     endpoint = "/desktopmodules/Services/api/FunctionsWS/GetGHEmail"
                     params = {"GROUND_HANDLER_ID": data_id, "Service_Type_ID": service_type_id or ""}
 
-                response = session.get(
-                    f"{base_url}{endpoint}",
-                    params=params,
-                    timeout=(15, 45),
-                    headers={"User-Agent": self.config["selenium"].get("user_agent", "Mozilla/5.0")},
-                )
-                response.raise_for_status()
-
-                payload = response.json()
+                if browser is not None:
+                    result = browser.execute_async_script("""
+                        const [endpoint, params, done] = arguments;
+                        const url = new URL(endpoint);
+                        url.search = new URLSearchParams(params).toString();
+                        fetch(url, {credentials: 'same-origin'})
+                            .then(async r => done({status: r.status, body: await r.text()}))
+                            .catch(e => done({status: 0, body: String(e)}));
+                    """, f"{base_url}{endpoint}", params)
+                    if result.get("status") != 200:
+                        raise RuntimeError(f"Email lookup returned HTTP {result.get('status')}")
+                    payload = json.loads(result["body"])
+                else:
+                    response = session.get(
+                        f"{base_url}{endpoint}", params=params, timeout=(15, 45),
+                    )
+                    response.raise_for_status()
+                    payload = response.json()
                 email_html = payload.get("emailHtml") if isinstance(payload, dict) else None
                 if not email_html:
                     return None
@@ -656,38 +667,7 @@ class ScraperOrchestrator:
         Returns:
             Configured WebDriver instance
         """
-        browser = self.config["selenium"]["browser"].lower()
-        headless = self.config["selenium"]["headless"]
-        
-        if browser == "chrome":
-            options = ChromeOptions()
-            if headless:
-                options.add_argument("--headless")
-            options.add_argument("--no-sandbox")
-            options.add_argument("--disable-dev-shm-usage")
-            options.add_argument("--disable-gpu")
-            options.add_argument("--window-size=1920,1080")
-            # Add user agent
-            options.add_argument(f"user-agent={self.config['selenium'].get('user_agent', 'Mozilla/5.0')}")
-            
-            # service = Service("/usr/local/bin/chromedriver")
-            driver = webdriver.Chrome(options=options)
-            
-        elif browser == "firefox":
-            options = FirefoxOptions()
-            if headless:
-                options.add_argument("--headless")
-            
-            driver = webdriver.Firefox(options=options)
-            
-        else:
-            raise ValueError(f"Unsupported browser: {browser}")
-        
-        # Set timeouts
-        driver.set_page_load_timeout(self.config["selenium"].get("page_load_timeout", 30))
-        driver.implicitly_wait(self.config["selenium"].get("implicit_wait", 10))
-        
-        return driver
+        return create_browser_driver(self.config)
     
     def authenticate_driver(self, driver: webdriver.Remote) -> None:
         """
@@ -780,6 +760,8 @@ class ScraperOrchestrator:
             except Exception as e:
                 logger.error(f"Failed to load {csv_path}: {e}")
         
+        if self.limit is not None:
+            all_records = all_records[:self.limit]
         logger.info(f"Total records loaded: {len(all_records)}")
         return all_records
     
@@ -837,7 +819,7 @@ class ScraperOrchestrator:
                 )
                 cached_pages.append(airport_html)
 
-                email_resolver = self._build_email_resolver(session)
+                email_resolver = self._build_email_resolver(session, browser_holder.get("driver"))
                 airport_driver = HtmlDriver.from_file(airport_html, current_url=url, email_resolver=email_resolver)
 
                 # Check for authentication issues on the cached page contents.
@@ -854,19 +836,23 @@ class ScraperOrchestrator:
                     if entities and not entities[0].get("data", {}).get("icao") and record.get("ICAO"):
                         entities[0]["data"]["icao"] = record["ICAO"].upper()
 
-                    # Extract ICAO to build the other tab URLs
+                    # Code-less airports still have a full source ID used by
+                    # the site's other tabs (e.g. ACKTNON, never ACKT).
+                    airport_data = entities[0].get("data", {}) if entities else {}
                     icao = (
-                        (entities[0].get("data", {}).get("icao") if entities else None)
+                        airport_data.get("icao")
                         or record.get("ICAO")
-                        or self._extract_icao_from_url(url)
+                        or airport_data.get("source_airport_id")
+                        or self._extract_airport_id_from_url(url)
                     )
+                    tab_id = airport_data.get("source_airport_id") or icao
 
                     scraping_cfg = self.config.get("scraping", {})
 
                     # Scrape Clearance tab
                     if icao and scraping_cfg.get("scrape_clearance", True):
                         try:
-                            clearance_url = f"https://acukwik.com/Clearance-Overview/{icao}"
+                            clearance_url = f"https://acukwik.com/Clearance-Overview/{tab_id}"
                             clearance_html = self._fetch_page_to_cache(
                                 clearance_url, external_id, "clearance", session, browser_holder
                             )
@@ -882,7 +868,7 @@ class ScraperOrchestrator:
                     # Scrape Nearby tab
                     if icao and scraping_cfg.get("scrape_nearby", True):
                         try:
-                            nearby_url = f"https://acukwik.com/Nearby/{icao}"
+                            nearby_url = f"https://acukwik.com/Nearby/{tab_id}"
                             nearby_html = self._fetch_page_to_cache(
                                 nearby_url, external_id, "nearby", session, browser_holder
                             )
@@ -1066,10 +1052,10 @@ class ScraperOrchestrator:
                 raise  # Re-raise auth failures
             logger.debug(f"Auth verification check failed: {e}")
     
-    def _extract_icao_from_url(self, url: str) -> Optional[str]:
-        """Extract 4-letter ICAO code from an Airport-Info URL."""
+    def _extract_airport_id_from_url(self, url: str) -> Optional[str]:
+        """Extract the full source ID, which need not be an ICAO code."""
         import re
-        match = re.search(r'/Airport-Info/([A-Z0-9]{3,4})', url, re.IGNORECASE)
+        match = re.search(r'/Airport-Info/([A-Z0-9_-]+)(?=[/?#]|$)', url, re.IGNORECASE)
         if match:
             return match.group(1).upper()
         return None
@@ -1171,8 +1157,7 @@ class ScraperOrchestrator:
         try:
             # Check and refresh cookies if needed
             if not auto_login_if_needed(self.config):
-                logger.error("Failed to obtain valid cookies")
-                return
+                raise RuntimeError("Failed to obtain valid cookies")
             
             # Load input data
             records = self.load_input_data()
@@ -1287,17 +1272,24 @@ def setup_logging(config: Dict[str, Any]) -> None:
 
 def main():
     """Main entry point."""
-    import sys
-    
-    config_path = sys.argv[1] if len(sys.argv) > 1 else "config.yaml"
+    import argparse
+    parser = argparse.ArgumentParser(description="Scrape authenticated AC-U-KWIK airport data")
+    parser.add_argument("config", nargs="?", default=str(Path(__file__).with_name("config.yaml")))
+    parser.add_argument("--limit", type=int, help="Maximum number of input airports")
+    args = parser.parse_args()
+    if args.limit is not None and args.limit < 1:
+        parser.error("--limit must be positive")
+    config_path = args.config
     
     # Load config for logging setup
     config = load_config(config_path)
     setup_logging(config)
     
     # Create and run orchestrator
-    orchestrator = ScraperOrchestrator(config_path)
+    orchestrator = ScraperOrchestrator(config_path, limit=args.limit)
     orchestrator.run()
+    if orchestrator.stats["failed"]:
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":

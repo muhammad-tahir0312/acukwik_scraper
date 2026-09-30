@@ -52,14 +52,20 @@ source .venv/bin/activate
 pip install -r selenium_ingestion_final/requirements.txt
 ```
 
-Authentication uses an exported `cookies.json`. Credentials are never stored in configuration. If cookie refresh is needed, supply them through the environment:
+The scraper logs in automatically and saves `cookies.json`. Put credentials in
+the ignored project-root `.env` file (see `.env.example`), or supply them through
+the environment. Environment variables take precedence:
 
 ```bash
 export AUTH_EMAIL='your-email'
 export AUTH_PASSWORD='your-password'
 ```
 
-AC-U-KWIK may present an interactive Cloudflare challenge. The scraper does not bypass it. If that happens, refresh/export cookies through a normal authorized browser session and rerun.
+Login and retrieval both use headless Selenium with the same complete browser
+user agent. During account re-login, existing site cookies are retained. An
+entirely new session without valid Cloudflare clearance may still be challenged;
+the script reports that failure and exits unsuccessfully instead of claiming a
+successful scrape.
 
 ## Run the scraper
 
@@ -68,6 +74,16 @@ The default input is `country_links.csv`:
 ```bash
 .venv/bin/python selenium_ingestion_final/scraper.py selenium_ingestion_final/config.yaml
 ```
+
+To process at most 20 input airports, with no visible browser window:
+
+```bash
+.venv/bin/python selenium_ingestion_final/scraper.py --limit 20
+```
+
+The maintained configuration uses Selenium for airport, clearance, nearby, and
+email retrieval, then parses the downloaded HTML locally. Local `.env`
+credentials are loaded automatically; no manual browser steps are part of a run.
 
 Paths are resolved relative to the config file. Useful environment overrides are:
 
@@ -80,9 +96,10 @@ USER_AGENT='the user agent used to obtain cookies.json' \
 .venv/bin/python selenium_ingestion_final/scraper.py selenium_ingestion_final/config.yaml
 ```
 
-When `cookies.json` includes a Cloudflare clearance cookie, use the same browser
-user agent that created it. A mismatched user agent can make an otherwise valid
-cookie jar return HTTP 403.
+Leave `selenium.user_agent` as `null` to use the installed Chrome's complete user
+agent. `FETCH_MODE=auto` enables HTTP with Selenium fallback; `FETCH_MODE=http`
+disables Selenium retrieval. Those HTTP modes can receive 403 even when the
+Selenium session works. The default is `FETCH_MODE=selenium`.
 
 The input CSV must contain `Airport Link`, `url`, or `link`; an `ICAO` column is recommended.
 
@@ -96,18 +113,42 @@ The suite checks all service categories, unknown-field retention, same-airport m
 
 ## Database migration and ETL
 
-Apply the base schema for a new database. For an existing database, apply:
+Configure `DATABASE_URL`, or `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, and
+`DB_PASSWORD` in the ignored root/ETL `.env` file or the environment. Exported
+variables take precedence. `DATABASE_URL`, when set, takes precedence over the
+individual connection fields. Choose an existing PostgreSQL database and role.
+
+For a new database, apply the base schema (the following `psql` commands use an
+exported `DATABASE_URL`):
 
 ```bash
-psql "$DATABASE_URL" -f aero-data-etl-final/db/migrations/002_airport_scoped_organization_roles.sql
-psql "$DATABASE_URL" -f aero-data-etl-final/db/migrations/003_airport_source_identifiers.sql
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -1 -f aero-data-etl-final/db/etl_schema.sql
 ```
 
-Then place scraper JSONL files in `aero-data-etl-final/acukwik_data/` and run:
+For an existing database, apply:
 
 ```bash
-cd aero-data-etl-final
-./run_etl.sh
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f aero-data-etl-final/db/migrations/002_airport_scoped_organization_roles.sql
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f aero-data-etl-final/db/migrations/003_airport_source_identifiers.sql
 ```
 
-Canonical organization matching is conservative: stable source profiles and strong shared contacts are preferred, and name-only merging is prohibited.
+Pass scraper output directly to the launcher from the repository root:
+
+```bash
+./aero-data-etl-final/run_etl.sh /absolute/path/to/scraped_records.jsonl
+```
+
+Without file arguments, it reads `aero-data-etl-final/acukwik_data/*.jsonl`.
+The launcher uses the shared `.venv` and accepts `--data-dir` for another input
+directory. Completed imports record their counts and status in `etl_runs`;
+failed records are logged in `app_logs` and cause a nonzero exit code. Normalized
+entities and relationships are updated on reruns; raw audit records append.
+
+Canonical organization matching is conservative: stable source profiles and strong shared contacts are preferred, and name-only merging is prohibited. Identifier-free listings are distinguished by airport and name, including older hotel records with colliding source keys.
+
+PostgreSQL regression checks use disposable schemas inside a test database:
+
+```bash
+ETL_TEST_DATABASE_URL="$DATABASE_URL" PYTHONPATH=aero-data-etl-final \
+  .venv/bin/python -m pytest -q aero-data-etl-final/tests
+```
