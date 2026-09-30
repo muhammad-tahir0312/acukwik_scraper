@@ -1,5 +1,7 @@
 """Lightweight HTML driver adapter for parsing cached pages without Selenium."""
 
+from __future__ import annotations
+
 from pathlib import Path
 from typing import Callable, List, Optional
 

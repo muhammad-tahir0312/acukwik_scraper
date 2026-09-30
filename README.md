@@ -1,127 +1,107 @@
-# Acukwik Scraper
+# AC-U-KWIK scraper and ETL
 
-## Code Structure (Using Scrapy Framework)
+The maintained pipeline is split into:
+
+- `selenium_ingestion_final/`: authenticated AC-U-KWIK scraper, parsers, validation, and JSONL output.
+- `aero-data-etl-final/`: PostgreSQL schema and ETL.
+
+The older Scrapy and `*_refactored` directories are retained for history; they are not the current pipeline.
+
+## Organization and role model
+
+An organization does not have one global role. The source of truth is:
+
+```text
+organization -> airport listing -> one or more roles
+```
+
+For example, the same canonical company may be a handler at one airport and a caterer at another. It may also perform multiple roles at the same airport. The scraper therefore emits the airport and role on every organization occurrence. The ETL stores those facts in:
+
+- `organization_airport_listings`: lossless listing data for one airport.
+- `organization_airport_listing_roles`: roles on the exact source listing.
+- `organization_airport_roles`: convenient canonical organization + airport + role relationship.
+
+`organizations.roles` and `organization_role_map` remain aggregate compatibility fields and must not be used to answer airport-specific questions.
+
+The 14 currently recognized AC-U-KWIK service types are:
+
+`FBO`, `HANDLER`, `SUPERVISING_AGENT`, `FUEL_SUPPLIER`, `FLIGHT_SUPPORT_ORGANIZATION`, `CATERING`, `GROUND_TRANSPORTATION`, `MAINTENANCE`, `HOTEL`, `CAR_RENTAL`, `CHARTER`, `DETAILER`, `PROTECTION`, and `STORE`.
+
+Unknown future service panels are retained as `OTHER` with the original section name.
+
+## Field coverage
+
+Known fields are normalized for normal use, but the scraper also keeps a lossless source snapshot:
+
+- `raw_fields`: every detected label/value pair, including duplicate and unknown labels.
+- `attributes`: normalized keys for all detected labels.
+- `links`: link text, URL, and source identifiers.
+- `media`: image URL and alt text.
+- `raw_text`: the complete visible listing text.
+- `source_identifiers`, `source_profile_url`, `source_section`, and `source_listing_key`.
+
+Airport pages similarly retain all label/value pairs in `airport_fields_raw`. This prevents newly introduced AC-U-KWIK fields from being silently discarded before a normalized database column exists.
+
+## Setup
+
+Python 3.9 or newer is supported.
 
 ```bash
-my_scrapy_project/
-├── scrapy.cfg          # Scrapy project configuration file
-├── my_scrapy_project/  # Scrapy project directory
-│   ├── __init__.p
-│   ├── items.py        # Define your scraped items here
-│   ├── middlewares.py  # Project middlewares
-│   ├── pipelines.py    # Process scraped items here
-│   ├── settings.py     # Project settings
-│   └── spiders/        # Your spiders live here
-│       ├── __init__.py
-│       ├── airport_links_scraper.py  # scrapes all links and writes to csv
-│       └── driver_scraper # uses selenium driver to scrape everything
-│
-├── requirements.txt    # Project dependencies
-└──README.md           # This file
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r selenium_ingestion_final/requirements.txt
 ```
 
-## Getting Started=
-
-### 1. Create and Activate a Virtual Environment (Recommended)
+Authentication uses an exported `cookies.json`. Credentials are never stored in configuration. If cookie refresh is needed, supply them through the environment:
 
 ```bash
-python3 -m venv .venv       # Create a virtual environment (replace .venv with your preferred name)
-source .venv/bin/activate  # Activate the virtual environment (Linux/macOS)
-.venv\Scripts\activate    # Activate the virtual environment (Windows)
+export AUTH_EMAIL='your-email'
+export AUTH_PASSWORD='your-password'
 ```
 
-### 2. Install all pip packages using requirements.txt
+AC-U-KWIK may present an interactive Cloudflare challenge. The scraper does not bypass it. If that happens, refresh/export cookies through a normal authorized browser session and rerun.
+
+## Run the scraper
+
+The default input is `country_links.csv`:
 
 ```bash
-pip install -r requirements.txt
+.venv/bin/python selenium_ingestion_final/scraper.py selenium_ingestion_final/config.yaml
 ```
 
-### 3. Running the Scraper
-
-#### a. Scraping links of the airport pages (Optional) (Skip if you want to use country_links.csv)
-
-##### Outputs all links in different csv file with respect to country name and also appends country_links.csv if not already created
-
-Before running the links scraper make sure to have these settings enabled / uncommented in settings.py
-
-```python
-
-FEED_EXPORT_ENCODING = "utf-8"
-FEED_FORMAT = "csv"
-FEED_URI = "country_links.csv"
-```
-
-Run the script
+Paths are resolved relative to the config file. Useful environment overrides are:
 
 ```bash
-scrapy crawl airport_links
+INPUT_CSV_PATH=/absolute/path/airports.csv \
+OUTPUT_DIRECTORY=/absolute/path/output \
+PROGRESS_FILE=/absolute/path/progress.json \
+PARALLEL_WORKERS=4 \
+.venv/bin/python selenium_ingestion_final/scraper.py selenium_ingestion_final/config.yaml
 ```
 
-#### b. Scraping the airport pages
+The input CSV must contain `Airport Link`, `url`, or `link`; an `ICAO` column is recommended.
 
-Before running the airport pages scraper make sure to remove or comment FEED_FORMAT and FEED_URI
-
-```python
-#settings.py
-
-
-# remove or comment out FEED_FORMAT and FEED_URI
-
-#FEED_FORMAT = "csv"
-#FEED_URI = "country_links.csv"
-```
-
-Run the script for scraping an airport page
-
-##### Set Mongodb link to connect to
-
-```python
-# Default value
-NOSQL_URI = "mongodb://localhost:27017/"
-
-# Usage
-NOSQL_URI = "mongodb://your_mongodb_host:your_mongodb_port/"
-
-# Usage for protected mongo user
-NOSQL_URI = "mongodb://username:password@your_mongodb_host:your_mongodb_port/"
-
-```
-
-##### Main scraping page -> selenium_scraper.py
-
-##### Data Pipeline page -> pipelines.py
+## Tests
 
 ```bash
-scrapy crawl driver_scraper
-
-# default values for all flags
-
-scrapy crawl driver_scraper -a f="data.csv" -a tl=10 -a tp_min=3 -a tp_max=8 -a csv_row="Airport Link" -o output.json
+PYTHONPATH=selenium_ingestion_final .venv/bin/python -m pytest -q selenium_ingestion_final/tests
 ```
 
-##### Explanation of flags:
+The suite checks all service categories, unknown-field retention, same-airport multi-role behavior, and the airport-scoped database contract.
 
-- `-a f="data.csv"` → Specifies the input file containing airport data. Absolute links can also be used
-- `-a tl=10` → Sets the time delay after clicking all buttons to resolve all network requests.
-- `-a tp_min=3` → Sets the minimum time (in seconds) between requests.
-- `-a tp_max=8` → Sets the maximum time (in seconds) between requests.
-- `-a csv_row="Airport Link"` → Filters data based on a specific row in the CSV.
-- `-a max_links=5` → Limits the amount of links from the csv that need to be scraped
-- `-o output.json` → Saves the scraped data in a JSON file instead of MongoDB.
+## Database migration and ETL
 
-##### To disable saving of output in mongodb database and only get a json output
+Apply the base schema for a new database. For an existing database, apply:
 
-```python
-# pipeline.py
-# comment out the function call self.store_in_nosql
-
-def process_item(self, item, spider):
-    cleaned_item = self.clean_data(item)
-
-
-    # self.store_in_nosql(cleaned_item)
-
-    return cleaned_item
-
-
+```bash
+psql "$DATABASE_URL" -f aero-data-etl-final/db/migrations/002_airport_scoped_organization_roles.sql
 ```
+
+Then place scraper JSONL files in `aero-data-etl-final/acukwik_data/` and run:
+
+```bash
+cd aero-data-etl-final
+./run_etl.sh
+```
+
+Canonical organization matching is conservative: stable source profiles and strong shared contacts are preferred, and name-only merging is prohibited.

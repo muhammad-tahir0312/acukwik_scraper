@@ -41,6 +41,25 @@ def load_config(config_path: str = "config.yaml") -> Dict[str, Any]:
         
         # Apply environment variable overrides
         config = _apply_env_overrides(config)
+
+        # Resolve file paths relative to the configuration file, not the
+        # caller's current working directory.
+        base_dir = config_file.resolve().parent
+        input_paths = config.get("input", {}).get("csv_paths", [])
+        if isinstance(input_paths, str):
+            input_paths = [input_paths]
+        config.setdefault("input", {})["csv_paths"] = [
+            str((base_dir / path).resolve()) if not Path(path).is_absolute() else path
+            for path in input_paths
+        ]
+        for section, key in (
+            ("output", "directory"),
+            ("progress", "file"),
+            ("authentication", "cookies_file"),
+        ):
+            value = config.get(section, {}).get(key)
+            if value and not Path(value).is_absolute():
+                config[section][key] = str((base_dir / value).resolve())
         
         # Validate configuration
         _validate_config(config)
@@ -74,6 +93,9 @@ def _apply_env_overrides(config: Dict[str, Any]) -> Dict[str, Any]:
     # Output configuration
     if os.getenv("OUTPUT_DIRECTORY"):
         config.setdefault("output", {})["directory"] = os.getenv("OUTPUT_DIRECTORY")
+
+    if os.getenv("PROGRESS_FILE"):
+        config.setdefault("progress", {})["file"] = os.getenv("PROGRESS_FILE")
     
     # Scraping configuration
     if os.getenv("PARALLEL_WORKERS"):
@@ -95,6 +117,12 @@ def _apply_env_overrides(config: Dict[str, Any]) -> Dict[str, Any]:
     
     if os.getenv("COOKIES_FILE"):
         config.setdefault("authentication", {})["cookies_file"] = os.getenv("COOKIES_FILE")
+
+    if os.getenv("AUTH_EMAIL"):
+        config.setdefault("authentication", {})["email"] = os.getenv("AUTH_EMAIL")
+
+    if os.getenv("AUTH_PASSWORD"):
+        config.setdefault("authentication", {})["password"] = os.getenv("AUTH_PASSWORD")
     
     # Logging configuration
     if os.getenv("LOG_LEVEL"):

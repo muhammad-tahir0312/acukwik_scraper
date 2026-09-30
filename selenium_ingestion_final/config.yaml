@@ -1,71 +1,51 @@
-# Aviation Data Scraper Configuration
-
-# Data source configuration
+# AC-U-KWIK aviation data scraper configuration
 source:
-  name: "acukwik"  # Source identifier used in external_id
+  name: acukwik
 
-# Input configuration
 input:
-  # Single CSV file or list of CSV files
   csv_paths:
-    # - "../pakistani.csv" # Example of single file
-    - "../country_links.csv"
-  
-  # Expected CSV columns (flexible - will look for these names):
-  # - url, link, or "Airport Link": URL to scrape (REQUIRED)
-  # - entity_type: "airport" or "organization" (auto-detected if missing)
-  # - airport_icao or ICAO: Associated airport code (optional)
-  # - Any other columns are ignored but preserved for reference
+    - ../country_links.csv
 
-# Output configuration
 output:
-  directory: "output"
-  batch_size: 1          # Records buffered in memory before flushing to disk
-  records_per_file: 20000   # Max records per output file (rolls to next part after)
+  directory: output
+  batch_size: 1
+  records_per_file: 20000
 
-# Progress tracking
 progress:
-  file: "progress/scraping_progress.json"
+  file: progress/scraping_progress.json
 
-# Scraping configuration
 scraping:
-  parallel_workers: 30  # Number of parallel workers (1 for sequential - RECOMMENDED for debugging)
-  max_retries: 3  # Maximum retry attempts per URL
-  retry_backoff: 5  # Base backoff in seconds (exponential)
-  delay_between_requests: 3  # Delay in seconds between requests (increased for stability)
-  scrape_clearance: true   # Scrape the Clearance tab (/Clearance-Overview/{ICAO})
-  scrape_nearby: true      # Scrape the Nearby tab (/Nearby/{ICAO})
-  keep_html_cache: false    # Keep fetched HTML files in html_cache for inspection
+  parallel_workers: 30
+  max_retries: 3
+  retry_backoff: 5
+  delay_between_requests: 3
+  scrape_clearance: true
+  scrape_nearby: true
+  keep_html_cache: false
 
-# Selenium configuration
 selenium:
-  browser: "firefox"  # chrome or firefox
-  headless: true  # Run browser in headless mode
-  page_load_timeout: 100  # Page load timeout in seconds (increased for slow pages)
-  implicit_wait: 15  # Implicit wait in seconds
-  user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+  browser: chrome
+  headless: true
+  page_load_timeout: 100
+  implicit_wait: 15
+  user_agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
 
-# Authentication configuration
 authentication:
   enabled: true
-  cookies_file: "../cookies.json"  # Path to cookies file
-  base_url: "https://acukwik.com"  # FIXED: Removed www to match login_url domain
-  login_url: "https://acukwik.com/Login"
-  email: "ops@aeroworld.pk"  # Your login email
-  password: "Mfb+4283"  # Your login password
+  cookies_file: ../cookies.json
+  base_url: https://acukwik.com
+  login_url: https://acukwik.com/Login
+  # Supply these only through the environment; never commit credentials.
+  email: null
+  password: null
 
-# Validation configuration
 validation:
-  strict_mode: false  # If true, reject records with validation errors
+  strict_mode: false
   required_fields:
-    airport:
-      - "name"
-      - "icao"
-    organization:
-      - "name"
+    airport: [name, icao]
+    organization: [name]
 
-# Logging configuration
 logging:
-  directory: "logs"
-  level: "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  directory: logs
+  level: INFO
   format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"

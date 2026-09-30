@@ -3,6 +3,8 @@ venv/
 .venv/
 env/
 .env
+.env.*
+!.env.example
 
 # =============== PYTHON ARTIFACTS ===============
 __pycache__/
@@ -24,6 +26,8 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+*.tmp
+*.temp
 
 # =============== SCRAPY / LOGS (CRITICAL FIX) ===============
 # IGNORE ENTIRE DIRECTORY – not just specific extensions
@@ -31,8 +35,23 @@ acukwik_scraper/spiders/scraped_logs/
 selenium_integration/logs/
 selenium_integration_final/venv
 selenium_ingestion_final/.selenium_tmp/
+**/.selenium_tmp/
 runway_diagrams/raw/
 runway_diagrams/cleaned/
+
+# Scraper-generated data and resumable state
+output/
+**/output/
+html_cache/
+**/html_cache/
+progress/
+**/progress/
+errors/
+**/errors/
+scraped_records_*.jsonl
+failed_records_*.jsonl
+write_errors.jsonl
+screenshot_*.png
 
 # General log patterns
 *.log
@@ -46,6 +65,8 @@ htmlcov/
 .coveragerc
 nosetests.xml
 coverage.xml
+graphify-out/
+**/graphify-out/
 
 # =============== IDE / EDITORS ===============
 .idea/
@@ -60,3 +81,12 @@ coverage.xml
 *.crt
 secrets.json
 config.ini
+config.local.yaml
+config.*.local.yaml
+cookies.json
+cookies_old.json
+**/cookies.json
+**/cookies_old.json
+*.pgpass
+*.dump
+*.backup

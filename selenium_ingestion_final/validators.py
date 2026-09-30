@@ -7,6 +7,8 @@ import logging
 from typing import Dict, Any, List, Optional
 import jsonschema
 
+from roles import VALID_ROLES
+
 logger = logging.getLogger(__name__)
 
 
@@ -223,24 +225,8 @@ def _validate_organization_data(data: Dict[str, Any]) -> List[str]:
     if not roles:
         errors.append("No roles specified for organization")
     
-    # Keep in sync with parsers.py section_roles
-    valid_roles = [
-        "FBO",
-        "HANDLER",
-        "SUPERVISING_AGENT",
-        "FUEL_SUPPLIER",
-        "FLIGHT_SUPPORT",
-        "FLIGHT_SUPPORT_ORGANIZATION",
-        "CATERING",
-        "GROUND_TRANSPORTATION",
-        "MAINTENANCE",
-        "HOTEL",
-        "CAR_RENTAL",
-        "CUSTOM",
-        "ORGANIZATION",
-    ]
     for role in roles:
-        if role not in valid_roles:
+        if role not in VALID_ROLES:
             errors.append(f"Unknown role: {role}")
     
     # Associated airports validation

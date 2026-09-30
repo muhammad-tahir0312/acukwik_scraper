@@ -54,14 +54,30 @@ def auto_login_if_needed(config: Dict[str, Any]) -> bool:
     if not cookies_file.is_absolute():
         cookies_file = Path(__file__).parent / cookies_file
     
-    # Check if cookies exist and are recent (less than 7 days old)
+    # Check both file age and the actual authenticated-session cookie expiry.
+    # File mtime alone is unsafe because a copied/touched cookie jar may contain
+    # an already expired .DOTNETNUKE session.
     if cookies_file.exists():
         file_age_days = (time.time() - cookies_file.stat().st_mtime) / 86400
-        if file_age_days < 7:
+        cookies_usable = False
+        try:
+            cookie_rows = json.loads(cookies_file.read_text(encoding="utf-8"))
+            auth_cookie = next(
+                (cookie for cookie in cookie_rows if cookie.get("name") == ".DOTNETNUKE"),
+                None,
+            )
+            expiry = auth_cookie.get("expiry") if auth_cookie else None
+            cookies_usable = bool(auth_cookie and (expiry is None or expiry > time.time() + 300))
+        except Exception as exc:
+            logger.warning(f"Could not validate cookie expiry: {exc}")
+
+        if file_age_days < 7 and cookies_usable:
             logger.info(f"Using existing cookies (age: {file_age_days:.1f} days)")
             return True
         else:
-            logger.warning(f"Cookies are {file_age_days:.1f} days old, will refresh...")
+            logger.warning(
+                f"Cookies are unusable or expired (file age: {file_age_days:.1f} days); refreshing"
+            )
     else:
         logger.info("No cookies found, logging in...")
     
@@ -73,7 +89,7 @@ def auto_login_if_needed(config: Dict[str, Any]) -> bool:
         logger.error("Cannot auto-login: email or password missing in config")
         return False
     
-    logger.info(f"Logging in as {email}...")
+    logger.info("Logging in with configured AC-U-KWIK account...")
     
     driver = None
     try:
@@ -85,7 +101,6 @@ def auto_login_if_needed(config: Dict[str, Any]) -> bool:
         options.add_argument("--headless")
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
-        options.add_argument("--disable-blink-features=AutomationControlled")
         options.add_argument("--disable-gpu")  # Helps in headless mode
         options.add_argument("--remote-debugging-port=9222")  # Ensures DevTools communication
         
@@ -97,6 +112,13 @@ def auto_login_if_needed(config: Dict[str, Any]) -> bool:
         logger.info(f"Navigating to {base_url}")
         driver.get(base_url)
         time.sleep(3)
+
+        if "just a moment" in driver.title.lower() or "challenge-platform" in driver.page_source.lower():
+            logger.error(
+                "AC-U-KWIK presented an interactive Cloudflare challenge. "
+                "Refresh/export cookies from an authorized normal browser session and rerun."
+            )
+            return False
         
         # Find and click Login button using JavaScript (more reliable)
         logger.info("Looking for Login button...")
@@ -523,6 +545,45 @@ class ScraperOrchestrator:
         cache_file.write_text(response.text, encoding="utf-8")
         return cache_file
 
+    def _fetch_page_to_cache(
+        self,
+        url: str,
+        external_id: str,
+        page_label: str,
+        session: requests.Session,
+        browser_holder: Dict[str, Any],
+    ) -> Path:
+        """Use fast HTTP retrieval, falling back to an authenticated browser."""
+        try:
+            return self._fetch_html_to_cache_with_session(
+                url, external_id, page_label, session
+            )
+        except requests.HTTPError as exc:
+            status = exc.response.status_code if exc.response is not None else None
+            if status not in {401, 403, 429}:
+                raise
+            logger.warning(
+                f"HTTP fetch returned {status} for {url}; using browser fallback"
+            )
+
+        driver = browser_holder.get("driver")
+        if driver is None:
+            driver = self.create_driver()
+            self.authenticate_driver(driver)
+            browser_holder["driver"] = driver
+
+        driver.get(url)
+        page_source_lower = driver.page_source.lower()
+        if "just a moment" in driver.title.lower() or "challenge-platform" in page_source_lower:
+            raise RuntimeError(
+                "AC-U-KWIK Cloudflare challenge requires an authorized normal-browser cookie refresh"
+            )
+        safe_external_id = re.sub(r"[^A-Za-z0-9_.-]+", "_", external_id)
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S_%f")
+        cache_file = self.html_cache_dir / f"{safe_external_id}_{page_label}_{timestamp}.html"
+        cache_file.write_text(driver.page_source, encoding="utf-8")
+        return cache_file
+
     def _build_email_resolver(self, session: requests.Session):
         """Build a resolver that can expand AC-U-KWIK email buttons via the authenticated API."""
         base_url = self.config.get("authentication", {}).get("base_url", "https://acukwik.com").rstrip("/")
@@ -601,10 +662,6 @@ class ScraperOrchestrator:
             options.add_argument("--disable-dev-shm-usage")
             options.add_argument("--disable-gpu")
             options.add_argument("--window-size=1920,1080")
-            options.add_argument("--disable-blink-features=AutomationControlled")
-            options.add_experimental_option("excludeSwitches", ["enable-automation"])
-            options.add_experimental_option('useAutomationExtension', False)
-            
             # Add user agent
             options.add_argument(f"user-agent={self.config['selenium'].get('user_agent', 'Mozilla/5.0')}")
             
@@ -764,11 +821,15 @@ class ScraperOrchestrator:
         for attempt in range(max_retries):
             cached_pages: List[Path] = []
             session = self._build_requests_session()
+            browser_holder: Dict[str, Any] = {}
+            attempt_started = time.monotonic()
             try:
                 logger.info(f"Scraping {url} (attempt {attempt + 1}/{max_retries})")
 
                 # Fetch the live page to a local HTML cache, then parse the local file.
-                airport_html = self._fetch_html_to_cache_with_session(url, external_id, "airport", session)
+                airport_html = self._fetch_page_to_cache(
+                    url, external_id, "airport", session, browser_holder
+                )
                 cached_pages.append(airport_html)
 
                 email_resolver = self._build_email_resolver(session)
@@ -801,7 +862,9 @@ class ScraperOrchestrator:
                     if icao and scraping_cfg.get("scrape_clearance", True):
                         try:
                             clearance_url = f"https://acukwik.com/Clearance-Overview/{icao}"
-                            clearance_html = self._fetch_html_to_cache_with_session(clearance_url, external_id, "clearance", session)
+                            clearance_html = self._fetch_page_to_cache(
+                                clearance_url, external_id, "clearance", session, browser_holder
+                            )
                             cached_pages.append(clearance_html)
                             clearance_driver = HtmlDriver.from_file(clearance_html, current_url=clearance_url)
                             clearance_parser = ClearanceParser(clearance_driver)
@@ -815,7 +878,9 @@ class ScraperOrchestrator:
                     if icao and scraping_cfg.get("scrape_nearby", True):
                         try:
                             nearby_url = f"https://acukwik.com/Nearby/{icao}"
-                            nearby_html = self._fetch_html_to_cache_with_session(nearby_url, external_id, "nearby", session)
+                            nearby_html = self._fetch_page_to_cache(
+                                nearby_url, external_id, "nearby", session, browser_holder
+                            )
                             cached_pages.append(nearby_html)
                             nearby_driver = HtmlDriver.from_file(nearby_html, current_url=nearby_url)
                             nearby_parser = NearbyParser(nearby_driver)
@@ -827,20 +892,40 @@ class ScraperOrchestrator:
 
                 else:
                     # Legacy organization scraping (single entity)
-                    parser = OrganizationParser(driver)
+                    parser = OrganizationParser(airport_driver)
                     associated_airport = record.get("airport_icao")
                     single_entity = parser.parse(url, associated_airport)
                     entities = [single_entity]
                 
-                # Validate, optionally screenshot, and write all entities
+                if not entities:
+                    raise RuntimeError("Parser returned no entities")
+
+                primary = entities[0]
+                primary_data = primary.get("data") or {}
+                if entity_type == "airport" and (
+                    primary.get("scrape_status") == "FAILED"
+                    or not primary_data.get("name")
+                    or not any(primary_data.get(key) for key in ("icao", "iata", "faa_id"))
+                ):
+                    raise RuntimeError("Airport page did not contain a valid airport record")
+
+                # Validate every entity before writing any of them, so a strict
+                # validation failure cannot leave a half-written airport batch.
+                strict_mode = self.config.get("validation", {}).get("strict_mode", False)
                 for entity in entities:
-                    # Validate
+                    entity["source"] = self.source
+                    entity["scraped_at"] = datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
+                    entity["scrape_duration_ms"] = int((time.monotonic() - attempt_started) * 1000)
                     validation_errors = validate_record(entity)
                     if validation_errors:
                         entity["validation_errors"] = validation_errors
                         logger.warning(f"Validation errors for {entity.get('external_id')}: {validation_errors}")
+                        if strict_mode:
+                            raise ValueError(
+                                f"Strict validation failed for {entity.get('external_id')}: {validation_errors}"
+                            )
 
-                    # Write entity
+                for entity in entities:
                     self.output_writer.write_success(entity)
 
                 # Success!
@@ -868,6 +953,12 @@ class ScraperOrchestrator:
                     return None
             
             finally:
+                browser_driver = browser_holder.get("driver")
+                if browser_driver:
+                    try:
+                        browser_driver.quit()
+                    except Exception:
+                        pass
                 if not self.keep_html_cache:
                     for cached_page in cached_pages:
                         self._delete_cached_html(cached_page)
