@@ -192,6 +192,36 @@ def organization_names_are_aliases(left, right):
     return bool(left_tokens & right_tokens)
 
 
+ROLE_FIELD_KEYS = (
+    'sita_code', 'aftn_code', 'remarks', 'brand', 'frequency',
+    'distance_from_airport', 'price_range', 'hours', 'services',
+    'fuel_types', 'cuisine_types', 'rental_brands', 'vehicle_types',
+    'aircraft_types', 'certification_tags',
+)
+
+
+def listing_role_details(org):
+    """Keep each role occurrence's values separate when a listing has many roles."""
+    fields = {key: org[key] for key in ROLE_FIELD_KEYS if org.get(key) not in (None, '', [])}
+    for contact in org.get('contacts') or []:
+        contact_type = contact.get('type')
+        if contact_type in {'frequency', 'brand', 'toll_free'} and contact.get('value'):
+            fields.setdefault(contact_type, contact['value'])
+    return {
+        'displayName': org.get('display_name') or org.get('name'),
+        'sourceSection': org.get('source_section'),
+        'sourceSections': org.get('source_sections') or [],
+        'contacts': org.get('contacts') or [],
+        'address': org.get('address'),
+        'attributes': org.get('attributes') or {},
+        'rawFields': org.get('raw_fields') or [],
+        'links': org.get('links') or [],
+        'media': org.get('media') or [],
+        'rawText': org.get('raw_text'),
+        'fields': fields,
+    }
+
+
 def upsert_airport_listing(cur, org_id, airport_id, org, roles):
     """Upsert the lossless airport-specific listing and its scoped roles."""
     listing_key = org.get('source_listing_key')
@@ -275,8 +305,10 @@ def upsert_airport_listing(cur, org_id, airport_id, org, roles):
     for role in roles:
         role_id = get_or_create_role(role, cur)
         cur.execute(
-            "INSERT INTO organization_airport_listing_roles (listing_id, role_id) VALUES (%s, %s) ON CONFLICT DO NOTHING",
-            [listing_id, role_id]
+            """INSERT INTO organization_airport_listing_roles (listing_id, role_id, details)
+               VALUES (%s, %s, %s::jsonb)
+               ON CONFLICT (listing_id, role_id) DO UPDATE SET details=EXCLUDED.details""",
+            [listing_id, role_id, json.dumps(listing_role_details(org))]
         )
         cur.execute(
             "INSERT INTO organization_airport_roles (organization_id, airport_id, role_id) VALUES (%s, %s, %s) ON CONFLICT DO NOTHING",
@@ -296,7 +328,7 @@ def upsert_airport_listing(cur, org_id, airport_id, org, roles):
     return listing_id
 
 
-def upsert_entity(org, airport_id=None):
+def upsert_entity(org, airport_id=None, listing_observer=None):
     name = org.get('name')
     description = org.get('description')
     contact_arrays = extract_contact_arrays(org)
@@ -395,12 +427,13 @@ def upsert_entity(org, airport_id=None):
         'missing_fields', 'errors'
         , 'display_name', 'display_names', 'source_section', 'source_sections', 'source_listing_key', 'source_listing_id',
         'source_profile_url', 'source_identifiers', 'raw_fields', 'attributes',
-        'links', 'media', 'raw_text', 'canonical_address'
+        'links', 'media', 'raw_text', 'canonical_address', *ROLE_FIELD_KEYS
     }
     extra = {k: v for k, v in org.items() if k not in known_fields}
     errors_json = json.dumps(org.get('errors')) if org.get('errors') else None
     extra_json = json.dumps(extra) if extra else '{}'
 
+    observed_listings = []
     with get_db_cursor(commit=True) as cur:
         row = None
         if external_id:
@@ -490,12 +523,73 @@ def upsert_entity(org, airport_id=None):
 
         for linked_airport_id in linked_airport_ids:
             cur.execute(ORG_AIRPORT_LINK, [org_id, linked_airport_id])
-            upsert_airport_listing(cur, org_id, linked_airport_id, org, roles)
+            listing_id = upsert_airport_listing(cur, org_id, linked_airport_id, org, roles)
+            observed_listings.append((listing_id, linked_airport_id, roles,
+                org.get('source_sections') or [org.get('source_section') or 'Unknown']))
 
         # Compatibility aggregate only; authoritative roles are above.
         upsert_roles(org_id, roles, cur)
 
+    if listing_observer:
+        for listing_id, linked_airport_id, listing_roles, sections in observed_listings:
+            listing_observer(listing_id, linked_airport_id, listing_roles, sections)
     return org_id, False
+
+
+def reconcile_listing_roles(observed_listings, complete_airports):
+    """Replace source listings and roles from complete, successful airport snapshots.
+
+    Each source listing may occur in several service sections in the same file,
+    so callers provide the union after all records have been imported.
+    """
+    if not complete_airports:
+        return
+    with get_db_cursor(commit=True) as cur:
+        affected_pairs = set()
+        cur.execute(
+            """DELETE FROM organization_airport_listings
+               WHERE airport_id=ANY(%s::uuid[])
+                 AND listing_key NOT LIKE 'manual:%%'
+                 AND id <> ALL(%s::uuid[])
+               RETURNING organization_id, airport_id""",
+            [list(complete_airports), list(observed_listings)],
+        )
+        affected_pairs.update((row['organization_id'], row['airport_id']) for row in cur.fetchall())
+        for listing_id, (roles, sections) in observed_listings.items():
+            cur.execute(
+                "SELECT organization_id, airport_id FROM organization_airport_listings WHERE id=%s",
+                [listing_id],
+            )
+            listing = cur.fetchone()
+            if not listing:
+                continue
+            affected_pairs.add((listing['organization_id'], listing['airport_id']))
+            cur.execute(
+                """DELETE FROM organization_airport_listing_roles
+                   WHERE listing_id=%s AND role_id NOT IN
+                     (SELECT id FROM organization_roles WHERE name=ANY(%s::text[]))""",
+                [listing_id, sorted(roles)],
+            )
+            cur.execute(
+                """UPDATE organization_airport_listings
+                   SET source_section=%s, source_sections=%s, updated_at=NOW()
+                   WHERE id=%s""",
+                [sorted(sections)[0] if sections else 'Unknown', sorted(sections), listing_id],
+            )
+        for org_id, airport_id in affected_pairs:
+            cur.execute(
+                "DELETE FROM organization_airport_roles WHERE organization_id=%s AND airport_id=%s",
+                [org_id, airport_id],
+            )
+            cur.execute(
+                """INSERT INTO organization_airport_roles (organization_id, airport_id, role_id)
+                   SELECT DISTINCT l.organization_id, l.airport_id, lr.role_id
+                   FROM organization_airport_listings l
+                   JOIN organization_airport_listing_roles lr ON lr.listing_id=l.id
+                   WHERE l.organization_id=%s AND l.airport_id=%s
+                   ON CONFLICT DO NOTHING""",
+                [org_id, airport_id],
+            )
 
 def upsert_clearance(clearance, airport_id=None):
     known_fields = {

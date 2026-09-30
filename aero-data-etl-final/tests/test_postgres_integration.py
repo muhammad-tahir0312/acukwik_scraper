@@ -80,6 +80,10 @@ def test_listings_roles_raw_preservation_and_rerun(database, tmp_path):
         'name': 'Shared Company', 'roles': [role], 'associated_airports': [airport],
         'source_profile_url': 'https://acukwik.com/Basic-Info/shared-company',
         'source_listing_key': f'shared_{airport}', 'source_section': role,
+        'frequency': '121.90' if role == 'HANDLER' else None,
+        'price_range': '$$$' if role == 'CATERING' else None,
+        'raw_fields': [{'label': 'Role marker', 'value': role}],
+        'attributes': {'role marker': role},
     }, airport) for airport, role in [('KAAA', 'HANDLER'), ('KAAA', 'CATERING'), ('KBBB', 'FUEL_SUPPLIER')]]
     records = airports + hotels + company
     path = write_input(tmp_path, records)
@@ -93,6 +97,17 @@ def test_listings_roles_raw_preservation_and_rerun(database, tmp_path):
         assert scalar('SELECT count(*) FROM organization_airport_listings') == 4
         assert scalar('SELECT count(*) FROM organization_airport_roles') == 5
         assert scalar('SELECT count(*) FROM organization_airport_listing_roles') == 5
+        with get_db_cursor() as cur:
+            cur.execute('''SELECT r.name, lr.details FROM organization_airport_listing_roles lr
+                           JOIN organization_roles r ON r.id=lr.role_id
+                           JOIN organization_airport_listings l ON l.id=lr.listing_id
+                           JOIN airports a ON a.id=l.airport_id
+                           WHERE a.icao='KAAA' AND l.listing_key='shared_KAAA' ''')
+            details = {row['name']: row['details'] for row in cur.fetchall()}
+            assert details['HANDLER']['fields']['frequency'] == '121.90'
+            assert details['CATERING']['fields']['price_range'] == '$$$'
+            assert details['HANDLER']['attributes']['role marker'] == 'HANDLER'
+            assert details['CATERING']['attributes']['role marker'] == 'CATERING'
         assert scalar('SELECT count(*) FROM scraped_records') == 7 * iteration  # append-only audit
         with get_db_cursor() as cur:
             cur.execute('SELECT data FROM scraped_records ORDER BY id LIMIT 7')
@@ -119,3 +134,59 @@ def test_bad_record_marks_run_failed_and_cli_exits_nonzero(database, tmp_path):
     assert scalar('SELECT count(*) FROM airports') == 1
     assert scalar("SELECT count(*) FROM etl_runs WHERE status='FAILED' AND records_processed=2 AND records_failed=1 AND finished_at IS NOT NULL") == 1
     assert scalar('SELECT count(*) FROM app_logs') == 1
+
+
+def test_complete_snapshot_removes_stale_listing_role_without_touching_partial_import(database, tmp_path):
+    airport = record('airport', 'acukwik_KAAA', {
+        'name': 'Test Airport', 'icao': 'KAAA', 'source_airport_id': 'KAAA',
+    })
+    def occurrence(role):
+        return record('organization', f'company_KAAA_{role}', {
+            'name': 'Shared Company', 'roles': [role], 'associated_airports': ['KAAA'],
+            'source_profile_url': 'https://acukwik.com/Basic-Info/shared-company',
+            'source_listing_key': 'shared_KAAA', 'source_section': role,
+        })
+
+    assert main(write_input(tmp_path, [airport, occurrence('HANDLER'), occurrence('CATERING')]))['status'] == 'SUCCESS'
+    assert scalar('SELECT count(*) FROM organization_airport_listing_roles') == 2
+
+    assert main(write_input(tmp_path, [airport, occurrence('HANDLER')]))['status'] == 'SUCCESS'
+    assert scalar('SELECT count(*) FROM organization_airport_listing_roles') == 1
+    assert scalar('SELECT count(*) FROM organization_airport_roles') == 1
+    with get_db_cursor() as cur:
+        cur.execute('SELECT source_sections FROM organization_airport_listings')
+        assert cur.fetchone()['source_sections'] == ['HANDLER']
+
+    with get_db_cursor(commit=True) as cur:
+        cur.execute('SELECT organization_id, airport_id FROM organization_airport_listings LIMIT 1')
+        pair = cur.fetchone()
+        cur.execute("INSERT INTO organization_roles (name) VALUES ('STORE') ON CONFLICT DO NOTHING")
+        cur.execute('''INSERT INTO organization_airport_listings
+                       (organization_id, airport_id, listing_key, source_section, display_name)
+                       VALUES (%s, %s, %s, 'Manual', 'Shared Company') RETURNING id''',
+                    [pair['organization_id'], pair['airport_id'], f"manual:{pair['organization_id']}"])
+        manual_id = cur.fetchone()['id']
+        cur.execute('''INSERT INTO organization_airport_listing_roles (listing_id, role_id)
+                       SELECT %s, id FROM organization_roles WHERE name='STORE' ''', [manual_id])
+
+    assert main(write_input(tmp_path, [airport, occurrence('HANDLER')]))['status'] == 'SUCCESS'
+    assert scalar('SELECT count(*) FROM organization_airport_listing_roles') == 2
+    assert scalar('SELECT count(*) FROM organization_airport_roles') == 2
+
+    # An organization-only file does not prove the complete set of roles.
+    assert main(write_input(tmp_path, [occurrence('CATERING')]))['status'] == 'SUCCESS'
+    assert scalar('SELECT count(*) FROM organization_airport_listing_roles') == 3
+
+    # A failed airport scrape with partial data is not a complete snapshot.
+    failed_airport = {**airport, 'scrape_status': 'FAILED'}
+    assert main(write_input(tmp_path, [failed_airport]))['status'] == 'SUCCESS'
+    assert scalar('SELECT count(*) FROM organization_airport_listing_roles') == 3
+
+    # An empty but complete airport snapshot removes vanished source listings.
+    assert main(write_input(tmp_path, [airport]))['status'] == 'SUCCESS'
+    assert scalar('SELECT count(*) FROM organization_airport_listings') == 1
+    assert scalar('SELECT count(*) FROM organization_airport_listing_roles') == 1
+    assert scalar('SELECT count(*) FROM organization_airport_roles') == 1
+    with get_db_cursor() as cur:
+        cur.execute('SELECT listing_key FROM organization_airport_listings')
+        assert cur.fetchone()['listing_key'] == f"manual:{pair['organization_id']}"

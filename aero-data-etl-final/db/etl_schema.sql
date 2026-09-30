@@ -315,6 +315,7 @@ CREATE TABLE public.organization_role_map (
 CREATE TABLE public.organization_airport_listing_roles (
     listing_id UUID REFERENCES public.organization_airport_listings(id) ON DELETE CASCADE,
     role_id INTEGER REFERENCES public.organization_roles(id),
+    details JSONB NOT NULL DEFAULT '{}'::jsonb,
     PRIMARY KEY (listing_id, role_id),
     created_by TEXT DEFAULT 'SYSTEM',
     created_at TIMESTAMPTZ DEFAULT now()

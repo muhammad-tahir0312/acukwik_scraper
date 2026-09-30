@@ -11,7 +11,7 @@ from etl.services.raw_ingest import insert_raw
 from etl.services.airport_etl import upsert_airport
 from etl.services.entity_etl import (
     upsert_entity, insert_contacts, upsert_clearance, upsert_nearby_airports,
-    backfill_association_links, audit_unmapped_organizations,
+    backfill_association_links, audit_unmapped_organizations, reconcile_listing_roles,
 )
 from etl.services.etl_logger import log_progress, log_error
 from etl.db import get_db_cursor
@@ -29,7 +29,7 @@ INSERT INTO app_logs (level, message, context) VALUES ('ERROR', %s, %s);
 """
 
 
-def process_record(record):
+def process_record(record, listing_observer=None, airport_observer=None):
     """Preserve the raw payload before constructing normalized entity data."""
     if isinstance(record, dict) and record.get('scrape_status') == 'FAILED' and 'data' not in record:
         insert_raw(record)
@@ -47,15 +47,17 @@ def process_record(record):
     if entity_type == 'airport':
         airport_id = upsert_airport(data)
         for org in data.get('organizations', []):
-            entity_id, claimed = upsert_entity(org, airport_id)
+            entity_id, claimed = upsert_entity(org, airport_id, listing_observer)
             if not claimed:
                 insert_contacts(entity_id, org)
         for clearance in data.get('clearances', []):
             upsert_clearance(clearance, airport_id)
         for nearby in data.get('nearby_airports', []):
             upsert_nearby_airports(nearby, airport_id)
+        if airport_observer and record.get('scrape_status') == 'SUCCESS':
+            airport_observer(airport_id)
     elif entity_type == 'organization':
-        upsert_entity(data)
+        upsert_entity(data, listing_observer=listing_observer)
     elif entity_type == 'clearance':
         upsert_clearance(data)
     else:
@@ -82,11 +84,19 @@ def main(input_path):
 
     count = failed = 0
     fatal_error = None
+    complete_airports = set()
+    observed_listings = {}
+
+    def observe_listing(listing_id, airport_id, roles, sections):
+        entry = observed_listings.setdefault(listing_id, (airport_id, set(), set()))
+        entry[1].update(roles)
+        entry[2].update(sections)
+
     try:
         for batch in batch_iterable(full_stream(), Config.BATCH_SIZE):
             for record in batch:
                 try:
-                    process_record(record)
+                    process_record(record, observe_listing, complete_airports.add)
                     count += 1
                     if count % Config.LOG_EVERY == 0:
                         log_progress(count)
@@ -100,6 +110,12 @@ def main(input_path):
                         })])
             backfill_association_links()
         backfill_association_links()
+        if not failed:
+            reconcile_listing_roles({
+                listing_id: (roles, sections)
+                for listing_id, (airport_id, roles, sections) in observed_listings.items()
+                if airport_id in complete_airports
+            }, complete_airports)
         unmapped_count, unmapped_sample = audit_unmapped_organizations(limit=20)
         if unmapped_count:
             log_error(f'Unmapped organizations after processing: {unmapped_count}', raw={'sample': unmapped_sample})

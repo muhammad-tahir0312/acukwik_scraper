@@ -555,3 +555,20 @@ The work should only be considered fully production-validated when all of the fo
 - Same-airport multi-role organizations create multiple role rows without duplicate listings.
 - Different-airport roles remain distinct.
 - Same-name unrelated organizations are not merged.
+
+## Follow-up: source role reconciliation
+
+The Aviation Index integration audit found that an ETL rerun added roles but did
+not remove a role when a listing stopped appearing in that service section.
+The ETL now collects the role union for each listing across a successful file
+and replaces that listing's old roles after the file completes. It rebuilds the
+flattened organization/airport role rows from all listings, including editor
+listings, so manual roles remain intact. This reconciliation runs only when the
+file includes a successfully processed airport record for that airport and has
+no failed records. Organization-only imports remain additive because they do
+not prove the full service list. A source listing absent from a complete airport
+snapshot is removed, while manual editor listings remain intact.
+
+The PostgreSQL integration test covers multi-role imports, removal on a later
+complete snapshot, removal of vanished source listings, preservation of manual
+roles, and additive partial imports.
