@@ -98,11 +98,13 @@ def auto_login_if_needed(config: Dict[str, Any]) -> bool:
         from selenium.webdriver.support import expected_conditions as EC
         
         options = ChromeOptions()
-        options.add_argument("--headless")
+        # Respect the configured mode so an authorized interactive browser can
+        # be used when a site challenge rejects headless automation.
+        if config.get("selenium", {}).get("headless", True):
+            options.add_argument("--headless")
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
         options.add_argument("--disable-gpu")  # Helps in headless mode
-        options.add_argument("--remote-debugging-port=9222")  # Ensures DevTools communication
         
         driver = webdriver.Chrome(options=options)
         driver.set_page_load_timeout(30)
@@ -596,7 +598,10 @@ class ScraperOrchestrator:
                 if not data_id:
                     return None
 
-                if "semail" in class_name:
+                if "aemail" in class_name:
+                    endpoint = "/desktopmodules/Services/api/FunctionsWS/GetARPTEmail"
+                    params = {"ICAO": data_id}
+                elif "semail" in class_name:
                     endpoint = "/desktopmodules/Services/api/FunctionsWS/GetSupplierEmail"
                     params = {"SUPPLIER_ID": data_id, "Service_Type_ID": service_type_id or ""}
                 else:
@@ -905,7 +910,10 @@ class ScraperOrchestrator:
                 if entity_type == "airport" and (
                     primary.get("scrape_status") == "FAILED"
                     or not primary_data.get("name")
-                    or not any(primary_data.get(key) for key in ("icao", "iata", "faa_id"))
+                    or not any(
+                        primary_data.get(key)
+                        for key in ("icao", "iata", "faa_id", "source_airport_id")
+                    )
                 ):
                     raise RuntimeError("Airport page did not contain a valid airport record")
 

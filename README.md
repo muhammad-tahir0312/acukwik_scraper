@@ -76,8 +76,13 @@ INPUT_CSV_PATH=/absolute/path/airports.csv \
 OUTPUT_DIRECTORY=/absolute/path/output \
 PROGRESS_FILE=/absolute/path/progress.json \
 PARALLEL_WORKERS=4 \
+USER_AGENT='the user agent used to obtain cookies.json' \
 .venv/bin/python selenium_ingestion_final/scraper.py selenium_ingestion_final/config.yaml
 ```
+
+When `cookies.json` includes a Cloudflare clearance cookie, use the same browser
+user agent that created it. A mismatched user agent can make an otherwise valid
+cookie jar return HTTP 403.
 
 The input CSV must contain `Airport Link`, `url`, or `link`; an `ICAO` column is recommended.
 
@@ -95,6 +100,7 @@ Apply the base schema for a new database. For an existing database, apply:
 
 ```bash
 psql "$DATABASE_URL" -f aero-data-etl-final/db/migrations/002_airport_scoped_organization_roles.sql
+psql "$DATABASE_URL" -f aero-data-etl-final/db/migrations/003_airport_source_identifiers.sql
 ```
 
 Then place scraper JSONL files in `aero-data-etl-final/acukwik_data/` and run:

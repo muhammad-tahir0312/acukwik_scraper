@@ -5,7 +5,7 @@ AIRPORT_UPSERT = """
 INSERT INTO airports (
     icao, iata, name, airport_type, city_id, country_id, state_id, latitude, longitude, elevation_ft,
     fuel_available, approaches, runway_surface, longest_runway_length_ft, longest_runway_width_ft, longest_runway_ident, utc_offset,
-    pcn, url, scrape_status, external_id, observed_fields, missing_fields,
+    pcn, url, scrape_status, external_id, source_airport_id, observed_fields, missing_fields,
     afs_aftn, airport_general_remarks, airport_hours, airport_light_intensity, airport_manager_phone,
     airport_email,
     airport_of_entry, airport_of_entry_remarks, airport_ownership, airport_website, atis_frequency,
@@ -15,14 +15,14 @@ INSERT INTO airports (
     city_name, state_name, country_name, errors, extra
 )
     VALUES (
-        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
         %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
         %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
         %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
         %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
         %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
     )
-ON CONFLICT (icao) DO UPDATE SET
+ON CONFLICT (external_id) WHERE external_id IS NOT NULL DO UPDATE SET
     iata = COALESCE(EXCLUDED.iata, airports.iata),
     name = COALESCE(EXCLUDED.name, airports.name),
     airport_type = COALESCE(EXCLUDED.airport_type, airports.airport_type),
@@ -43,6 +43,7 @@ ON CONFLICT (icao) DO UPDATE SET
     url = COALESCE(EXCLUDED.url, airports.url),
     scrape_status = COALESCE(EXCLUDED.scrape_status, airports.scrape_status),
     external_id = COALESCE(EXCLUDED.external_id, airports.external_id),
+    source_airport_id = COALESCE(EXCLUDED.source_airport_id, airports.source_airport_id),
     observed_fields = COALESCE(EXCLUDED.observed_fields, airports.observed_fields),
     missing_fields = COALESCE(EXCLUDED.missing_fields, airports.missing_fields),
     afs_aftn = COALESCE(EXCLUDED.afs_aftn, airports.afs_aftn),

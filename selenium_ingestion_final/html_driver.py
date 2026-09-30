@@ -108,6 +108,8 @@ def _find_elements(root, by, value):
 class HtmlDriver:
     """Minimal Selenium-like driver for cached HTML documents."""
 
+    supports_interaction = False
+
     def __init__(self, source_html: str, current_url: str = "about:blank", email_resolver: Optional[Callable] = None):
         self.current_url = current_url
         self.email_resolver = email_resolver

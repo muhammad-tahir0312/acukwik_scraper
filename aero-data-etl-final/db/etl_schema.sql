@@ -57,6 +57,7 @@ CREATE TABLE public.airports (
     url TEXT,
     scrape_status TEXT,
     external_id TEXT,
+    source_airport_id TEXT,
     observed_fields TEXT[],
     missing_fields TEXT[],
     errors JSONB,
@@ -386,6 +387,10 @@ ON public.organizations ((lower(regexp_replace(COALESCE(url, ''), '/+$', ''))));
 
 CREATE INDEX idx_airports_url_norm
 ON public.airports ((lower(regexp_replace(COALESCE(url, ''), '/+$', ''))));
+
+CREATE UNIQUE INDEX idx_airports_external_id_uniq
+ON public.airports (external_id)
+WHERE external_id IS NOT NULL;
 
 CREATE TABLE public.organization_profile_views (
     id BIGSERIAL PRIMARY KEY,

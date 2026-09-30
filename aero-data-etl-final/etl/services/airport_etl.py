@@ -81,6 +81,7 @@ def upsert_airport(data):
     url = data.get('url')
     scrape_status = data.get('scrape_status')
     external_id = data.get('external_id')
+    source_airport_id = data.get('source_airport_id')
     observed_fields = data.get('observed_fields')
     missing_fields = data.get('missing_fields')
     errors = data.get('errors')
@@ -118,7 +119,7 @@ def upsert_airport(data):
     known_fields = {
         'icao', 'iata', 'name', 'airport_type', 'city', 'country', 'coordinates_raw', 'elevation_raw',
         'fuel_available', 'approaches', 'runway_surface', 'longest_runway_raw', 'pcn', 'utc_offset',
-        'external_id', 'url', 'scrape_status', 'observed_fields', 'missing_fields', 'errors',
+        'external_id', 'source_airport_id', 'url', 'scrape_status', 'observed_fields', 'missing_fields', 'errors',
         'afs_aftn', 'airport_general_remarks', 'airport_hours', 'airport_light_intensity', 'airport_manager_phone', 'airport_email',
         'airport_of_entry', 'airport_of_entry_remarks', 'airport_ownership', 'airport_website', 'atis_frequency',
         'control_tower_hours', 'ctaf_frequency', 'customs', 'distance_from_city', 'dst', 'faa_id', 'facility_use',
@@ -157,7 +158,7 @@ def upsert_airport(data):
         cur.execute(AIRPORT_UPSERT, [
             icao, iata, name, airport_type, city_id, country_id, state_id, lat_deg, lon_deg, elevation_ft,
             fuel_available, approaches, runway_surface, length_ft, width_ft, ident, utc_offset,
-            pcn, url, scrape_status, external_id, observed_fields, missing_fields,
+            pcn, url, scrape_status, external_id, source_airport_id, observed_fields, missing_fields,
             afs_aftn, airport_general_remarks, airport_hours, airport_light_intensity, airport_manager_phone,
             airport_email,
             airport_of_entry, airport_of_entry_remarks, airport_ownership, airport_website, atis_frequency,

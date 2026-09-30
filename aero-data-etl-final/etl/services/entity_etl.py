@@ -453,7 +453,10 @@ def upsert_entity(org, airport_id=None):
             linked_airport_ids.add(airport_id)
 
         for assoc_icao in associated_airports:
-            cur.execute("SELECT id FROM airports WHERE icao=%s", [assoc_icao])
+            cur.execute(
+                "SELECT id FROM airports WHERE icao=%s OR source_airport_id=%s",
+                [assoc_icao, assoc_icao],
+            )
             airport_row = cur.fetchone()
             if airport_row:
                 linked_airport_ids.add(airport_row['id'])
@@ -502,9 +505,12 @@ def upsert_clearance(clearance, airport_id=None):
         if airport_id:
             cur.execute(AIRPORT_CLEARANCE_LINK, [airport_id, clearance_id])
         else:
-            # Standalone clearance record: link via associated_airports ICAO codes
-            for icao in (clearance.get('associated_airports') or []):
-                cur.execute("SELECT id FROM airports WHERE icao = %s", [icao])
+            # Standalone record: references can be ICAO codes or AC-U-KWIK path IDs.
+            for airport_reference in (clearance.get('associated_airports') or []):
+                cur.execute(
+                    "SELECT id FROM airports WHERE icao=%s OR source_airport_id=%s",
+                    [airport_reference, airport_reference],
+                )
                 row = cur.fetchone()
                 if row:
                     cur.execute(AIRPORT_CLEARANCE_LINK, [row['id'], clearance_id])
@@ -512,20 +518,33 @@ def upsert_clearance(clearance, airport_id=None):
 
 def upsert_nearby_airports(nearby, airport_id=None):
     UPSERT_MINIMAL_AIRPORT = """
-        INSERT INTO airports (icao, name, airport_type, url)
-        VALUES (%s, %s, %s, %s)
-        ON CONFLICT (icao) DO UPDATE SET
+        INSERT INTO airports (icao, source_airport_id, external_id, name, airport_type, url)
+        VALUES (%s, %s, %s, %s, %s, %s)
+        ON CONFLICT (external_id) WHERE external_id IS NOT NULL DO UPDATE SET
             name = COALESCE(EXCLUDED.name, airports.name),
-            airport_type = COALESCE(EXCLUDED.airport_type, airports.airport_type)
+            airport_type = COALESCE(EXCLUDED.airport_type, airports.airport_type),
+            url = COALESCE(EXCLUDED.url, airports.url),
+            source_airport_id = COALESCE(EXCLUDED.source_airport_id, airports.source_airport_id)
         RETURNING id;
     """
 
+    def airport_identity(item):
+        icao = item.get('icao')
+        source_airport_id = item.get('source_airport_id')
+        external_id = (
+            f"acukwik_{icao}" if icao
+            else f"acukwik_source_{source_airport_id}" if source_airport_id
+            else None
+        )
+        return icao, source_airport_id, external_id
+
     # Case 1: individual nearby airport object from airport's nested list
     # Shape: {icao, name, url, primary_runway, airport_type, city}
-    if 'icao' in nearby:
+    if nearby.get('icao') or nearby.get('source_airport_id'):
+        icao, source_airport_id, airport_external_id = airport_identity(nearby)
         with get_db_cursor(commit=True) as cur:
             cur.execute(UPSERT_MINIMAL_AIRPORT, [
-                nearby.get('icao'), nearby.get('name'),
+                icao, source_airport_id, airport_external_id, nearby.get('name'),
                 nearby.get('airport_type'), nearby.get('url')
             ])
             nearby_airport_id = cur.fetchone()['id']
@@ -541,12 +560,13 @@ def upsert_nearby_airports(nearby, airport_id=None):
     )
     items = nearby.get('nearby_airports') or []
     nearby_known_fields = {
-        'associated_airports', 'nearby_airports', 'url', 'scrape_status', 'external_id',
+        'associated_airports', 'url', 'scrape_status', 'external_id',
         'observed_fields', 'missing_fields', 'errors', 'extra',
     }
     nearby_extra = dict(nearby.get('extra') or {})
     nearby_extra.update({key: value for key, value in nearby.items() if key not in nearby_known_fields})
-    nearby_icaos = [item.get('icao') for item in items]
+    # Keep legacy column compatibility while retaining code-less AC-U-KWIK IDs.
+    nearby_icaos = [item.get('icao') or item.get('source_airport_id') for item in items]
     nearby_names = [item.get('name') for item in items]
     nearby_urls = [item.get('url') for item in items]
     nearby_primary_runways = [item.get('primary_runway') for item in items]
@@ -570,10 +590,11 @@ def upsert_nearby_airports(nearby, airport_id=None):
 
         # Upsert each nearby airport into airports table and create links
         for item in (nearby.get('nearby_airports') or []):
-            if not item.get('icao'):
+            icao, source_airport_id, airport_external_id = airport_identity(item)
+            if not airport_external_id:
                 continue
             cur.execute(UPSERT_MINIMAL_AIRPORT, [
-                item.get('icao'), item.get('name'),
+                icao, source_airport_id, airport_external_id, item.get('name'),
                 item.get('airport_type'), item.get('url')
             ])
             item_airport_id = cur.fetchone()['id']
@@ -582,7 +603,10 @@ def upsert_nearby_airports(nearby, airport_id=None):
                 cur.execute(AIRPORT_NEARBY_LINK, [airport_id, item_airport_id])
             else:
                 for icao in (nearby.get('associated_airports') or []):
-                    cur.execute("SELECT id FROM airports WHERE icao = %s", [icao])
+                    cur.execute(
+                        "SELECT id FROM airports WHERE icao=%s OR source_airport_id=%s",
+                        [icao, icao],
+                    )
                     row = cur.fetchone()
                     if row:
                         cur.execute(AIRPORT_NEARBY_LINK, [row['id'], item_airport_id])
@@ -614,7 +638,7 @@ def backfill_association_links():
             SELECT a.id, c.id
             FROM clearances c
             JOIN LATERAL unnest(COALESCE(c.associated_airports, ARRAY[]::text[])) AS assoc(icao) ON TRUE
-            JOIN airports a ON a.icao = assoc.icao
+            JOIN airports a ON a.icao = assoc.icao OR a.source_airport_id = assoc.icao
             ON CONFLICT DO NOTHING
             """
         )
@@ -625,9 +649,9 @@ def backfill_association_links():
             SELECT DISTINCT src.id, dst.id
             FROM nearby_airports n
             JOIN LATERAL unnest(COALESCE(n.associated_airports, ARRAY[]::text[])) AS src_icao(icao) ON TRUE
-            JOIN airports src ON src.icao = src_icao.icao
+            JOIN airports src ON src.icao = src_icao.icao OR src.source_airport_id = src_icao.icao
             JOIN LATERAL unnest(COALESCE(n.icaos, ARRAY[]::text[])) AS dst_icao(icao) ON TRUE
-            JOIN airports dst ON dst.icao = dst_icao.icao
+            JOIN airports dst ON dst.icao = dst_icao.icao OR dst.source_airport_id = dst_icao.icao
             ON CONFLICT DO NOTHING
             """
         )

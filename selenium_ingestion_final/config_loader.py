@@ -110,6 +110,9 @@ def _apply_env_overrides(config: Dict[str, Any]) -> Dict[str, Any]:
     
     if os.getenv("HEADLESS"):
         config.setdefault("selenium", {})["headless"] = os.getenv("HEADLESS").lower() == "true"
+
+    if os.getenv("USER_AGENT"):
+        config.setdefault("selenium", {})["user_agent"] = os.getenv("USER_AGENT")
     
     # Authentication configuration
     if os.getenv("AUTH_ENABLED"):

@@ -42,7 +42,7 @@ authentication:
 validation:
   strict_mode: false
   required_fields:
-    airport: [name, icao]
+    airport: [name]
     organization: [name]
 
 logging:

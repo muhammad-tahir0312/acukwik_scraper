@@ -20,6 +20,7 @@ VALIDATION_SCHEMAS = {
             "icao": {"type": ["string", "null"], "pattern": "^[A-Z]{4}$"},
             "iata": {"type": ["string", "null"], "pattern": "^[A-Z]{3}$"},
             "faa_id": {"type": ["string", "null"]},
+            "source_airport_id": {"type": ["string", "null"]},
             "name": {"type": "string", "minLength": 1},
             "city": {"type": "string"},
             "country": {"type": "string"},
@@ -178,8 +179,8 @@ def _validate_airport_data(data: Dict[str, Any]) -> List[str]:
     if icao:
         if not re.match(r'^[A-Z]{4}$', icao):
             errors.append(f"Invalid ICAO format: {icao} (must be 4 uppercase letters)")
-    else:
-        errors.append("Missing ICAO code")
+    elif not any(data.get(key) for key in ("iata", "faa_id", "source_airport_id")):
+        errors.append("Missing airport identifier (ICAO, IATA, FAA, or AC-U-KWIK source ID)")
     
     # IATA code validation (optional but must be valid if present)
     iata = data.get("iata")
@@ -232,8 +233,8 @@ def _validate_organization_data(data: Dict[str, Any]) -> List[str]:
     # Associated airports validation
     airports = data.get("associated_airports", [])
     for airport in airports:
-        if not re.match(r'^[A-Z]{4}$', airport):
-            errors.append(f"Invalid airport code in associated_airports: {airport}")
+        if not re.fullmatch(r'[A-Z0-9][A-Z0-9._-]{1,63}', airport):
+            errors.append(f"Invalid airport reference in associated_airports: {airport}")
     
     return errors
 

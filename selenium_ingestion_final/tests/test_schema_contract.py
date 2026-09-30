@@ -11,6 +11,8 @@ def test_schema_has_airport_scoped_listing_and_role_tables():
     assert "CREATE TABLE public.organization_airport_listing_roles" in schema
     assert "CREATE TABLE public.organization_airport_roles" in schema
     assert "organizations_name_norm_uniq" not in schema
+    assert "source_airport_id TEXT" in schema
+    assert "idx_airports_external_id_uniq" in schema
 
 
 def test_etl_does_not_fall_back_to_name_only_identity():
@@ -18,6 +20,8 @@ def test_etl_does_not_fall_back_to_name_only_identity():
     forbidden = 'SELECT * FROM organizations WHERE lower(trim(name)) = lower(trim(%s)) LIMIT 1'
     assert forbidden not in etl
     assert "upsert_airport_listing" in etl
+    assert "a.source_airport_id = assoc.icao" in etl
+    assert "dst.source_airport_id = dst_icao.icao" in etl
 
 
 def test_listing_upsert_parameter_count_matches_sql():

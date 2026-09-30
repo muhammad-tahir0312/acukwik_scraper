@@ -71,6 +71,21 @@ def test_same_source_listing_can_have_different_roles_at_one_airport():
     assert handler["data"]["associated_airports"] == ["KAAA"]
 
 
+def test_airport_without_standard_code_uses_acukwik_source_id():
+    source = """
+    <html><body>
+      <h1>Wanlawayn (Baledogle) AB</h1>
+      <h2>Located in Wanlaweyn, SOMALIA</h2>
+    </body></html>
+    """
+    url = "https://acukwik.com/Airport-Info/ACKTNON"
+    airport = AirportPageParser(HtmlDriver(source, url)).parse(url)[0]
+
+    assert airport["data"]["source_airport_id"] == "ACKTNON"
+    assert airport["external_id"] == "acukwik_source_ACKTNON"
+    assert validate_record(airport) == []
+
+
 def test_clearance_and_nearby_keep_unmapped_source_data(monkeypatch):
     monkeypatch.setattr("parsers.time.sleep", lambda *_args: None)
     clearance_html = """<html><body>
@@ -90,6 +105,7 @@ def test_clearance_and_nearby_keep_unmapped_source_data(monkeypatch):
     nearby_html = """<html><body>
     <table><tr><th>Airport</th><th>Rwy</th><th>Type</th><th>City</th><th>Future</th></tr>
       <tr><td><a href="/Airport-Info/KBBB">KBBB</a></td><td>5000 x 100</td><td>Civil</td><td>Test</td><td>Extra value</td></tr>
+      <tr><td><a href="/Airport-Info/ACKTNON">No-code Field</a></td><td>3000 x 80</td><td>Military</td><td>Test</td><td>Other value</td></tr>
     </table></body></html>
     """
     nearby = NearbyParser(
@@ -97,4 +113,7 @@ def test_clearance_and_nearby_keep_unmapped_source_data(monkeypatch):
     ).parse("https://acukwik.com/Nearby/KAAA", "KAAA", load_page=False)
     row = nearby["data"]["nearby_airports"][0]
     assert row["raw_cells"][-1] == "Extra value"
+    no_code_row = nearby["data"]["nearby_airports"][1]
+    assert no_code_row["source_airport_id"] == "ACKTNON"
+    assert no_code_row["raw_cells"][-1] == "Other value"
     assert nearby["external_id"] == "acukwik_nearby_KAAA"

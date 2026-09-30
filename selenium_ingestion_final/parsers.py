@@ -88,8 +88,14 @@ def generate_external_id(entity_type: str, data: Dict[str, Any], airport_icao: O
         iata = data.get('iata')
         if iata:
             return f"acukwik_iata_{iata}"
+        source_airport_id = data.get('source_airport_id')
+        if source_airport_id:
+            safe_source_id = re.sub(r"[^A-Za-z0-9_.-]+", "_", str(source_airport_id)).strip("_")
+            if safe_source_id:
+                return f"acukwik_source_{safe_source_id}"
         # Last resort: hash
-        digest = hashlib.sha256(str(data.get('url', '')).encode('utf-8')).hexdigest()[:20]
+        serialized = json.dumps(data, sort_keys=True, ensure_ascii=False, default=str)
+        digest = hashlib.sha256(serialized.encode('utf-8')).hexdigest()[:20]
         return f"acukwik_{digest}"
 
     elif entity_type == "organization":
@@ -193,11 +199,12 @@ class AirportPageParser:
             airport_entity = self._parse_airport_entity(url)
             entities.append(airport_entity)
             
-            # Extract ICAO for organization linking
-            airport_icao = airport_entity.get('data', {}).get('icao')
+            # Use the source airport identifier when a location has no ICAO.
+            airport_data = airport_entity.get('data', {})
+            airport_reference = airport_data.get('icao') or airport_data.get('source_airport_id')
             
             # Parse organization entities on the same page
-            org_entities = self._parse_organization_entities(url, airport_icao)
+            org_entities = self._parse_organization_entities(url, airport_reference)
             entities.extend(org_entities)
             
         except Exception as e:
@@ -236,6 +243,10 @@ class AirportPageParser:
         raw_name = self._extract_raw_name(observed_fields, missing_fields, errors)
         name = clean_airport_name(raw_name) if raw_name else None
         city, country = self._extract_city_country(observed_fields, missing_fields, errors)
+        source_match = re.search(r"/Airport-Info/([^/?#]+)", url, re.IGNORECASE)
+        source_airport_id = source_match.group(1) if source_match else None
+        if source_airport_id:
+            observed_fields.append("source_airport_id")
 
         # Expand the 'More Airport Information' section and extract ALL fields (basic + expanded)
         # _expand_more_info_section handles both expanding AND scraping all fields
@@ -246,6 +257,7 @@ class AirportPageParser:
             "icao": icao,
             "iata": iata,
             "faa_id": faa_id,
+            "source_airport_id": source_airport_id,
             "name": name,
             "city": city,
             "country": country,
@@ -429,7 +441,7 @@ class AirportPageParser:
             panel_content = panel_title.find_element(By.XPATH, "following-sibling::*[1]")
             # Check if the content is hidden (collapsed)
             is_hidden = panel_content.value_of_css_property("display") in ["none", "hidden"]
-            if is_hidden:
+            if is_hidden and getattr(self.driver, "supports_interaction", True):
                 logger.info("Expanding 'More Airport Information' section")
                 self.driver.execute_script("arguments[0].scrollIntoView({block:'center'});", panel_title)
                 self.driver.execute_script("arguments[0].click();", panel_title)
@@ -530,6 +542,21 @@ class AirportPageParser:
                                     return
                             except Exception as e:
                                 logger.debug(f"Cached airport_email resolution failed: {e}")
+                        # Cached HTML cannot execute the site's JavaScript email
+                        # reveal action. Avoid a full WebDriverWait for an action
+                        # that can never mutate an HtmlDriver document.
+                        if not getattr(self.driver, "supports_interaction", True):
+                            try:
+                                link = value_elem.find_element(By.TAG_NAME, "a")
+                                email = link.get_attribute("href")
+                                if email and email.startswith("mailto:"):
+                                    data[field_name] = email.replace("mailto:", "")
+                                    observed.append(field_name)
+                                else:
+                                    missing.append(field_name)
+                            except Exception:
+                                missing.append(field_name)
+                            return
                         try:
                             # Check if there's a button to click
                             button = value_elem.find_element(By.CSS_SELECTOR, "button.aEmail")
@@ -1271,6 +1298,7 @@ class AirportPageParser:
                     
                     # Email - click button if present then read mailto/text
                     if label == "email":
+                        button = None
                         email_resolver = getattr(self.driver, "email_resolver", None)
                         if callable(email_resolver):
                             try:
@@ -1281,22 +1309,28 @@ class AirportPageParser:
                                     continue
                             except Exception as e:
                                 logger.debug(f"Cached email resolution failed: {e}")
-                        try:
-                            button = value_elem.find_element(By.CSS_SELECTOR, "button.ghEmail, button.sEmail")
+                        if getattr(self.driver, "supports_interaction", True):
                             try:
-                                # Click via JS for reliability
-                                self.driver.execute_script("arguments[0].click();", button)
-                            except Exception:
-                                button.click()
-                            # Wait briefly for mailto link to appear or button text to change
-                            try:
-                                WebDriverWait(self.driver, 3).until(
-                                    lambda d: value_elem.find_elements(By.CSS_SELECTOR, "a[href^='mailto:']") or "@" in button.text
-                                )
+                                button = value_elem.find_element(By.CSS_SELECTOR, "button.ghEmail, button.sEmail")
+                                try:
+                                    # Click via JS for reliability
+                                    self.driver.execute_script("arguments[0].click();", button)
+                                except Exception:
+                                    button.click()
+                                # Wait briefly for mailto link to appear or button text to change
+                                try:
+                                    WebDriverWait(self.driver, 3).until(
+                                        lambda d: value_elem.find_elements(By.CSS_SELECTOR, "a[href^='mailto:']") or "@" in button.text
+                                    )
+                                except Exception:
+                                    pass
                             except Exception:
                                 pass
-                        except Exception:
-                            pass
+                        else:
+                            try:
+                                button = value_elem.find_element(By.CSS_SELECTOR, "button.ghEmail, button.sEmail")
+                            except Exception:
+                                pass
 
                         # Try direct email link after potential click
                         try:
@@ -1310,7 +1344,7 @@ class AirportPageParser:
                         except Exception:
                             # Fallback: button text may now contain email
                             try:
-                                text_email = button.text.strip()
+                                text_email = button.text.strip() if button is not None else ""
                                 if text_email and "@" in text_email:
                                     contacts.append({"type": "email", "value": text_email})
                                     observed_fields.append("email")
@@ -1797,7 +1831,8 @@ class ClearanceParser:
                 self.wait.until(EC.presence_of_element_located((By.TAG_NAME, "body")))
             except TimeoutException:
                 errors.append({"field": "page_load", "error": "Clearance page load timeout"})
-            time.sleep(2)
+            if getattr(self.driver, "supports_interaction", True):
+                time.sleep(2)
 
             # --- Key-value pair fields from main table ---
             kv_field_mapping = {
@@ -2036,13 +2071,17 @@ class NearbyParser:
                 self.wait.until(EC.presence_of_element_located((By.TAG_NAME, "body")))
             except TimeoutException:
                 errors.append({"field": "page_load", "error": "Nearby page load timeout"})
-            time.sleep(2)
+            if getattr(self.driver, "supports_interaction", True):
+                time.sleep(2)
 
             page_num = 1
             max_pages = 50  # Safety limit
             while page_num <= max_pages:
                 rows = self._extract_table_rows(errors)
                 nearby_airports.extend(rows)
+
+                if not getattr(self.driver, "supports_interaction", True):
+                    break
 
                 # Try to click the "Next" pagination button
                 advanced = self._go_to_next_page()
@@ -2055,7 +2094,11 @@ class NearbyParser:
                 deduplicated = []
                 seen = set()
                 for airport in nearby_airports:
-                    key = (airport.get("icao"), airport.get("url"), tuple(airport.get("raw_cells") or []))
+                    key = (
+                        airport.get("icao") or airport.get("source_airport_id"),
+                        airport.get("url"),
+                        tuple(airport.get("raw_cells") or []),
+                    )
                     if key not in seen:
                         seen.add(key)
                         deduplicated.append(airport)
@@ -2130,12 +2173,24 @@ class NearbyParser:
                         icao_cell = cells[0]
                         try:
                             link = icao_cell.find_element(By.TAG_NAME, "a")
-                            entry["icao"] = link.text.strip()
                             href = link.get_attribute("href")
+                            source_match = re.search(
+                                r"/Airport-Info/([^/?#]+)", href or "", re.IGNORECASE
+                            )
+                            identifier = source_match.group(1) if source_match else link.text.strip()
+                            if re.fullmatch(r"[A-Z]{4}", identifier):
+                                entry["icao"] = identifier
+                            else:
+                                entry["source_airport_id"] = identifier
+                                entry["name"] = link.text.strip()
                             if href:
                                 entry["url"] = href
                         except Exception:
-                            entry["icao"] = icao_cell.text.strip()
+                            identifier = icao_cell.text.strip()
+                            if re.fullmatch(r"[A-Z]{4}", identifier):
+                                entry["icao"] = identifier
+                            elif identifier:
+                                entry["source_airport_id"] = identifier
                         # Column 1: Primary Runway
                         if len(cells) > 1:
                             entry["primary_runway"] = cells[1].text.strip()
@@ -2145,7 +2200,7 @@ class NearbyParser:
                         # Column 3: City
                         if len(cells) > 3:
                             entry["city"] = cells[3].text.strip()
-                        if entry.get("icao"):
+                        if entry.get("icao") or entry.get("source_airport_id"):
                             rows.append(entry)
                     except Exception as e:
                         logger.debug(f"Nearby row parse error: {e}")
@@ -2156,6 +2211,11 @@ class NearbyParser:
                 for div in result_divs:
                     try:
                         entry: Dict[str, Any] = {}
+                        entry["raw_cells"] = [
+                            child.text.strip()
+                            for child in div.find_elements(By.XPATH, "./div")
+                            if child.text.strip()
+                        ]
                         entry["raw_text"] = "\n".join(
                             line.strip() for line in div.text.splitlines() if line.strip()
                         )
@@ -2166,9 +2226,21 @@ class NearbyParser:
                         ]
                         # ICAO and name
                         icao_link = div.find_element(By.CSS_SELECTOR, ".col2 a")
-                        entry["icao"] = icao_link.text.split("-")[0].strip()
+                        href = icao_link.get_attribute("href")
+                        source_match = re.search(
+                            r"/Airport-Info/([^/?#]+)", href or "", re.IGNORECASE
+                        )
+                        identifier = (
+                            source_match.group(1)
+                            if source_match
+                            else icao_link.text.split("-")[0].strip()
+                        )
+                        if re.fullmatch(r"[A-Z]{4}", identifier):
+                            entry["icao"] = identifier
+                        else:
+                            entry["source_airport_id"] = identifier
                         entry["name"] = icao_link.text.split("-")[1].strip() if "-" in icao_link.text else ""
-                        entry["url"] = icao_link.get_attribute("href")
+                        entry["url"] = href
                         # Primary Runway
                         entry["primary_runway"] = div.find_element(By.CSS_SELECTOR, ".col3.w15p.fl.p10px").text.strip()
                         # Type
@@ -2179,7 +2251,7 @@ class NearbyParser:
                             entry["airport_type"] = ""
                         # City
                         entry["city"] = div.find_element(By.CSS_SELECTOR, ".col4").text.strip()
-                        if entry.get("icao"):
+                        if entry.get("icao") or entry.get("source_airport_id"):
                             rows.append(entry)
                     except Exception as e:
                         logger.debug(f"Nearby div parse error: {e}")

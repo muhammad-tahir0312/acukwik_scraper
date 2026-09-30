@@ -5,7 +5,6 @@
 This document is a technical handoff for another engineer or AI working on the AC-U-KWIK scraper and ETL repository. It explains the original problem, what was discovered, what was implemented, what was tested, and what remains blocked by external website access.
 
 Repository branch: `dev-3`  
-Implementation commit: `c794000`  
 Remote branch: `origin/dev-3`
 
 ## Original problem
@@ -80,6 +79,11 @@ Additional issues found during implementation included:
 - Clearance and nearby-page fields not mapped to normalized columns were not preserved through the ETL.
 - Credentials were stored in the tracked YAML configuration.
 - Cookie jars were tracked by Git.
+- Airport email buttons were incorrectly sent to the ground-handler email endpoint.
+- Static HTML parsing waited for browser-side DOM mutations that could never occur.
+- AC-U-KWIK locations without ICAO/IATA/FAA codes were rejected, even though their
+  `Airport-Info` path identifier is stable.
+- Nearby rows could lose unrecognized columns and code-less airport identifiers.
 
 ## AC-U-KWIK service-role taxonomy
 
@@ -181,6 +185,20 @@ authenticated HTTP fetch -> authenticated browser fallback for 401/403/429
 ```
 
 The scraper explicitly detects an interactive Cloudflare challenge and stops with an actionable message. It does not attempt to bypass the challenge.
+
+The automatic login helper now respects `selenium.headless`; this permits an
+authorized visible login when required. The fixed remote-debugging port was
+removed so parallel or previously running Chrome processes do not collide.
+
+Protected email buttons now use the endpoint implemented by the live site:
+
+- airport `aEmail` buttons: `GetARPTEmail`;
+- supplier `sEmail` buttons: `GetSupplierEmail`;
+- handler `ghEmail` buttons: `GetGHEmail`.
+
+The cookie-created browser user agent can be supplied with `USER_AGENT`. A
+Cloudflare clearance cookie may be invalid when replayed with a different user
+agent.
 
 Credentials were removed from `config.yaml`. If an authorized cookie refresh is needed, credentials must be supplied through environment variables:
 
@@ -295,6 +313,7 @@ The migration for an existing database is:
 
 ```text
 aero-data-etl-final/db/migrations/002_airport_scoped_organization_roles.sql
+aero-data-etl-final/db/migrations/003_airport_source_identifiers.sql
 ```
 
 Apply it with:
@@ -302,7 +321,15 @@ Apply it with:
 ```bash
 psql "$DATABASE_URL" \
   -f aero-data-etl-final/db/migrations/002_airport_scoped_organization_roles.sql
+psql "$DATABASE_URL" \
+  -f aero-data-etl-final/db/migrations/003_airport_source_identifiers.sql
 ```
+
+Migration `003` adds `airports.source_airport_id`, backfills it from existing
+AC-U-KWIK URLs, creates stable external IDs for old rows, and adds the unique
+external-ID index required for idempotent upserts. ETL linking now accepts
+either an ICAO code or this source identifier for organizations, clearances,
+and nearby airports.
 
 Historical global role data cannot be safely backfilled into airport-specific roles because the original records no longer contain that relationship. Existing organizations should be re-scraped after applying the migration.
 
@@ -346,7 +373,7 @@ The suite verifies:
 Latest local test result:
 
 ```text
-6 passed
+8 passed
 ```
 
 Command:
@@ -360,43 +387,49 @@ Python compilation also completed successfully for the scraper and ETL packages.
 
 ## Requested 20-airport live validation
 
-A live run was attempted against 20 airports from multiple regions, including airports used to investigate multi-role behavior.
+The normal scraper entry point was run first against 20 airports. All 20 direct
+HTTP requests received `403 Forbidden`, and WebDriver was presented with
+Cloudflare's interactive challenge. Replaying the fresh cookie jar and matching
+the browser user agent did not make automated requests pass the challenge.
+
+To validate the real pages without bypassing the challenge, the same 60 pages
+(airport, clearance, and nearby page for each airport) were fetched through an
+authorized, logged-in normal browser. All 60 returned HTTP 200. Those exact live
+HTML documents were then processed with the production `HtmlDriver` and parser
+classes. The 34 protected email requests found in the pages were also invoked
+through that authorized browser and passed to the production email-resolution
+path.
 
 Result:
 
 ```text
-Airports attempted: 20
-Successful live airport fetches: 0
-HTTP failures: 20
-HTTP status: 403 Forbidden
+Live pages fetched:                 60/60 (HTTP 200)
+Airports parsed:                    20
+Organizations parsed:              47
+Clearance records parsed:           20
+Nearby records parsed:              20
+Total output records:               107
+Validation errors:                  0
+Airport emails resolved:            12/12 present buttons
+Organization emails resolved:       22/22 present buttons
+Nearby rows parsed:                 139
+Nearby rows retaining raw cells:    139/139
+Code-less airports retained:        1
 ```
 
-The existing cookie file had a recent filesystem timestamp, but its actual authenticated `.DOTNETNUKE` cookie had expired. An automatic browser refresh was then attempted. AC-U-KWIK returned an interactive Cloudflare `Just a moment...` challenge in headless Chrome, so the login page could not be reached.
+The live data also directly confirmed the original relationship problem:
 
-This is an external access blocker, not a passing live validation. Do not report the scraper as successfully tested against 20 current live airport pages.
-
-To complete the live validation:
-
-1. Open AC-U-KWIK in a normal authorized browser.
-2. Complete any Cloudflare challenge normally.
-3. Sign in with the authorized account.
-4. Export a fresh `cookies.json` in Selenium-compatible format.
-5. Place it at the configured local cookie path. It will remain ignored by Git.
-6. Create a 20-airport CSV or use the existing temporary sample if still available.
-7. Run the scraper with a fresh progress file.
-8. Inspect JSONL for failures, validation errors, role coverage, empty listings, and raw-field coverage.
-9. Fix any parser issues found and rerun until all 20 airports complete successfully.
-
-Example run:
-
-```bash
-INPUT_CSV_PATH=/absolute/path/live-20.csv \
-OUTPUT_DIRECTORY=/absolute/path/live-20-output \
-PROGRESS_FILE=/absolute/path/live-20-progress.json \
-PARALLEL_WORKERS=4 \
-.venv/bin/python selenium_ingestion_final/scraper.py \
-  selenium_ingestion_final/config.yaml
+```text
+MIXJET FLIGHT SUPPORT @ HCMI -> FLIGHT_SUPPORT_ORGANIZATION
+MIXJET FLIGHT SUPPORT @ HCMM -> FUEL_SUPPLIER
 ```
+
+This validates current live field layouts and the parsing/validation path. It is
+not a claim that unattended Selenium can defeat the active Cloudflare challenge;
+the scraper intentionally does not attempt to do that. Nearby-page pagination
+still depends on interactive Selenium during a normal end-to-end run. The
+browser-assisted fixture captured the initially rendered nearby page for each
+airport.
 
 ## Git state
 
@@ -410,12 +443,9 @@ git@github-personal:muhammad-tahir0312/acukwik_scraper.git
 
 Personal SSH authentication was verified as GitHub user `muhammad-tahir0312`.
 
-The implementation was successfully pushed:
-
-```text
-branch: dev-3
-commit: c794000
-```
+The airport-scoped implementation and its technical report were pushed to
+`dev-3`. The follow-up live-validation fixes described here are intended for the
+same branch.
 
 ## Important files for the next AI
 
@@ -430,26 +460,28 @@ selenium_ingestion_final/validators.py
 selenium_ingestion_final/config_loader.py
 selenium_ingestion_final/tests/test_airport_parser.py
 selenium_ingestion_final/tests/test_schema_contract.py
+selenium_ingestion_final/tests/test_scraper_runtime.py
 aero-data-etl-final/db/etl_schema.sql
 aero-data-etl-final/db/migrations/002_airport_scoped_organization_roles.sql
+aero-data-etl-final/db/migrations/003_airport_source_identifiers.sql
 aero-data-etl-final/etl/services/entity_etl.py
 ```
 
 ## Recommended next actions
 
-1. Obtain a fresh authorized browser cookie export and finish the 20-airport live run.
-2. Apply the database migration in a test PostgreSQL database.
-3. Run a scraper JSONL file through the ETL and query all three scoped tables.
-4. Confirm a known multi-role company produces multiple airport-scoped roles without global-role ambiguity.
-5. Confirm two unrelated organizations with the same normalized name remain separate.
-6. Review source panels for any service categories not represented in the 14-role catalog.
-7. Add live HTML fixtures, with sensitive data removed, for every layout variation discovered during the live run.
+1. Apply migrations `002` and `003` in a test PostgreSQL database.
+2. Run the validated JSONL through the ETL and query all three scoped role tables.
+3. Confirm two unrelated organizations with the same normalized name remain separate.
+4. Review source panels periodically for categories not represented in the 14-role catalog.
+5. Add sanitized live HTML fixtures for every new layout variation.
+6. Re-run unattended live retrieval when AC-U-KWIK permits the authorized browser
+   session to pass its automated challenge.
 
 ## Acceptance criteria for final production readiness
 
 The work should only be considered fully production-validated when all of the following are true:
 
-- A fresh 20-airport live run completes without HTTP or authentication failures.
+- A fresh unattended 20-airport retrieval completes without HTTP or authentication failures.
 - Every airport produces a valid primary airport entity.
 - Organization records contain airport scope, listing identity, and at least one role.
 - No validation errors remain unexplained.
