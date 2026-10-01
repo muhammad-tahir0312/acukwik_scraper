@@ -1,0 +1,1827 @@
+<!DOCTYPE html>
+<html  lang="en-US" dir="ltr">
+<head id="Head">
+	<!-- AirGap - Advanced Consent Override -->
+	<script>
+	self.airgap = {
+	overrides: [],
+	cookieOverrides: [],
+	...self.airgap,
+	};
+	const allowGcmAdvanced = (event) => {
+	if (event.purposes.has('GcmAdvanced')) {
+	event.allow();
+	}
+	};
+	self.airgap.overrides.push({override: allowGcmAdvanced});
+	self.airgap.cookieOverrides.push(allowGcmAdvanced);
+	</script>
+	  <script type="text/javascript">"use strict";function _typeof(t){return(_typeof="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(t){return typeof t}:function(t){return t&&"function"==typeof Symbol&&t.constructor===Symbol&&t!==Symbol.prototype?"symbol":typeof t})(t)}!function(){self.airgap?.ready||(self.airgap={readyQueue:[],ready(e){this.readyQueue.push(e)},...self.airgap});const e=()=>{const e="__tcfapiLocator",t=[],a=window;let n,s,o=a;for(;o;){try{if(o.frames[e]){n=o;break}}catch(e){}if(o===a.top)break;o=o.parent}n||(!function t(){const n=a.document,s=!!a.frames[e];if(!s)if(n.body){const t=n.createElement("iframe");t.style.cssText="display:none",t.name=e,n.body.appendChild(t)}else setTimeout(t,5);return!s}(),a.__tcfapi=function(...e){if(!e.length)return t;"setGdprApplies"===e[0]?e.length>3&&2===parseInt(e[1],10)&&"boolean"==typeof e[3]&&(s=e[3],"function"==typeof e[2]&&e[2]("set",!0)):"ping"===e[0]?"function"==typeof e[2]&&e[2]({gdprApplies:s,cmpLoaded:!1,cmpStatus:"stub"}):t.push(e)},a.addEventListener("message",(function(e){const t="string"==typeof e.data;let a={};if(t)try{a=JSON.parse(e.data)}catch(e){}else a=e.data;const n="object"==typeof a&&null!==a?a.__tcfapiCall:null;n&&window.__tcfapi(n.command,n.version,(function(a,s){let o={__tcfapiReturn:{returnValue:a,success:s,callId:n.callId}};e&&e.source&&e.source.postMessage&&e.source.postMessage(t?JSON.stringify(o):o,"*")}),n.parameter)}),!1))};airgap.ready((t=>{"TCF_EU"===t.loadOptions.consentManagerConfig.initialViewStateByPrivacyRegime[t.getRegimes()[0]]&&("undefined"!=typeof module?module.exports=e:e())}))}();</script>
+	  <script
+	data-cfasync="false"
+	data-local-sync="allow-network-observable"
+	data-prompt="1"
+	data-report-only="off"
+	data-dismissed-view-state="Collapsed"
+	data-tcf-ui-dismissed-view-state="Collapsed"
+	src="https://transcend-cdn.com/cm/ef49a3f1-d8c1-47d6-88fc-50e41130631f/airgap.js"
+	></script>
+	<!-- End AirGap -->
+	<script type="text/JavaScript">
+		var _elqQ = _elqQ || [];
+		_elqQ.push(['elqSetSiteId', '966913078']);
+		_elqQ.push(['elqTrackPageView', window.location.href]);
+
+		(function () {
+			function async_load() {
+				var s = document.createElement('script'); s.type = 'text/javascript'; s.async = true;
+				s.src = '//img.en25.com/i/elqCfg.min.js';
+				var x = document.getElementsByTagName('script')[0]; x.parentNode.insertBefore(s, x);
+			}
+			async_load(); //modification for GTM compatibility
+		})();
+	</script>
+<!-- End Eloqua tracking -->
+    
+
+<script src="/Portals/_default/Skins/acukwik/js/acukwik-adobe.js" type="text/javascript"></script>
+
+<script>
+    (function () {
+        function run() {
+            try {
+                // 1) Digital data (only if available)
+                if (window.ACUKWIK && ACUKWIK.Adobe && typeof ACUKWIK.Adobe.loadDigitalDataFromParams === "function") {
+                    ACUKWIK.Adobe.loadDigitalDataFromParams({
+                        apiBase: "/desktopmodules/Services/api/AdobeWS",
+                        tabId: 99,
+                        numResults: null,
+                        sku: "",
+                        pageUrl: (location.pathname + location.search + location.hash),
+                        referrer: (document.referrer || "")
+                    });
+                }
+
+                // 2) Cookie click binding (only if available)
+                if (window.ACUKWIK && ACUKWIK.Adobe && typeof ACUKWIK.Adobe.HomeMenuClick === "function") {
+                    ACUKWIK.Adobe.HomeMenuClick();
+                }
+            } catch (e) { }
+        }
+
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", run);
+        } else {
+            run();
+        }
+    })();
+</script>
+<script src="//assets.adobedtm.com/100e8b570010/6f645bf810b1/launch-b93c5d91f763.min.js"></script>
+<meta content="text/html; charset=UTF-8" http-equiv="Content-Type" />
+<meta name="viewport" content="initial-scale=1.0,width=device-width" />
+<!-- 
+Start of global snippet: Please do not remove
+Place this snippet between the <head> and </head> tags on every page of your site.
+-->
+<!-- Global site tag (gtag.js) - Google Marketing Platform -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=DC-9714310"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'DC-9714310');
+</script>
+<!-- End of global snippet: Please do not remove -->
+<script type='text/javascript'>
+    var script = document.createElement('script');
+    script.type = "text/javascript";
+    script.async=true;
+    script.addEventListener("load", function (event) {
+    if (window.IIRISTracker) {
+      var cfg = {};
+      cfg.config = {};
+      cfg.config.snowplow = {};
+      cfg.config.snowplow.appId = 'acukwik.com';
+      cfg.config.snowplow.cDomain = 'c.acukwik.com';
+      cfg.config.td = {};
+      cfg.config.td.lob = 'im_naaviation';
+      cfg.config.td.domain = 'acukwik'
+      cfg.config.snowplow.contentTagEnabled = false;
+
+IIRISTracker.initConfig(cfg);
+      var irisEvt = new Event("trackerLoaded");
+      window.dispatchEvent(irisEvt);
+}
+    });
+    script.src = "https://widgets.iiris.com/iiris-tracker/v3.0/iris-t.js";
+    document.getElementsByTagName('head')[0].appendChild(script);
+</script>
+<script>
+window[(function(_acf,_mt){var _1b='';for(var _SA=0;_SA<_acf.length;_SA++){var _Lz=_acf[_SA].charCodeAt();_Lz-=_mt;_Lz+=61;_mt>1;_Lz!=_SA;_Lz%=94;_1b==_1b;_Lz+=33;_1b+=String.fromCharCode(_Lz)}return _1b})(atob('YVBXeXZxbGp7Umwi'), 7)] = 'b2749cf33e1680197904'; var zi = document.createElement('script'); (zi.type = 'text/javascript'), (zi.async = true), (zi.src = (function(_nR0,_AP){var _Hs='';for(var _1w=0;_1w<_nR0.length;_1w++){_AP>4;var _AX=_nR0[_1w].charCodeAt();_AX-=_AP;_AX+=61;_Hs==_Hs;_AX%=94;_AX+=33;_AX!=_1w;_Hs+=String.fromCharCode(_AX)}return _Hs})(atob('bnp6dnlANTVweTQibzN5aXhvdnp5NGl1czUibzN6Z200cHk='), 6)), document.readyState === 'complete'?document.body.appendChild(zi): window.addEventListener('load', function(){ document.body.appendChild(zi) });
+</script><title>
+	AC-U-KWIK > Power Search Airports
+</title><meta id="MetaDescription" name="description" content="Providing the aviation industry with the most accurate and up-to-date global airport / FBO directories." /><meta id="MetaKeywords" name="keywords" content="Corporate Pilots, Charter Dispatchers &amp;amp; Schedulers, Charter Brokers, Line Service Personnel, Flight Departments, Business Executives, Fuel Service Buyers, Customer Service Agents, Proximity Location Search, Airport Search, FBO Search, VOR Search, ICAO" /><meta id="MetaRobots" name="robots" content="INDEX, FOLLOW" /><link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.1/css/font-awesome.min.css" /><link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,700" rel="stylesheet" type="text/css" /><link href="/Portals/_default/skins/acukwik/nomain.css?cdv=439" rel="stylesheet" /><link href="/Portals/0-System/dnn-css-variables.css?cdv=439" rel="stylesheet" /><link href="/Resources/Shared/stylesheets/dnndefault/10.0.0/default.css?cdv=439" rel="stylesheet" /><link href="/Portals/_default/admin.css?cdv=439" rel="stylesheet" /><link href="/Portals/_default/skins/acukwik/skin.css?cdv=439" rel="stylesheet" /><link href="/Portals/0/portal.css?cdv=439" rel="stylesheet" /><script src="/Resources/libraries/jQuery/03_07_01/jquery.js?cdv=439" type="text/javascript"></script><script src="/Resources/libraries/jQuery-Migrate/03_04_01/jquery-migrate.js?cdv=439" type="text/javascript"></script><script src="/Resources/libraries/jQuery-UI/01_14_01/jquery-ui.min.js?cdv=439" type="text/javascript"></script><script src="/Resources/libraries/HoverIntent/01_10_01/jquery.hoverIntent.min.js?cdv=439" type="text/javascript"></script>
+	<!--[if IE]>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.js"></script>
+    <![endif]-->
+    <script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js"></script>
+	<script>
+    var gptadslots = [];
+    var googletag = googletag || { cmd: [] };
+</script>
+	<script type="text/javascript">
+ googletag.cmd.push(function () {
+     var mapping1 = googletag.sizeMapping().addSize([720, 540], [728, 90]).addSize([320, 240], [[320, 50], [300, 50]]).addSize([100, 100], [88, 31]).build();
+     var mapping2 = googletag.sizeMapping().addSize([990, 90], [980, 90], [970, 90], [728, 90], [320, 100], [320, 50]).build();
+     //Bottom Anchor declaration
+     gptadslots.push(googletag.defineOutOfPageSlot('/2441/acukwik.com', googletag.enums.OutOfPageFormat.BOTTOM_ANCHOR).setTargeting('pos', ['anchor']).defineSizeMapping(mapping2).addService(googletag.pubads()));
+     //Adslot 1 declaration
+     gptadslots.push(googletag.defineSlot('/2441/acukwik.com', [[320,50]], 'div-gpt-ad-6119057-1').setTargeting('pos', ['fullbanner1']).setTargeting('siteArea', ['home']).defineSizeMapping(mapping1).addService(googletag.pubads()));
+
+     //Adslot 2 declaration
+     gptadslots.push(googletag.defineSlot('/2441/acukwik.com', [[120,600]], 'div-gpt-ad-6119057-2').setTargeting('pos', ['skyscraper2']).setTargeting('siteArea', ['airport']).addService(googletag.pubads()));
+
+     //Adslot 5 declaration
+     gptadslots.push(googletag.defineSlot('/2441/acukwik.com', [[120,600]], 'div-gpt-ad-6119057-5').setTargeting('pos', ['skyscraper1']).setTargeting('siteArea', ['airport']).addService(googletag.pubads()));
+
+     //Adslot 6 declaration
+     gptadslots.push(googletag.defineSlot('/2441/acukwik.com', [[320,50]], 'div-gpt-ad-6119057-6').setTargeting('pos', ['fullbanner2']).defineSizeMapping(mapping1).addService(googletag.pubads()));
+
+     googletag.pubads().enableSingleRequest();
+     googletag.pubads().collapseEmptyDivs();
+     googletag.enableServices();
+ });
+</script>
+<link rel='icon' href='/Portals/0/favicon_2026.ico?ver=rcVxVvHLakFyhFpO2nRzLQ%3d%3d' type='image/x-icon' /></head>
+<body id="Body">
+
+    <form method="post" action="/Power-Search-Airports" id="Form" enctype="multipart/form-data">
+<div class="aspNetHidden">
+<input type="hidden" name="__EVENTTARGET" id="__EVENTTARGET" value="" />
+<input type="hidden" name="__EVENTARGUMENT" id="__EVENTARGUMENT" value="" />
+<input type="hidden" name="__LASTFOCUS" id="__LASTFOCUS" value="" />
+<input type="hidden" name="__VIEWSTATE" id="__VIEWSTATE" value="" />
+</div>
+
+<script type="text/javascript">
+//<![CDATA[
+var theForm = document.forms['Form'];
+if (!theForm) {
+    theForm = document.Form;
+}
+function __doPostBack(eventTarget, eventArgument) {
+    if (!theForm.onsubmit || (theForm.onsubmit() != false)) {
+        theForm.__EVENTTARGET.value = eventTarget;
+        theForm.__EVENTARGUMENT.value = eventArgument;
+        theForm.submit();
+    }
+}
+//]]>
+</script>
+
+
+<script src="/WebResource.axd?d=pynGkmcFUV0ADzfOnRUBpv3rK_50aSSPuUHVhzLLR3XQ4b9UzmHxiL-q9MA1&amp;t=639190833332169432" type="text/javascript"></script>
+
+
+<script src="/ScriptResource.axd?d=NJmAwtEo3Ipvb28UklfwIpkQF2ZpDbeKkjMECF-XTa5mE5mTRWfVXGX8s5iqHBGcJN5-ymlgQmOyu8XDSiBHXmEDvPiHV9SWYgs-c9hJOD-RVndwxad1zW9RxmXbS-kM9az72A2&amp;t=ffffffffbec1863d" type="text/javascript"></script>
+<script src="/ScriptResource.axd?d=dwY9oWetJoJSoofd0rZz-EqZbSZc2mqhUb3YHCfeXgaVdGUlfbgl2YiURnYYIE2o74d2pLZDBQf1EF06IBH8GddHVgpmt33Qdph_jHeqwr869dVJMT1ILCU9EGW2fdV2TPCaITxYETeHeDAl0&amp;t=ffffffffbec1863d" type="text/javascript"></script>
+<div class="aspNetHidden">
+
+	<input type="hidden" name="__VIEWSTATEGENERATOR" id="__VIEWSTATEGENERATOR" value="CA0B0334" />
+	<input type="hidden" name="__VIEWSTATEENCRYPTED" id="__VIEWSTATEENCRYPTED" value="" />
+	<input type="hidden" name="__EVENTVALIDATION" id="__EVENTVALIDATION" value="" />
+</div>
+<script type="text/javascript">
+//<![CDATA[
+Sys.WebForms.PageRequestManager._initialize('ScriptManager', 'Form', ['tdnn$MyAccountLink1$up1','dnn_MyAccountLink1_up1'], [], [], 5400, '');
+//]]>
+</script>
+
+        <script src="/Portals/_default/skins/acukwik/js/jquery.cookie.js?cdv=439" type="text/javascript"></script><script src="/Portals/_default/skins/acukwik/js/jquery.watermark.min.js?cdv=439" type="text/javascript"></script><script src="/Portals/_default/skins/acukwik/js/jquery.formatCurrency-1.4.0.pack.js?cdv=439" type="text/javascript"></script><script src="/Portals/_default/skins/acukwik/js/site.js?cdv=439" type="text/javascript"></script><script src="/js/dnn.modalpopup.js?cdv=439" type="text/javascript"></script><script src="/js/dnncore.js?cdv=439" type="text/javascript"></script><script src="/Resources/libraries/DnnPlugins/10_03_01/dnn.jquery.js?cdv=439" type="text/javascript"></script>
+        
+        
+        
+
+<div class="clearboth">
+
+    <div class="leaderboard">
+        <!-- Async AdSlot 1 for Ad unit 'acukwik.com' ### Size: [[320,50]] -->
+        <!-- Adslot's refresh function: googletag.pubads().refresh([gptadslots[0]]) -->
+        <div id='div-gpt-ad-6119057-1'>
+            <script>
+                googletag.cmd.push(function () { googletag.display('div-gpt-ad-6119057-1'); });
+            </script>
+        </div>
+        <!-- End AdSlot 1 -->
+    </div>
+</div>
+<header class="header secondary mb20px">
+    <div class="wrap">
+        <div class="clearfix">
+            <div class="fl sidebar">
+                <div id="TopNav">
+                    <a href="#" class="OpenMenu">Menu</a>
+                    <nav class="hide TopMenu">
+                        
+<ul>
+    <li id="dnn_TopNav1_MyAccount">
+        <a id="dnn_TopNav1_hlMyAccount" href="/Account/User/0">My Page</a>
+        <a href="/logoff.aspx" class="showonMobileTablet">Log Out</a>
+    </li>
+    
+    <li>
+        <a href="/Power-Search-Airports">Advanced</a>
+    </li>
+    <li>
+        <a href="/Map-Search">Map Search</a>
+    </li>
+    <li>
+        <a href="/Power-Search-FBO">FBOs</a>
+    </li>
+    <li>
+        <a href="/Power-Search-Heliports">Heliports</a>
+    </li>
+    <li>
+        <a href="/Account/User?d=y">Update Fuel</a>
+    </li>
+    <li>
+        <a href="https://www.aircharterguide.com/" target="_blank">Air Charter Guide</a>
+    </li>
+    <li>
+        <a href="https://marketplace.aviationweek.com/" target="_blank">Marketplace</a>
+    </li>
+    <li>
+        <a href="/Products">Products</a>
+    </li>
+    <li>
+        <a href="/Data-Licenses">Data Licenses</a>
+    </li>
+    <li>
+        <a href="/FAQ">FAQ</a>
+    </li>
+    <li>
+        <a href="/Advertise">Advertise</a>
+    </li>
+    <li>
+        <a href="/About-Us">About Us</a>
+    </li>
+</ul>
+<div class="clearboth social">
+    Follow Us:<br />
+    <br />
+    <a href="http://www.facebook.com/pages/Acukwik/100830696644032" target="_blank"><i class="fa fa-facebook" aria-hidden="true"></i></a>
+    <a href="https://twitter.com/acukwik" target="_blank">
+        <svg width="11" height="11" viewBox="0 0 1200 1227" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M714.163 519.284L1160.89 0H1055.03L667.137 450.887L357.328 0H0L468.492 681.821L0 1226.37H105.866L515.491 750.218L842.672 1226.37H1200L714.137 519.284H714.163ZM569.165 687.828L521.697 619.934L144.011 79.6944H306.615L611.412 515.685L658.88 583.579L1055.08 1150.3H892.476L569.165 687.854V687.828Z" fill="white" />
+        </svg></a>
+    <a href="https://www.linkedin.com/company/ac-u-kwik?trk=company_logo" target="_blank"><i class="fa fa-linkedin" aria-hidden="true"></i></a>
+</div>
+
+                    </nav>
+                </div>
+            </div>
+            <div class="fl main_content">
+                <div class="clearboth">
+                    <a id="dnn_dnnLOGOmobi_hypLogo" title="My Website" href="/">
+                        <img id="dnn_dnnLOGOmobi_imgLogo" src="/portals/0/web_images/header-logo.svg" />
+                    </a>
+                </div>
+                <div id="dnn_BasicSearch_pnlBasicSearch" class="BasicSearch" onkeypress="javascript:return WebForm_FireDefaultButton(event, &#39;dnn_BasicSearch_lbntSearch&#39;)">
+	
+    <input name="dnn$BasicSearch$txtSearch" type="text" maxlength="50" id="dnn_BasicSearch_txtSearch" class="basicSearchTXT" />
+    <a id="dnn_BasicSearch_lbntSearch" class="Search" href="javascript:__doPostBack(&#39;dnn$BasicSearch$lbntSearch&#39;,&#39;&#39;)"><i class="fa fa-search" aria-hidden="true"></i></a>
+    <div class="clearboth">
+        <div class="fl w25p"><a href="/Power-Search-Airports">Advanced</a></div>
+        <div class="fl w25p"><a href="/Map-Search" class="Proximity">Map <span>Search</span></a></div>
+        
+        <div class="clearboth"></div>
+    </div>
+
+</div>
+
+
+            </div>
+            <div class="fl sidebar">
+                
+
+<ul class="hideonMobile">
+    
+    
+    <li id="dnn_MyAccountLink1_MyAccount" class="myAccount">
+        <a id="dnn_MyAccountLink1_hlMyAccountMain" href="/Account"><span id="dnn_MyAccountLink1_ltrMyAccount" class="accountName">TEST USER</span>
+            <span class="ownAvatar">
+                <span class="avatar">
+                    <img id="dnn_MyAccountLink1_imgMy1" src="/extimages/avatar/0.png" alt="TEST USER" /></span>
+            </span>
+        </a>
+    </li>
+</ul>
+
+<div class="myAccountMenu">
+    <ul>
+        <li>
+            <a id="dnn_MyAccountLink1_hlMyAccount" href="/Account">My Page</a></li>
+        <li><a href="/logoff.aspx">Log Out</a></li>
+    </ul>
+</div>
+<div id="dnn_MyAccountLink1_up1">
+	
+        
+        <div id="dnn_MyAccountLink1_UpdateProgress1" style="display:none;">
+		
+                <div class="divprogress" id="progress"></div>
+            
+	</div>
+    
+</div>
+
+            </div>
+        </div>
+    </div>
+</header>
+<div id="dnn_ContentPane"><div class="DnnModule DnnModule-DynamicControl DnnModule-432"><a name="432"></a><div id="dnn_ctr432_ContentPane"><!-- Start_Module_432 --><div id="dnn_ctr432_ModuleContent" class="DNNModuleContent ModDynamicControlC">
+	<div id="dnn_ctr432_VDC_ContentPane" class="">
+<script type="text/javascript">
+    function pageLoad() {
+        $('#dnn_ctr432_VDC_ctl00_txtName').watermark("Enter ICAO, IATA, FAA ID, or Airport Name");
+        $('#dnn_ctr432_VDC_ctl00_txtCity').watermark("Enter City");
+        $(".selectedSearchOption").off("click").on("click", function (e) {
+            e.preventDefault();
+            $(".searchOptions ul").stop(true, true).slideToggle(400);
+        });
+        var includeHeliports = $('#dnn_ctr432_VDC_ctl00_chbIncludeHeliports');
+        var updateBrowseLinks = function () {
+            var include = includeHeliports.prop('checked');
+            $('.byStateProvince a,.byCountry a').each(function () {
+                var t = $(this);
+                var href = t.attr('href');
+                if (!include) {
+                    if (href.indexOf('exlude=true') === -1) {
+                        t.attr('href', href + (href.indexOf('?') === -1 ? '?' : '&') + 'exlude=true');
+                    }
+                } else {
+                    t.attr('href', href.replace('?exlude=true', '').replace('&exlude=true', ''));
+                }
+            });
+        };
+        includeHeliports.off('change.includeHeliports').on('change.includeHeliports', updateBrowseLinks);
+        updateBrowseLinks();
+    }
+</script>
+
+<div class="clearfix wrap">
+    <section class="fl sidebar">
+        <div class="skyscraper noMargin">
+            <!-- Async AdSlot 5 for Ad unit 'acukwik.com' ### Size: [[120,600]] -->
+            <!-- Adslot's refresh function: googletag.pubads().refresh([gptadslots[4]]) -->
+            <div id='div-gpt-ad-6119057-5'>
+                <script>
+                    googletag.cmd.push(function () { googletag.display('div-gpt-ad-6119057-5'); });
+                </script>
+            </div>
+            <!-- End AdSlot 5 -->
+        </div>
+    </section>
+    <div class="fl main_content_search">
+        <main class="clearfix advancedSearchPage">
+            <h1>Advanced Search</h1>
+            <div class="clearfix">
+                <div class="searchOptions clearfix">
+                    <a href="#" class="selectedSearchOption">Airports <span class="arrow"></span></a>
+                    <ul class="searchTabs">
+                        <li class="activeTab"><a href="/Power-Search-Airports" title="Search by ICAO, IATA, FAA ID, Airport Name, City, State or Country.">Advanced</a></li>
+                        <li><a href="/Map-Search" title="Interactive map of airports within 50 miles radius.">Map Search</a></li>
+                        <li><a href="/Power-Search-Heliports" title="Search by ICAO, IATA, FAA ID, Heliport Name, City, State or Country.">Heliports</a></li>
+                        <li><a href="/Power-Search-FBO" title="Search by Company, Airport, and more....">FBOs</a></li>
+                        <li><a href="/Fuel-Finder" title="Search fuel by airport, city, country, fuel type, and brand.">Fuel Finder</a></li>
+                        <li><a href="/Power-Search-Services" title="Search for Handlers, Fuel Only Providers, and more...">Services</a></li>
+                    </ul>
+                </div>
+                <div id="dnn_ctr432_VDC_ctl00_pnlSearch" class="clearfix lightGrayBg advancedSearchWrap advancedAirportSearchWrap" onkeypress="javascript:return WebForm_FireDefaultButton(event, &#39;dnn_ctr432_VDC_ctl00_lbtnSearch&#39;)">
+		
+                    <span id="dnn_ctr432_VDC_ctl00_lblMSG" class="NormalRed"></span>
+                    
+                    <div class="searchDiv">
+                        <label>Airport ICAO, IATA, FAA ID, or airport name</label>
+                        <input id="dnn_ctr432_VDC_ctl00_chbIncludeHeliports" type="checkbox" name="dnn$ctr432$VDC$ctl00$chbIncludeHeliports" /><label for="dnn_ctr432_VDC_ctl00_chbIncludeHeliports">Include Heliports</label>
+                        <input name="dnn$ctr432$VDC$ctl00$txtName" type="text" maxlength="50" id="dnn_ctr432_VDC_ctl00_txtName" />
+                    </div>
+                    <div class="searchDiv">
+                        <label>Country</label>
+                        <select name="dnn$ctr432$VDC$ctl00$ddlCountry" onchange="javascript:setTimeout(&#39;__doPostBack(\&#39;dnn$ctr432$VDC$ctl00$ddlCountry\&#39;,\&#39;\&#39;)&#39;, 0)" id="dnn_ctr432_VDC_ctl00_ddlCountry" class="w100p">
+			<option selected="selected" value="0">Please Select</option>
+			<option value="230">USA</option>
+			<option value="39">CANADA</option>
+			<option value="1">AFGHANISTAN</option>
+			<option value="2">ALAND ISLANDS</option>
+			<option value="3">ALBANIA</option>
+			<option value="4">ALGERIA</option>
+			<option value="5">AMERICAN SAMOA</option>
+			<option value="6">ANDORRA</option>
+			<option value="7">ANGOLA</option>
+			<option value="8">ANGUILLA</option>
+			<option value="9">ANTARCTICA</option>
+			<option value="10">ANTIGUA &amp; BARBUDA</option>
+			<option value="11">ARGENTINA</option>
+			<option value="12">ARMENIA</option>
+			<option value="13">ARUBA</option>
+			<option value="15">AUSTRALIA</option>
+			<option value="16">AUSTRIA</option>
+			<option value="17">AZERBAIJAN</option>
+			<option value="19">BAHAMAS</option>
+			<option value="20">BAHRAIN</option>
+			<option value="21">BANGLADESH</option>
+			<option value="22">BARBADOS</option>
+			<option value="23">BELARUS</option>
+			<option value="24">BELGIUM</option>
+			<option value="25">BELIZE</option>
+			<option value="26">BENIN</option>
+			<option value="27">BERMUDA</option>
+			<option value="28">BHUTAN</option>
+			<option value="29">BOLIVIA</option>
+			<option value="245">BONAIRE, ST EUSTATIUS &amp; SABA</option>
+			<option value="30">BOSNIA &amp; HERZEGOVINA</option>
+			<option value="31">BOTSWANA</option>
+			<option value="32">BRAZIL</option>
+			<option value="100">BRITISH INDIAN OCEAN TERRITORY</option>
+			<option value="33">BRUNEI DARUSSALAM</option>
+			<option value="34">BULGARIA</option>
+			<option value="35">BURKINA FASO</option>
+			<option value="36">BURUNDI</option>
+			<option value="37">CAMBODIA</option>
+			<option value="38">CAMEROON</option>
+			<option value="40">CAPE VERDE</option>
+			<option value="41">CAYMAN ISLANDS</option>
+			<option value="42">CENTRAL AFRICAN REPUBLIC</option>
+			<option value="43">CHAD</option>
+			<option value="44">CHILE</option>
+			<option value="45">CHILE/EASTER ISLAND</option>
+			<option value="46">CHINA</option>
+			<option value="47">CHRISTMAS ISLAND</option>
+			<option value="48">COCOS (KEELING) ISLANDS</option>
+			<option value="49">COLOMBIA</option>
+			<option value="50">COMOROS</option>
+			<option value="51">CONGO</option>
+			<option value="52">COOK ISLANDS</option>
+			<option value="53">COSTA RICA</option>
+			<option value="54">COTE D&#39;IVOIRE</option>
+			<option value="55">CROATIA</option>
+			<option value="56">CUBA</option>
+			<option value="246">CURACAO</option>
+			<option value="57">CYPRUS</option>
+			<option value="244">CYPRUS (NORTHERN)</option>
+			<option value="58">CZECHIA</option>
+			<option value="59">DEMOCRATIC REPUBLIC OF CONGO</option>
+			<option value="60">DENMARK</option>
+			<option value="61">DJIBOUTI</option>
+			<option value="62">DOMINICA</option>
+			<option value="63">DOMINICAN REPUBLIC</option>
+			<option value="65">ECUADOR</option>
+			<option value="66">EGYPT</option>
+			<option value="67">EL SALVADOR</option>
+			<option value="68">EQUATORIAL GUINEA</option>
+			<option value="69">ERITREA</option>
+			<option value="70">ESTONIA</option>
+			<option value="208">ESWATINI (SWAZILAND)</option>
+			<option value="71">ETHIOPIA</option>
+			<option value="72">FALKLAND ISLANDS</option>
+			<option value="73">FAROE ISLANDS</option>
+			<option value="74">FIJI</option>
+			<option value="75">FINLAND</option>
+			<option value="76">FRANCE</option>
+			<option value="77">FRENCH GUIANA</option>
+			<option value="78">FRENCH POLYNESIA</option>
+			<option value="79">GABON</option>
+			<option value="80">GAMBIA</option>
+			<option value="81">GEORGIA</option>
+			<option value="82">GERMANY</option>
+			<option value="83">GHANA</option>
+			<option value="84">GIBRALTAR</option>
+			<option value="85">GREECE</option>
+			<option value="86">GREENLAND</option>
+			<option value="87">GRENADA</option>
+			<option value="88">GUADELOUPE</option>
+			<option value="89">GUAM</option>
+			<option value="90">GUATEMALA</option>
+			<option value="91">GUINEA</option>
+			<option value="92">GUINEA-BISSAU</option>
+			<option value="93">GUYANA</option>
+			<option value="94">HAITI</option>
+			<option value="95">HONDURAS</option>
+			<option value="96">HONG KONG SAR</option>
+			<option value="97">HUNGARY</option>
+			<option value="98">ICELAND</option>
+			<option value="99">INDIA</option>
+			<option value="101">INDONESIA</option>
+			<option value="102">IRAN</option>
+			<option value="103">IRAQ</option>
+			<option value="104">IRELAND</option>
+			<option value="105">ISRAEL</option>
+			<option value="106">ITALY</option>
+			<option value="107">JAMAICA</option>
+			<option value="108">JAPAN</option>
+			<option value="109">JAPAN/OKINAWA</option>
+			<option value="110">JOHNSTON ATOLL</option>
+			<option value="111">JORDAN</option>
+			<option value="112">KAZAKHSTAN</option>
+			<option value="113">KENYA</option>
+			<option value="114">KIRIBATI</option>
+			<option value="115">KOREA (NORTH)</option>
+			<option value="116">KOREA (SOUTH)</option>
+			<option value="243">KOSOVO</option>
+			<option value="117">KUWAIT</option>
+			<option value="118">KYRGYZSTAN</option>
+			<option value="119">LAOS</option>
+			<option value="120">LATVIA</option>
+			<option value="121">LEBANON</option>
+			<option value="122">LESOTHO</option>
+			<option value="123">LIBERIA</option>
+			<option value="124">LIBYA</option>
+			<option value="125">LIECHTENSTEIN</option>
+			<option value="126">LITHUANIA</option>
+			<option value="127">LUXEMBOURG</option>
+			<option value="128">MACAU SAR</option>
+			<option value="130">MADAGASCAR</option>
+			<option value="132">MALAWI</option>
+			<option value="133">MALAYSIA</option>
+			<option value="134">MALDIVES</option>
+			<option value="135">MALI</option>
+			<option value="136">MALTA</option>
+			<option value="137">MARSHALL ISLANDS</option>
+			<option value="138">MARTINIQUE</option>
+			<option value="139">MAURITANIA</option>
+			<option value="140">MAURITIUS</option>
+			<option value="141">MAYOTTE</option>
+			<option value="142">MEXICO</option>
+			<option value="143">MICRONESIA, FED STATES</option>
+			<option value="144">MIDWAY ATOLL</option>
+			<option value="145">MOLDOVA</option>
+			<option value="146">MONACO</option>
+			<option value="147">MONGOLIA</option>
+			<option value="148">MONTENEGRO</option>
+			<option value="149">MONTSERRAT</option>
+			<option value="150">MOROCCO</option>
+			<option value="151">MOZAMBIQUE</option>
+			<option value="152">MYANMAR</option>
+			<option value="153">NAMIBIA</option>
+			<option value="154">NAURU</option>
+			<option value="155">NEPAL</option>
+			<option value="156">NETHERLANDS</option>
+			<option value="157">NETHERLANDS ANTILLES</option>
+			<option value="158">NEW CALEDONIA</option>
+			<option value="159">NEW ZEALAND</option>
+			<option value="160">NICARAGUA</option>
+			<option value="161">NIGER</option>
+			<option value="162">NIGERIA</option>
+			<option value="163">NIUE</option>
+			<option value="164">NORFOLK ISLAND</option>
+			<option value="129">NORTH MACEDONIA</option>
+			<option value="165">NORTHERN MARIANAS</option>
+			<option value="166">NORWAY</option>
+			<option value="167">OMAN</option>
+			<option value="168">PAKISTAN</option>
+			<option value="169">PALAU</option>
+			<option value="170">PALESTINIAN TERRITORY</option>
+			<option value="171">PANAMA</option>
+			<option value="172">PAPUA NEW GUINEA</option>
+			<option value="173">PARAGUAY</option>
+			<option value="174">PERU</option>
+			<option value="175">PHILIPPINES</option>
+			<option value="176">POLAND</option>
+			<option value="177">PORTUGAL</option>
+			<option value="18">PORTUGAL/AZORES</option>
+			<option value="131">PORTUGAL/MADEIRA</option>
+			<option value="178">PUERTO RICO</option>
+			<option value="179">QATAR</option>
+			<option value="180">REUNION</option>
+			<option value="181">ROMANIA</option>
+			<option value="182">RUSSIAN FEDERATION</option>
+			<option value="183">RWANDA</option>
+			<option value="184">SAMOA</option>
+			<option value="185">SAN MARINO</option>
+			<option value="186">SAO TOME &amp; PRINCIPE</option>
+			<option value="187">SAUDI ARABIA</option>
+			<option value="188">SENEGAL</option>
+			<option value="189">SERBIA</option>
+			<option value="191">SEYCHELLES</option>
+			<option value="192">SIERRA LEONE</option>
+			<option value="193">SINGAPORE</option>
+			<option value="194">SLOVAKIA</option>
+			<option value="195">SLOVENIA</option>
+			<option value="196">SOLOMON ISLANDS</option>
+			<option value="197">SOMALIA</option>
+			<option value="198">SOUTH AFRICA</option>
+			<option value="242">SOUTH SUDAN</option>
+			<option value="199">SPAIN</option>
+			<option value="200">SPAIN/CANARY ISLANDS</option>
+			<option value="201">SRI LANKA</option>
+			<option value="252">ST BARTHELEMY</option>
+			<option value="14">ST HELENA, ASCENSION &amp; TRISTAN</option>
+			<option value="202">ST KITTS &amp; NEVIS</option>
+			<option value="203">ST LUCIA</option>
+			<option value="247">ST MAARTEN</option>
+			<option value="249">ST MARTIN</option>
+			<option value="204">ST PIERRE &amp; MIQUELON</option>
+			<option value="205">ST VINCENT &amp; GRENADINES</option>
+			<option value="206">SUDAN</option>
+			<option value="207">SURINAME</option>
+			<option value="209">SWEDEN</option>
+			<option value="210">SWITZERLAND</option>
+			<option value="211">SYRIA</option>
+			<option value="212">TAIWAN (PROVINCE OF CHINA)</option>
+			<option value="213">TAJIKISTAN</option>
+			<option value="214">TANZANIA</option>
+			<option value="215">THAILAND</option>
+			<option value="64">TIMOR-LESTE</option>
+			<option value="216">TOGO</option>
+			<option value="217">TOKELAU</option>
+			<option value="218">TONGA</option>
+			<option value="219">TRINIDAD &amp; TOBAGO</option>
+			<option value="220">TUNISIA</option>
+			<option value="221">TURKEY</option>
+			<option value="222">TURKMENISTAN</option>
+			<option value="223">TURKS &amp; CAICOS ISLANDS</option>
+			<option value="224">TUVALU</option>
+			<option value="225">UGANDA</option>
+			<option value="226">UKRAINE</option>
+			<option value="227">UNITED ARAB EMIRATES</option>
+			<option value="228">UNITED KINGDOM</option>
+			<option value="229">URUGUAY</option>
+			<option value="248">USA/HAWAII</option>
+			<option value="231">UZBEKISTAN</option>
+			<option value="232">VANUATU</option>
+			<option value="233">VENEZUELA</option>
+			<option value="234">VIETNAM</option>
+			<option value="235">VIRGIN ISLANDS (BRITISH)</option>
+			<option value="236">VIRGIN ISLANDS (US)</option>
+			<option value="237">WAKE ISLAND</option>
+			<option value="238">WALLIS AND FUTUNA</option>
+			<option value="239">YEMEN</option>
+			<option value="240">ZAMBIA</option>
+			<option value="241">ZIMBABWE</option>
+
+		</select>
+                    </div>
+                    
+                    <div class="searchDiv">
+                        <label>City</label>
+                        <input name="dnn$ctr432$VDC$ctl00$txtCity" type="text" maxlength="50" id="dnn_ctr432_VDC_ctl00_txtCity" />
+                    </div>
+                    <div class="searchDiv submitForm">
+                        <a id="dnn_ctr432_VDC_ctl00_lbtnSearch" class="btnPrimary" href="javascript:__doPostBack(&#39;dnn$ctr432$VDC$ctl00$lbtnSearch&#39;,&#39;&#39;)">Search</a>
+                    </div>
+                    <div class="mostPopularcontainer">
+                        <h2>Most Popular</h2>
+                        
+                                <div><a href='/Airports?search=KTEB&city=Teterboro&state=New-Jersey&country=USA'>KTEB - Teterboro, NJ, USA</a></div>
+                            
+                                <div><a href='/Airports?search=KOPF&city=Miami&state=Florida&country=USA'>KOPF - Miami, FL, USA</a></div>
+                            
+                                <div><a href='/Airports?search=OMDW&city=Dubai&state=Dubai&country=UNITED-ARAB-EMIRATES'>OMDW - Dubai, DU, UNITED ARAB EMIRATES</a></div>
+                            
+                                <div><a href='/Airports?search=LFPB&city=Paris&country=FRANCE'>LFPB - Paris, FRANCE</a></div>
+                            
+                                <div><a href='/Airports?search=KLAS&city=Las%2bVegas&state=Nevada&country=USA'>KLAS - Las Vegas, NV, USA</a></div>
+                            
+                                <div><a href='/Airports?search=KHOU&city=Houston&state=Texas&country=USA'>KHOU - Houston, TX, USA</a></div>
+                            
+                                <div><a href='/Airports?search=MMSD&city=Los%2bCabos&state=Baja-California-Sur&country=MEXICO'>MMSD - Los Cabos, BCS, MEXICO</a></div>
+                            
+                                <div><a href='/Airports?search=MMTO&city=Toluca&state=M%c3%a9xico&country=MEXICO'>MMTO - Toluca, MEX, MEXICO</a></div>
+                            
+                                <div><a href='/Airports?search=KLAX&city=Los%2bAngeles&state=California&country=USA'>KLAX - Los Angeles, CA, USA</a></div>
+                            
+                                <div><a href='/Airports?search=EGGW&city=London&country=UNITED-KINGDOM'>EGGW - London, UNITED KINGDOM</a></div>
+                            
+                    </div>
+                
+	</div>
+            </div>
+        </main>
+        <section class="browseAirportsWrap browseLinks">
+            <div class="bgDarkBlue">
+                <div class="wrap byStateProvince">
+                    <h2>Browse by State/Province</h2>
+                    
+                    <div class="clearfix">
+                        
+                                <ul class="fl w25p">
+                            
+                                
+                                <li><a href='/Airports/AL/ALABAMA'>Alabama</a></li>
+                            
+                                
+                                <li><a href='/Airports/AK/ALASKA'>Alaska</a></li>
+                            
+                                
+                                <li><a href='/Airports/AB/ALBERTA'>Alberta</a></li>
+                            
+                                
+                                <li><a href='/Airports/AZ/ARIZONA'>Arizona</a></li>
+                            
+                                
+                                <li><a href='/Airports/AR/ARKANSAS'>Arkansas</a></li>
+                            
+                                
+                                <li><a href='/Airports/BC/BRITISH-COLUMBIA'>British Columbia</a></li>
+                            
+                                
+                                <li><a href='/Airports/CA/CALIFORNIA'>California</a></li>
+                            
+                                
+                                <li><a href='/Airports/CO/COLORADO'>Colorado</a></li>
+                            
+                                
+                                <li><a href='/Airports/CT/CONNECTICUT'>Connecticut</a></li>
+                            
+                                
+                                <li><a href='/Airports/DE/DELAWARE'>Delaware</a></li>
+                            
+                                
+                                <li><a href='/Airports/DC/DISTRICT-OF-COLUMBIA'>District of Columbia</a></li>
+                            
+                                
+                                <li><a href='/Airports/FL/FLORIDA'>Florida</a></li>
+                            
+                                
+                                <li><a href='/Airports/GA/GEORGIA'>Georgia</a></li>
+                            
+                                
+                                <li><a href='/Airports/HI/HAWAII'>Hawaii</a></li>
+                            
+                                
+                                <li><a href='/Airports/ID/IDAHO'>Idaho</a></li>
+                            
+                                
+                                <li><a href='/Airports/IL/ILLINOIS'>Illinois</a></li>
+                            
+                                </ul><ul class="fl w25p">
+                                <li><a href='/Airports/IN/INDIANA'>Indiana</a></li>
+                            
+                                
+                                <li><a href='/Airports/IA/IOWA'>Iowa</a></li>
+                            
+                                
+                                <li><a href='/Airports/KS/KANSAS'>Kansas</a></li>
+                            
+                                
+                                <li><a href='/Airports/KY/KENTUCKY'>Kentucky</a></li>
+                            
+                                
+                                <li><a href='/Airports/LA/LOUISIANA'>Louisiana</a></li>
+                            
+                                
+                                <li><a href='/Airports/ME/MAINE'>Maine</a></li>
+                            
+                                
+                                <li><a href='/Airports/MB/MANITOBA'>Manitoba</a></li>
+                            
+                                
+                                <li><a href='/Airports/MD/MARYLAND'>Maryland</a></li>
+                            
+                                
+                                <li><a href='/Airports/MA/MASSACHUSETTS'>Massachusetts</a></li>
+                            
+                                
+                                <li><a href='/Airports/MI/MICHIGAN'>Michigan</a></li>
+                            
+                                
+                                <li><a href='/Airports/MN/MINNESOTA'>Minnesota</a></li>
+                            
+                                
+                                <li><a href='/Airports/MS/MISSISSIPPI'>Mississippi</a></li>
+                            
+                                
+                                <li><a href='/Airports/MO/MISSOURI'>Missouri</a></li>
+                            
+                                
+                                <li><a href='/Airports/MT/MONTANA'>Montana</a></li>
+                            
+                                
+                                <li><a href='/Airports/NE/NEBRASKA'>Nebraska</a></li>
+                            
+                                
+                                <li><a href='/Airports/NV/NEVADA'>Nevada</a></li>
+                            
+                                </ul><ul class="fl w25p">
+                                <li><a href='/Airports/NB/NEW-BRUNSWICK'>New Brunswick</a></li>
+                            
+                                
+                                <li><a href='/Airports/NH/NEW-HAMPSHIRE'>New Hampshire</a></li>
+                            
+                                
+                                <li><a href='/Airports/NJ/NEW-JERSEY'>New Jersey</a></li>
+                            
+                                
+                                <li><a href='/Airports/NM/NEW-MEXICO'>New Mexico</a></li>
+                            
+                                
+                                <li><a href='/Airports/NY/NEW-YORK'>New York</a></li>
+                            
+                                
+                                <li><a href='/Airports/NL/NEWFOUNDLAND-AND-LABRADOR'>Newfoundland and Labrador</a></li>
+                            
+                                
+                                <li><a href='/Airports/NC/NORTH-CAROLINA'>North Carolina</a></li>
+                            
+                                
+                                <li><a href='/Airports/ND/NORTH-DAKOTA'>North Dakota</a></li>
+                            
+                                
+                                <li><a href='/Airports/NT/NORTHWEST-TERRITORIES'>Northwest Territories</a></li>
+                            
+                                
+                                <li><a href='/Airports/NS/NOVA-SCOTIA'>Nova Scotia</a></li>
+                            
+                                
+                                <li><a href='/Airports/NU/NUNAVUT'>Nunavut</a></li>
+                            
+                                
+                                <li><a href='/Airports/OH/OHIO'>Ohio</a></li>
+                            
+                                
+                                <li><a href='/Airports/OK/OKLAHOMA'>Oklahoma</a></li>
+                            
+                                
+                                <li><a href='/Airports/ON/ONTARIO'>Ontario</a></li>
+                            
+                                
+                                <li><a href='/Airports/OR/OREGON'>Oregon</a></li>
+                            
+                                
+                                <li><a href='/Airports/PA/PENNSYLVANIA'>Pennsylvania</a></li>
+                            
+                                </ul><ul class="fl w25p">
+                                <li><a href='/Airports/PE/PRINCE-EDWARD-ISLAND'>Prince Edward Island</a></li>
+                            
+                                
+                                <li><a href='/Airports/QC/QUEBEC'>Quebec</a></li>
+                            
+                                
+                                <li><a href='/Airports/RI/RHODE-ISLAND'>Rhode Island</a></li>
+                            
+                                
+                                <li><a href='/Airports/SK/SASKATCHEWAN'>Saskatchewan</a></li>
+                            
+                                
+                                <li><a href='/Airports/SC/SOUTH-CAROLINA'>South Carolina</a></li>
+                            
+                                
+                                <li><a href='/Airports/SD/SOUTH-DAKOTA'>South Dakota</a></li>
+                            
+                                
+                                <li><a href='/Airports/TN/TENNESSEE'>Tennessee</a></li>
+                            
+                                
+                                <li><a href='/Airports/TX/TEXAS'>Texas</a></li>
+                            
+                                
+                                <li><a href='/Airports/UT/UTAH'>Utah</a></li>
+                            
+                                
+                                <li><a href='/Airports/VT/VERMONT'>Vermont</a></li>
+                            
+                                
+                                <li><a href='/Airports/VA/VIRGINIA'>Virginia</a></li>
+                            
+                                
+                                <li><a href='/Airports/WA/WASHINGTON'>Washington</a></li>
+                            
+                                
+                                <li><a href='/Airports/WV/WEST-VIRGINIA'>West Virginia</a></li>
+                            
+                                
+                                <li><a href='/Airports/WI/WISCONSIN'>Wisconsin</a></li>
+                            
+                                
+                                <li><a href='/Airports/WY/WYOMING'>Wyoming</a></li>
+                            
+                                
+                                <li><a href='/Airports/YT/YUKON-TERRITORY'>Yukon Territory</a></li>
+                            
+                                </ul>
+                            
+                    </div>
+                </div>
+            </div>
+            <div class="bgLightBlue mb50px">
+                <div class="wrap byCountry">
+                    <h2>Browse by Country</h2>
+                    
+                    <div class="clearfix">
+                        
+                                <ul class="fl w25p">
+                            
+                                
+                                <li><a href='/Airports/USA'>USA</a></li>
+                            
+                                
+                                <li><a href='/Airports/CANADA'>CANADA</a></li>
+                            
+                                
+                                <li><a href='/Airports/AFGHANISTAN'>AFGHANISTAN</a></li>
+                            
+                                
+                                <li><a href='/Airports/ALAND-ISLANDS'>ALAND ISLANDS</a></li>
+                            
+                                
+                                <li><a href='/Airports/ALBANIA'>ALBANIA</a></li>
+                            
+                                
+                                <li><a href='/Airports/ALGERIA'>ALGERIA</a></li>
+                            
+                                
+                                <li><a href='/Airports/AMERICAN-SAMOA'>AMERICAN SAMOA</a></li>
+                            
+                                
+                                <li><a href='/Airports/ANDORRA'>ANDORRA</a></li>
+                            
+                                
+                                <li><a href='/Airports/ANGOLA'>ANGOLA</a></li>
+                            
+                                
+                                <li><a href='/Airports/ANGUILLA'>ANGUILLA</a></li>
+                            
+                                
+                                <li><a href='/Airports/ANTARCTICA'>ANTARCTICA</a></li>
+                            
+                                
+                                <li><a href='/Airports/ANTIGUA-%7e-BARBUDA'>ANTIGUA & BARBUDA</a></li>
+                            
+                                
+                                <li><a href='/Airports/ARGENTINA'>ARGENTINA</a></li>
+                            
+                                
+                                <li><a href='/Airports/ARMENIA'>ARMENIA</a></li>
+                            
+                                
+                                <li><a href='/Airports/ARUBA'>ARUBA</a></li>
+                            
+                                
+                                <li><a href='/Airports/AUSTRALIA'>AUSTRALIA</a></li>
+                            
+                                
+                                <li><a href='/Airports/AUSTRIA'>AUSTRIA</a></li>
+                            
+                                
+                                <li><a href='/Airports/AZERBAIJAN'>AZERBAIJAN</a></li>
+                            
+                                
+                                <li><a href='/Airports/BAHAMAS'>BAHAMAS</a></li>
+                            
+                                
+                                <li><a href='/Airports/BAHRAIN'>BAHRAIN</a></li>
+                            
+                                
+                                <li><a href='/Airports/BANGLADESH'>BANGLADESH</a></li>
+                            
+                                
+                                <li><a href='/Airports/BARBADOS'>BARBADOS</a></li>
+                            
+                                
+                                <li><a href='/Airports/BELARUS'>BELARUS</a></li>
+                            
+                                
+                                <li><a href='/Airports/BELGIUM'>BELGIUM</a></li>
+                            
+                                
+                                <li><a href='/Airports/BELIZE'>BELIZE</a></li>
+                            
+                                
+                                <li><a href='/Airports/BENIN'>BENIN</a></li>
+                            
+                                
+                                <li><a href='/Airports/BERMUDA'>BERMUDA</a></li>
+                            
+                                
+                                <li><a href='/Airports/BHUTAN'>BHUTAN</a></li>
+                            
+                                
+                                <li><a href='/Airports/BOLIVIA'>BOLIVIA</a></li>
+                            
+                                
+                                <li><a href='/Airports/BONAIRE%2c-ST-EUSTATIUS-%7e-SABA'>BONAIRE, ST EUSTATIUS & SABA</a></li>
+                            
+                                
+                                <li><a href='/Airports/BOSNIA-%7e-HERZEGOVINA'>BOSNIA & HERZEGOVINA</a></li>
+                            
+                                
+                                <li><a href='/Airports/BOTSWANA'>BOTSWANA</a></li>
+                            
+                                
+                                <li><a href='/Airports/BRAZIL'>BRAZIL</a></li>
+                            
+                                
+                                <li><a href='/Airports/BRITISH-INDIAN-OCEAN-TERRITORY'>BRITISH INDIAN OCEAN TERRITORY</a></li>
+                            
+                                
+                                <li><a href='/Airports/BRUNEI-DARUSSALAM'>BRUNEI DARUSSALAM</a></li>
+                            
+                                
+                                <li><a href='/Airports/BULGARIA'>BULGARIA</a></li>
+                            
+                                
+                                <li><a href='/Airports/BURKINA-FASO'>BURKINA FASO</a></li>
+                            
+                                
+                                <li><a href='/Airports/BURUNDI'>BURUNDI</a></li>
+                            
+                                
+                                <li><a href='/Airports/CAMBODIA'>CAMBODIA</a></li>
+                            
+                                
+                                <li><a href='/Airports/CAMEROON'>CAMEROON</a></li>
+                            
+                                
+                                <li><a href='/Airports/CAPE-VERDE'>CAPE VERDE</a></li>
+                            
+                                
+                                <li><a href='/Airports/CAYMAN-ISLANDS'>CAYMAN ISLANDS</a></li>
+                            
+                                
+                                <li><a href='/Airports/CENTRAL-AFRICAN-REPUBLIC'>CENTRAL AFRICAN REPUBLIC</a></li>
+                            
+                                
+                                <li><a href='/Airports/CHAD'>CHAD</a></li>
+                            
+                                
+                                <li><a href='/Airports/CHILE'>CHILE</a></li>
+                            
+                                
+                                <li><a href='/Airports/CHILE%2fEASTER-ISLAND'>CHILE/EASTER ISLAND</a></li>
+                            
+                                
+                                <li><a href='/Airports/CHINA'>CHINA</a></li>
+                            
+                                
+                                <li><a href='/Airports/CHRISTMAS-ISLAND'>CHRISTMAS ISLAND</a></li>
+                            
+                                
+                                <li><a href='/Airports/COCOS-(KEELING)-ISLANDS'>COCOS (KEELING) ISLANDS</a></li>
+                            
+                                
+                                <li><a href='/Airports/COLOMBIA'>COLOMBIA</a></li>
+                            
+                                
+                                <li><a href='/Airports/COMOROS'>COMOROS</a></li>
+                            
+                                
+                                <li><a href='/Airports/CONGO'>CONGO</a></li>
+                            
+                                
+                                <li><a href='/Airports/COOK-ISLANDS'>COOK ISLANDS</a></li>
+                            
+                                
+                                <li><a href='/Airports/COSTA-RICA'>COSTA RICA</a></li>
+                            
+                                
+                                <li><a href='/Airports/COTE-D%27IVOIRE'>COTE D'IVOIRE</a></li>
+                            
+                                
+                                <li><a href='/Airports/CROATIA'>CROATIA</a></li>
+                            
+                                
+                                <li><a href='/Airports/CUBA'>CUBA</a></li>
+                            
+                                
+                                <li><a href='/Airports/CURACAO'>CURACAO</a></li>
+                            
+                                
+                                <li><a href='/Airports/CYPRUS'>CYPRUS</a></li>
+                            
+                                
+                                <li><a href='/Airports/CYPRUS-(NORTHERN)'>CYPRUS (NORTHERN)</a></li>
+                            
+                                
+                                <li><a href='/Airports/CZECHIA'>CZECHIA</a></li>
+                            
+                                
+                                <li><a href='/Airports/DEMOCRATIC-REPUBLIC-OF-CONGO'>DEMOCRATIC REPUBLIC OF CONGO</a></li>
+                            
+                                
+                                <li><a href='/Airports/DENMARK'>DENMARK</a></li>
+                            
+                                </ul><ul class="fl w25p">
+                                <li><a href='/Airports/DJIBOUTI'>DJIBOUTI</a></li>
+                            
+                                
+                                <li><a href='/Airports/DOMINICA'>DOMINICA</a></li>
+                            
+                                
+                                <li><a href='/Airports/DOMINICAN-REPUBLIC'>DOMINICAN REPUBLIC</a></li>
+                            
+                                
+                                <li><a href='/Airports/ECUADOR'>ECUADOR</a></li>
+                            
+                                
+                                <li><a href='/Airports/EGYPT'>EGYPT</a></li>
+                            
+                                
+                                <li><a href='/Airports/EL-SALVADOR'>EL SALVADOR</a></li>
+                            
+                                
+                                <li><a href='/Airports/EQUATORIAL-GUINEA'>EQUATORIAL GUINEA</a></li>
+                            
+                                
+                                <li><a href='/Airports/ERITREA'>ERITREA</a></li>
+                            
+                                
+                                <li><a href='/Airports/ESTONIA'>ESTONIA</a></li>
+                            
+                                
+                                <li><a href='/Airports/ESWATINI-(SWAZILAND)'>ESWATINI (SWAZILAND)</a></li>
+                            
+                                
+                                <li><a href='/Airports/ETHIOPIA'>ETHIOPIA</a></li>
+                            
+                                
+                                <li><a href='/Airports/FALKLAND-ISLANDS'>FALKLAND ISLANDS</a></li>
+                            
+                                
+                                <li><a href='/Airports/FAROE-ISLANDS'>FAROE ISLANDS</a></li>
+                            
+                                
+                                <li><a href='/Airports/FIJI'>FIJI</a></li>
+                            
+                                
+                                <li><a href='/Airports/FINLAND'>FINLAND</a></li>
+                            
+                                
+                                <li><a href='/Airports/FRANCE'>FRANCE</a></li>
+                            
+                                
+                                <li><a href='/Airports/FRENCH-GUIANA'>FRENCH GUIANA</a></li>
+                            
+                                
+                                <li><a href='/Airports/FRENCH-POLYNESIA'>FRENCH POLYNESIA</a></li>
+                            
+                                
+                                <li><a href='/Airports/GABON'>GABON</a></li>
+                            
+                                
+                                <li><a href='/Airports/GAMBIA'>GAMBIA</a></li>
+                            
+                                
+                                <li><a href='/Airports/GEORGIA'>GEORGIA</a></li>
+                            
+                                
+                                <li><a href='/Airports/GERMANY'>GERMANY</a></li>
+                            
+                                
+                                <li><a href='/Airports/GHANA'>GHANA</a></li>
+                            
+                                
+                                <li><a href='/Airports/GIBRALTAR'>GIBRALTAR</a></li>
+                            
+                                
+                                <li><a href='/Airports/GREECE'>GREECE</a></li>
+                            
+                                
+                                <li><a href='/Airports/GREENLAND'>GREENLAND</a></li>
+                            
+                                
+                                <li><a href='/Airports/GRENADA'>GRENADA</a></li>
+                            
+                                
+                                <li><a href='/Airports/GUADELOUPE'>GUADELOUPE</a></li>
+                            
+                                
+                                <li><a href='/Airports/GUAM'>GUAM</a></li>
+                            
+                                
+                                <li><a href='/Airports/GUATEMALA'>GUATEMALA</a></li>
+                            
+                                
+                                <li><a href='/Airports/GUINEA'>GUINEA</a></li>
+                            
+                                
+                                <li><a href='/Airports/GUINEA-BISSAU'>GUINEA-BISSAU</a></li>
+                            
+                                
+                                <li><a href='/Airports/GUYANA'>GUYANA</a></li>
+                            
+                                
+                                <li><a href='/Airports/HAITI'>HAITI</a></li>
+                            
+                                
+                                <li><a href='/Airports/HONDURAS'>HONDURAS</a></li>
+                            
+                                
+                                <li><a href='/Airports/HONG-KONG-SAR'>HONG KONG SAR</a></li>
+                            
+                                
+                                <li><a href='/Airports/HUNGARY'>HUNGARY</a></li>
+                            
+                                
+                                <li><a href='/Airports/ICELAND'>ICELAND</a></li>
+                            
+                                
+                                <li><a href='/Airports/INDIA'>INDIA</a></li>
+                            
+                                
+                                <li><a href='/Airports/INDONESIA'>INDONESIA</a></li>
+                            
+                                
+                                <li><a href='/Airports/IRAN'>IRAN</a></li>
+                            
+                                
+                                <li><a href='/Airports/IRAQ'>IRAQ</a></li>
+                            
+                                
+                                <li><a href='/Airports/IRELAND'>IRELAND</a></li>
+                            
+                                
+                                <li><a href='/Airports/ISRAEL'>ISRAEL</a></li>
+                            
+                                
+                                <li><a href='/Airports/ITALY'>ITALY</a></li>
+                            
+                                
+                                <li><a href='/Airports/JAMAICA'>JAMAICA</a></li>
+                            
+                                
+                                <li><a href='/Airports/JAPAN'>JAPAN</a></li>
+                            
+                                
+                                <li><a href='/Airports/JAPAN%2fOKINAWA'>JAPAN/OKINAWA</a></li>
+                            
+                                
+                                <li><a href='/Airports/JOHNSTON-ATOLL'>JOHNSTON ATOLL</a></li>
+                            
+                                
+                                <li><a href='/Airports/JORDAN'>JORDAN</a></li>
+                            
+                                
+                                <li><a href='/Airports/KAZAKHSTAN'>KAZAKHSTAN</a></li>
+                            
+                                
+                                <li><a href='/Airports/KENYA'>KENYA</a></li>
+                            
+                                
+                                <li><a href='/Airports/KIRIBATI'>KIRIBATI</a></li>
+                            
+                                
+                                <li><a href='/Airports/KOREA-(NORTH)'>KOREA (NORTH)</a></li>
+                            
+                                
+                                <li><a href='/Airports/KOREA-(SOUTH)'>KOREA (SOUTH)</a></li>
+                            
+                                
+                                <li><a href='/Airports/KOSOVO'>KOSOVO</a></li>
+                            
+                                
+                                <li><a href='/Airports/KUWAIT'>KUWAIT</a></li>
+                            
+                                
+                                <li><a href='/Airports/KYRGYZSTAN'>KYRGYZSTAN</a></li>
+                            
+                                
+                                <li><a href='/Airports/LAOS'>LAOS</a></li>
+                            
+                                
+                                <li><a href='/Airports/LATVIA'>LATVIA</a></li>
+                            
+                                
+                                <li><a href='/Airports/LEBANON'>LEBANON</a></li>
+                            
+                                
+                                <li><a href='/Airports/LESOTHO'>LESOTHO</a></li>
+                            
+                                
+                                <li><a href='/Airports/LIBERIA'>LIBERIA</a></li>
+                            
+                                </ul><ul class="fl w25p">
+                                <li><a href='/Airports/LIBYA'>LIBYA</a></li>
+                            
+                                
+                                <li><a href='/Airports/LIECHTENSTEIN'>LIECHTENSTEIN</a></li>
+                            
+                                
+                                <li><a href='/Airports/LITHUANIA'>LITHUANIA</a></li>
+                            
+                                
+                                <li><a href='/Airports/LUXEMBOURG'>LUXEMBOURG</a></li>
+                            
+                                
+                                <li><a href='/Airports/MACAU-SAR'>MACAU SAR</a></li>
+                            
+                                
+                                <li><a href='/Airports/MADAGASCAR'>MADAGASCAR</a></li>
+                            
+                                
+                                <li><a href='/Airports/MALAWI'>MALAWI</a></li>
+                            
+                                
+                                <li><a href='/Airports/MALAYSIA'>MALAYSIA</a></li>
+                            
+                                
+                                <li><a href='/Airports/MALDIVES'>MALDIVES</a></li>
+                            
+                                
+                                <li><a href='/Airports/MALI'>MALI</a></li>
+                            
+                                
+                                <li><a href='/Airports/MALTA'>MALTA</a></li>
+                            
+                                
+                                <li><a href='/Airports/MARSHALL-ISLANDS'>MARSHALL ISLANDS</a></li>
+                            
+                                
+                                <li><a href='/Airports/MARTINIQUE'>MARTINIQUE</a></li>
+                            
+                                
+                                <li><a href='/Airports/MAURITANIA'>MAURITANIA</a></li>
+                            
+                                
+                                <li><a href='/Airports/MAURITIUS'>MAURITIUS</a></li>
+                            
+                                
+                                <li><a href='/Airports/MAYOTTE'>MAYOTTE</a></li>
+                            
+                                
+                                <li><a href='/Airports/MEXICO'>MEXICO</a></li>
+                            
+                                
+                                <li><a href='/Airports/MICRONESIA%2c-FED-STATES'>MICRONESIA, FED STATES</a></li>
+                            
+                                
+                                <li><a href='/Airports/MIDWAY-ATOLL'>MIDWAY ATOLL</a></li>
+                            
+                                
+                                <li><a href='/Airports/MOLDOVA'>MOLDOVA</a></li>
+                            
+                                
+                                <li><a href='/Airports/MONACO'>MONACO</a></li>
+                            
+                                
+                                <li><a href='/Airports/MONGOLIA'>MONGOLIA</a></li>
+                            
+                                
+                                <li><a href='/Airports/MONTENEGRO'>MONTENEGRO</a></li>
+                            
+                                
+                                <li><a href='/Airports/MONTSERRAT'>MONTSERRAT</a></li>
+                            
+                                
+                                <li><a href='/Airports/MOROCCO'>MOROCCO</a></li>
+                            
+                                
+                                <li><a href='/Airports/MOZAMBIQUE'>MOZAMBIQUE</a></li>
+                            
+                                
+                                <li><a href='/Airports/MYANMAR'>MYANMAR</a></li>
+                            
+                                
+                                <li><a href='/Airports/NAMIBIA'>NAMIBIA</a></li>
+                            
+                                
+                                <li><a href='/Airports/NAURU'>NAURU</a></li>
+                            
+                                
+                                <li><a href='/Airports/NEPAL'>NEPAL</a></li>
+                            
+                                
+                                <li><a href='/Airports/NETHERLANDS'>NETHERLANDS</a></li>
+                            
+                                
+                                <li><a href='/Airports/NETHERLANDS-ANTILLES'>NETHERLANDS ANTILLES</a></li>
+                            
+                                
+                                <li><a href='/Airports/NEW-CALEDONIA'>NEW CALEDONIA</a></li>
+                            
+                                
+                                <li><a href='/Airports/NEW-ZEALAND'>NEW ZEALAND</a></li>
+                            
+                                
+                                <li><a href='/Airports/NICARAGUA'>NICARAGUA</a></li>
+                            
+                                
+                                <li><a href='/Airports/NIGER'>NIGER</a></li>
+                            
+                                
+                                <li><a href='/Airports/NIGERIA'>NIGERIA</a></li>
+                            
+                                
+                                <li><a href='/Airports/NIUE'>NIUE</a></li>
+                            
+                                
+                                <li><a href='/Airports/NORFOLK-ISLAND'>NORFOLK ISLAND</a></li>
+                            
+                                
+                                <li><a href='/Airports/NORTH-MACEDONIA'>NORTH MACEDONIA</a></li>
+                            
+                                
+                                <li><a href='/Airports/NORTHERN-MARIANAS'>NORTHERN MARIANAS</a></li>
+                            
+                                
+                                <li><a href='/Airports/NORWAY'>NORWAY</a></li>
+                            
+                                
+                                <li><a href='/Airports/OMAN'>OMAN</a></li>
+                            
+                                
+                                <li><a href='/Airports/PAKISTAN'>PAKISTAN</a></li>
+                            
+                                
+                                <li><a href='/Airports/PALAU'>PALAU</a></li>
+                            
+                                
+                                <li><a href='/Airports/PALESTINIAN-TERRITORY'>PALESTINIAN TERRITORY</a></li>
+                            
+                                
+                                <li><a href='/Airports/PANAMA'>PANAMA</a></li>
+                            
+                                
+                                <li><a href='/Airports/PAPUA-NEW-GUINEA'>PAPUA NEW GUINEA</a></li>
+                            
+                                
+                                <li><a href='/Airports/PARAGUAY'>PARAGUAY</a></li>
+                            
+                                
+                                <li><a href='/Airports/PERU'>PERU</a></li>
+                            
+                                
+                                <li><a href='/Airports/PHILIPPINES'>PHILIPPINES</a></li>
+                            
+                                
+                                <li><a href='/Airports/POLAND'>POLAND</a></li>
+                            
+                                
+                                <li><a href='/Airports/PORTUGAL'>PORTUGAL</a></li>
+                            
+                                
+                                <li><a href='/Airports/PORTUGAL%2fAZORES'>PORTUGAL/AZORES</a></li>
+                            
+                                
+                                <li><a href='/Airports/PORTUGAL%2fMADEIRA'>PORTUGAL/MADEIRA</a></li>
+                            
+                                
+                                <li><a href='/Airports/PUERTO-RICO'>PUERTO RICO</a></li>
+                            
+                                
+                                <li><a href='/Airports/QATAR'>QATAR</a></li>
+                            
+                                
+                                <li><a href='/Airports/REUNION'>REUNION</a></li>
+                            
+                                
+                                <li><a href='/Airports/ROMANIA'>ROMANIA</a></li>
+                            
+                                
+                                <li><a href='/Airports/RUSSIAN-FEDERATION'>RUSSIAN FEDERATION</a></li>
+                            
+                                
+                                <li><a href='/Airports/RWANDA'>RWANDA</a></li>
+                            
+                                
+                                <li><a href='/Airports/SAMOA'>SAMOA</a></li>
+                            
+                                
+                                <li><a href='/Airports/SAN-MARINO'>SAN MARINO</a></li>
+                            
+                                </ul><ul class="fl w25p">
+                                <li><a href='/Airports/SAO-TOME-%7e-PRINCIPE'>SAO TOME & PRINCIPE</a></li>
+                            
+                                
+                                <li><a href='/Airports/SAUDI-ARABIA'>SAUDI ARABIA</a></li>
+                            
+                                
+                                <li><a href='/Airports/SENEGAL'>SENEGAL</a></li>
+                            
+                                
+                                <li><a href='/Airports/SERBIA'>SERBIA</a></li>
+                            
+                                
+                                <li><a href='/Airports/SEYCHELLES'>SEYCHELLES</a></li>
+                            
+                                
+                                <li><a href='/Airports/SIERRA-LEONE'>SIERRA LEONE</a></li>
+                            
+                                
+                                <li><a href='/Airports/SINGAPORE'>SINGAPORE</a></li>
+                            
+                                
+                                <li><a href='/Airports/SLOVAKIA'>SLOVAKIA</a></li>
+                            
+                                
+                                <li><a href='/Airports/SLOVENIA'>SLOVENIA</a></li>
+                            
+                                
+                                <li><a href='/Airports/SOLOMON-ISLANDS'>SOLOMON ISLANDS</a></li>
+                            
+                                
+                                <li><a href='/Airports/SOMALIA'>SOMALIA</a></li>
+                            
+                                
+                                <li><a href='/Airports/SOUTH-AFRICA'>SOUTH AFRICA</a></li>
+                            
+                                
+                                <li><a href='/Airports/SOUTH-SUDAN'>SOUTH SUDAN</a></li>
+                            
+                                
+                                <li><a href='/Airports/SPAIN'>SPAIN</a></li>
+                            
+                                
+                                <li><a href='/Airports/SPAIN%2fCANARY-ISLANDS'>SPAIN/CANARY ISLANDS</a></li>
+                            
+                                
+                                <li><a href='/Airports/SRI-LANKA'>SRI LANKA</a></li>
+                            
+                                
+                                <li><a href='/Airports/ST-BARTHELEMY'>ST BARTHELEMY</a></li>
+                            
+                                
+                                <li><a href='/Airports/ST-HELENA%2c-ASCENSION-%7e-TRISTAN'>ST HELENA, ASCENSION & TRISTAN</a></li>
+                            
+                                
+                                <li><a href='/Airports/ST-KITTS-%7e-NEVIS'>ST KITTS & NEVIS</a></li>
+                            
+                                
+                                <li><a href='/Airports/ST-LUCIA'>ST LUCIA</a></li>
+                            
+                                
+                                <li><a href='/Airports/ST-MAARTEN'>ST MAARTEN</a></li>
+                            
+                                
+                                <li><a href='/Airports/ST-MARTIN'>ST MARTIN</a></li>
+                            
+                                
+                                <li><a href='/Airports/ST-PIERRE-%7e-MIQUELON'>ST PIERRE & MIQUELON</a></li>
+                            
+                                
+                                <li><a href='/Airports/ST-VINCENT-%7e-GRENADINES'>ST VINCENT & GRENADINES</a></li>
+                            
+                                
+                                <li><a href='/Airports/SUDAN'>SUDAN</a></li>
+                            
+                                
+                                <li><a href='/Airports/SURINAME'>SURINAME</a></li>
+                            
+                                
+                                <li><a href='/Airports/SWEDEN'>SWEDEN</a></li>
+                            
+                                
+                                <li><a href='/Airports/SWITZERLAND'>SWITZERLAND</a></li>
+                            
+                                
+                                <li><a href='/Airports/SYRIA'>SYRIA</a></li>
+                            
+                                
+                                <li><a href='/Airports/TAIWAN-(PROVINCE-OF-CHINA)'>TAIWAN (PROVINCE OF CHINA)</a></li>
+                            
+                                
+                                <li><a href='/Airports/TAJIKISTAN'>TAJIKISTAN</a></li>
+                            
+                                
+                                <li><a href='/Airports/TANZANIA'>TANZANIA</a></li>
+                            
+                                
+                                <li><a href='/Airports/THAILAND'>THAILAND</a></li>
+                            
+                                
+                                <li><a href='/Airports/TIMOR-LESTE'>TIMOR-LESTE</a></li>
+                            
+                                
+                                <li><a href='/Airports/TOGO'>TOGO</a></li>
+                            
+                                
+                                <li><a href='/Airports/TOKELAU'>TOKELAU</a></li>
+                            
+                                
+                                <li><a href='/Airports/TONGA'>TONGA</a></li>
+                            
+                                
+                                <li><a href='/Airports/TRINIDAD-%7e-TOBAGO'>TRINIDAD & TOBAGO</a></li>
+                            
+                                
+                                <li><a href='/Airports/TUNISIA'>TUNISIA</a></li>
+                            
+                                
+                                <li><a href='/Airports/TURKEY'>TURKEY</a></li>
+                            
+                                
+                                <li><a href='/Airports/TURKMENISTAN'>TURKMENISTAN</a></li>
+                            
+                                
+                                <li><a href='/Airports/TURKS-%7e-CAICOS-ISLANDS'>TURKS & CAICOS ISLANDS</a></li>
+                            
+                                
+                                <li><a href='/Airports/TUVALU'>TUVALU</a></li>
+                            
+                                
+                                <li><a href='/Airports/UGANDA'>UGANDA</a></li>
+                            
+                                
+                                <li><a href='/Airports/UKRAINE'>UKRAINE</a></li>
+                            
+                                
+                                <li><a href='/Airports/UNITED-ARAB-EMIRATES'>UNITED ARAB EMIRATES</a></li>
+                            
+                                
+                                <li><a href='/Airports/UNITED-KINGDOM'>UNITED KINGDOM</a></li>
+                            
+                                
+                                <li><a href='/Airports/URUGUAY'>URUGUAY</a></li>
+                            
+                                
+                                <li><a href='/Airports/USA%2fHAWAII'>USA/HAWAII</a></li>
+                            
+                                
+                                <li><a href='/Airports/UZBEKISTAN'>UZBEKISTAN</a></li>
+                            
+                                
+                                <li><a href='/Airports/VANUATU'>VANUATU</a></li>
+                            
+                                
+                                <li><a href='/Airports/VENEZUELA'>VENEZUELA</a></li>
+                            
+                                
+                                <li><a href='/Airports/VIETNAM'>VIETNAM</a></li>
+                            
+                                
+                                <li><a href='/Airports/VIRGIN-ISLANDS-(BRITISH)'>VIRGIN ISLANDS (BRITISH)</a></li>
+                            
+                                
+                                <li><a href='/Airports/VIRGIN-ISLANDS-(US)'>VIRGIN ISLANDS (US)</a></li>
+                            
+                                
+                                <li><a href='/Airports/WAKE-ISLAND'>WAKE ISLAND</a></li>
+                            
+                                
+                                <li><a href='/Airports/WALLIS-AND-FUTUNA'>WALLIS AND FUTUNA</a></li>
+                            
+                                
+                                <li><a href='/Airports/YEMEN'>YEMEN</a></li>
+                            
+                                
+                                <li><a href='/Airports/ZAMBIA'>ZAMBIA</a></li>
+                            
+                                
+                                <li><a href='/Airports/ZIMBABWE'>ZIMBABWE</a></li>
+                            
+                                </ul>
+                            
+                    </div>
+                </div>
+            </div>
+        </section>
+        <div class="wrap">
+            
+<section class="wrap clearfix">
+    
+    
+    
+</section>
+
+        </div>
+    </div>
+    <section class="fl sidebar">
+        <div class="skyscraper fr noMargin">
+            <!-- Async AdSlot 2 for Ad unit 'acukwik.com' ### Size: [[120,600]] -->
+            <!-- Adslot's refresh function: googletag.pubads().refresh([gptadslots[1]]) -->
+            <div id='div-gpt-ad-6119057-2'>
+                <script>
+                    googletag.cmd.push(function () { googletag.display('div-gpt-ad-6119057-2'); });
+                </script>
+            </div>
+            <!-- End AdSlot 2 -->
+        </div>
+    </section>
+</div>
+
+
+</div>
+</div><!-- End_Module_432 --></div>
+</div></div>
+<div class="clearboth clearfix">
+    <div class="leaderboard">
+        <!-- Async AdSlot 6 for Ad unit 'acukwik.com' ### Size: [[320,50]] -->
+        <!-- Adslot's refresh function: googletag.pubads().refresh([gptadslots[5]]) -->
+        <div id='div-gpt-ad-6119057-6'>
+            <script>
+                googletag.cmd.push(function () { googletag.display('div-gpt-ad-6119057-6'); });
+            </script>
+        </div>
+        <!-- End AdSlot 6 -->
+    </div>
+</div>
+<footer id="footer">
+    <div class="topFooter">
+        <div class="clearfix">
+            <div class="logo fl w33p">
+                <a href="http://aviationweek.com/" target="_blank">
+                    <img class="footer-logo" src="/portals/0/web_images/AW_logo_stacked_small_white.png" /></a>
+            </div>
+            <ul class="w15p pt30px fl footer-first-submenu">
+                <li><a href="/About-Us">About Us</a></li>
+                <li><a href="/Products">Products</a></li>
+                <li><a href="/Data-Licenses">Data Licenses</a></li>
+                <li><a href="/Power-Search-Airports">Advanced Search</a></li>
+                <li><a href="https://www.acukwikalert.com/" target="_blank">News</a></li>
+            </ul>
+            <ul class="w25p pt30px fl footer-second-submenu">
+                <li><a href="/Account/User?d=y">Update Fuel</a></li>
+                <li><a href="/Contact-Us">Contact Us</a></li>
+                <li><a href="/FAQ">FAQ</a></li>
+                <li><a href="/Glossary">AC-U-KWIK Abbreviations</a></li>
+                <li><a href="/Advertise">Advertise</a></li>
+            </ul>
+            <div class="w20p fl pt30px footer-social">
+                <span>Follow Us:</span>
+                <div class="icons">
+                    <a class="facebook" href="http://www.facebook.com/pages/Acukwik/100830696644032" target="_blank"><i class="fa fa-facebook" aria-hidden="true"></i></a>
+                    <a class="x" href="https://x.com/acukwik" target="_blank">
+                        <svg width="1200" height="1227" viewBox="0 0 1200 1227" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M714.163 519.284L1160.89 0H1055.03L667.137 450.887L357.328 0H0L468.492 681.821L0 1226.37H105.866L515.491 750.218L842.672 1226.37H1200L714.137 519.284H714.163ZM569.165 687.828L521.697 619.934L144.011 79.6944H306.615L611.412 515.685L658.88 583.579L1055.08 1150.3H892.476L569.165 687.854V687.828Z" fill="white" />
+                        </svg>
+                    </a>
+                    <a class="linkedin" href="https://www.linkedin.com/company/ac-u-kwik?trk=company_logo" target="_blank"><i class="fa fa-linkedin" aria-hidden="true"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="informaFooter">
+        <div class="clearfix">
+            <a href="https://www.informamarkets.com" target="_blank">
+                <img src="/Portals/0/web_images/Informa_Markets_Logo_1Line_White_Grad_RGB_1024.png" alt="Informa Markets" />
+            </a>
+            <span id="dnn_dnnCopyright_lblCopyright" class="Copyright">Copyright &copy; 2026. All rights reserved. Informa Markets, a trading division of Informa PLC.</span>
+
+        </div>
+    </div>
+    <div class="footerLinks">
+        <div class="clearfix">
+            <ul class="clearfix">
+                <li>
+                    <a href="http://www.informamarkets.com/accessibility" target="_blank">Accessibility<span class="separator">|</span></a>
+                </li>
+                <li>
+                    <a href="https://www.Informa.com/Privacy-Policy/" target="_blank">Privacy Policy <span class="separator">|</span></a>
+                </li>
+                <li>
+                    <a href="https://www.informamarkets.com/en/cookie-policy.html" target="_blank">Cookie Policy<span class="separator">|</span></a>
+                </li>
+                <li>
+                    <a href="http://www.informamarkets.com/terms-of-use/" target="_blank">Terms of Use</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</footer>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'DC-9714310');
+    function pixelfire() {
+        var source = '9714310';
+        var type = 'invmedia';
+        var cat = 'rtacu0';
+        var pagep = window.location.pathname;
+        var axel = Math.random() + "";
+        var num = axel * 1000000000000000000;
+        var tag_url = new Image();
+        tag_url.src = "https://ad.doubleclick.net/ddm/activity/src=" + source + ";type=" + type + ";cat=" + cat + ";ord=1;num=" + num + ";u1=" + pagep + "?";
+        document.body.appendChild(tag_url);
+    };
+    window.onload = function () {
+        pixelfire();
+    };
+</script>
+<script>
+    (function (w, d, t) {
+        _ml = w._ml || {};
+        _ml.eid = '62439';
+        var s, cd, tag; s = d.getElementsByTagName(t)[0]; cd = new Date();
+        tag = d.createElement(t); tag.async = 1;
+        tag.src = 'https://ml314.com/tag.aspx?' + cd.getDate() + cd.getMonth();
+        s.parentNode.insertBefore(tag, s);
+    })(window, document, 'script');
+</script>
+
+
+
+
+
+
+        <input name="ScrollTop" type="hidden" id="ScrollTop" />
+        <input name="__dnnVariable" type="hidden" id="__dnnVariable" autocomplete="off" value="`{`dnn_current_userid`:`0`}" />
+        
+        
+    
+
+<script type="text/javascript">
+//<![CDATA[
+Sys.Application.add_init(function() {
+    $create(Sys.UI._UpdateProgress, {"associatedUpdatePanelId":"dnn_MyAccountLink1_up1","displayAfter":500,"dynamicLayout":true}, null, null, $get("dnn_MyAccountLink1_UpdateProgress1"));
+});
+//]]>
+</script>
+</form>
+    
+	<script language="JavaScript" type="text/javascript"><!--
+if (navigator.appVersion.indexOf('MSIE') >= 0) document.write(unescape('%3C') + '!' + '')
+//--></script>
+</body>
+</html>

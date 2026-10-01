@@ -2,8 +2,10 @@
 Main scraper orchestrator.
 Coordinates the entire scraping process with parallel execution, retries, and resumability.
 """
+import copy
 import csv
 import logging
+import os
 import time
 import json
 import re
@@ -25,6 +27,7 @@ from selenium.webdriver.chrome.service import Service
 from config_loader import load_config
 from auth import CookieAuthentication
 from html_driver import HtmlDriver
+from basic_info import is_basic_info_url, parse_basic_info
 from parsers import AirportPageParser, AirportParser, OrganizationParser, ClearanceParser, NearbyParser
 from validators import validate_record
 from output import BatchOutputWriter
@@ -32,6 +35,17 @@ from progress import ProgressTracker
 from browser import create_driver as create_browser_driver
 
 logger = logging.getLogger(__name__)
+
+# The saved Cloudflare/session cookies are issued to this browser, so plain
+# HTTP requests must present the same complete user agent.
+DEFAULT_USER_AGENT = (
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36"
+)
+
+
+class IncompleteScrapeError(RuntimeError):
+    """Raised when an airport was parsed but a tab, page or profile is missing."""
 
 
 def auto_login_if_needed(config: Dict[str, Any]) -> bool:
@@ -485,15 +499,18 @@ class ScraperOrchestrator:
         
         logger.info(f"Scraper orchestrator initialized for source: {self.source}")
 
+    def _user_agent(self) -> str:
+        """User agent for HTTP requests (a null config value means the default)."""
+        return (
+            (self.config.get("selenium") or {}).get("user_agent")
+            or os.getenv("USER_AGENT")
+            or DEFAULT_USER_AGENT
+        )
+
     def _build_requests_session(self) -> requests.Session:
         """Build a requests session that reuses the saved AC-U-KWIK cookies."""
         session = requests.Session()
-        session.headers.update({
-            "User-Agent": self.config["selenium"].get(
-                "user_agent",
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-            )
-        })
+        session.headers.update({"User-Agent": self._user_agent()})
 
         auth_config = self.config.get("authentication", {})
         cookies_file = auth_config.get("cookies_file")
@@ -540,7 +557,7 @@ class ScraperOrchestrator:
         response = session.get(
             url,
             timeout=(15, 45),
-            headers={"User-Agent": self.config["selenium"].get("user_agent", "Mozilla/5.0")},
+            headers={"User-Agent": self._user_agent()},
         )
         response.raise_for_status()
 
@@ -559,9 +576,11 @@ class ScraperOrchestrator:
         mode = self.config.get("scraping", {}).get("fetch_mode", "auto")
         if mode != "selenium":
             try:
-                return self._fetch_html_to_cache_with_session(
+                cache_file = self._fetch_html_to_cache_with_session(
                     url, external_id, page_label, session
                 )
+                browser_holder["transport"] = "http"
+                return cache_file
             except requests.HTTPError as exc:
                 status = exc.response.status_code if exc.response is not None else None
                 if mode == "http" or status not in {401, 403, 429}:
@@ -586,7 +605,301 @@ class ScraperOrchestrator:
         timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S_%f")
         cache_file = self.html_cache_dir / f"{safe_external_id}_{page_label}_{timestamp}.html"
         cache_file.write_text(driver.page_source, encoding="utf-8")
+        browser_holder["transport"] = "browser"
         return cache_file
+
+    @staticmethod
+    def _postback_form_fields(document) -> Dict[str, str]:
+        """Collect the fields a browser submits with the ASP.NET form."""
+        forms = document.xpath('//form[@id="Form"]')
+        root = forms[0] if forms else document
+        form: Dict[str, str] = {}
+        for field in root.xpath('.//input[@name] | .//select[@name] | .//textarea[@name]'):
+            name = field.get("name")
+            if field.get("disabled") is not None:
+                continue
+            if field.tag == "select":
+                options = field.xpath('.//option')
+                selected = [option for option in options if option.get("selected") is not None]
+                chosen = (selected or options[:1])
+                if chosen:
+                    value = chosen[0].get("value")
+                    form[name] = value if value is not None else (chosen[0].text or "").strip()
+                continue
+            if field.tag == "textarea":
+                form[name] = field.text or ""
+                continue
+            field_type = (field.get("type") or "text").lower()
+            if field_type in ("submit", "button", "image", "reset", "file"):
+                continue
+            if field_type in ("checkbox", "radio"):
+                if field.get("checked") is not None:
+                    form[name] = field.get("value") or "on"
+                continue
+            form[name] = field.get("value") or ""
+        return form
+
+    @staticmethod
+    def _next_page_postback(source_html: str) -> Optional[Dict[str, str]]:
+        """Return the form fields that submit the pager's Next button, or None on the last page."""
+        from lxml import html as lxml_html
+
+        document = lxml_html.fromstring(source_html)
+        next_links = document.xpath('//a[contains(@id, "lbtnNext")]')
+        if not next_links:
+            return None
+        href = next_links[0].get("href") or ""
+        if "aspNetDisabled" in (next_links[0].get("class") or "") or not href:
+            return None
+        match = re.search(r"__doPostBack\('([^']+)'", href)
+        if not match:
+            return None
+        form = ScraperOrchestrator._postback_form_fields(document)
+        form["__EVENTTARGET"] = match.group(1)
+        form["__EVENTARGUMENT"] = ""
+        return form
+
+    @staticmethod
+    def _page_index(source_html: str) -> Optional[str]:
+        """The pager's current page number (hfPageIndex), or None if absent."""
+        match = re.search(
+            r'<input\b[^>]*\bname="[^"]*hfPageIndex"[^>]*>', source_html or "", re.IGNORECASE
+        )
+        if not match:
+            return None
+        value = re.search(r'\bvalue="([^"]*)"', match.group(0))
+        return value.group(1).strip() if value else ""
+
+    def _validate_paginated_page(self, source_html: str, page_number: int, page_label: str, url: str) -> None:
+        """Raise unless the response really is the requested page of results."""
+        # Real AC-U-KWIK pages embed Cloudflare's challenge-platform script, so only
+        # the interstitial's title identifies an actual challenge.
+        title = re.search(r"<title[^>]*>(.*?)</title>", source_html[:20000], re.IGNORECASE | re.DOTALL)
+        if title and "just a moment" in title.group(1).lower():
+            raise RuntimeError(f"Cloudflare challenge on {page_label} page {page_number}")
+        self._verify_authentication(
+            HtmlDriver(source_html, current_url=url), url, f"{page_label}_p{page_number}"
+        )
+        page_index = self._page_index(source_html)
+        if page_index != str(page_number):
+            raise RuntimeError(
+                f"{page_label} page {page_number} returned page index {page_index!r}"
+            )
+        from lxml import html as lxml_html
+        rows = lxml_html.fromstring(source_html).xpath(
+            '//div[contains(concat(" ", normalize-space(@class), " "), " result ")]'
+        )
+        if not rows:
+            raise RuntimeError(f"{page_label} page {page_number} contains no result rows")
+
+    def _fetch_paginated_pages(
+        self,
+        url: str,
+        first_page: Path,
+        external_id: str,
+        page_label: str,
+        session: requests.Session,
+        browser_holder: Dict[str, Any],
+        max_pages: int = 100,
+    ) -> List[Path]:
+        """Follow an ASP.NET pager (as the Next button does) and cache every further page.
+
+        Raises RuntimeError if a page cannot be retrieved or is not the
+        requested page, so an incomplete list is never reported as complete.
+        """
+        pages: List[Path] = []
+        current_html = first_page.read_text(encoding="utf-8")
+        for page_number in range(2, max_pages + 1):
+            form = self._next_page_postback(current_html)
+            if form is None:
+                return pages
+            if browser_holder.get("transport") == "browser" and browser_holder.get("driver"):
+                driver = browser_holder["driver"]
+                driver.execute_script("__doPostBack(arguments[0], '');", form["__EVENTTARGET"])
+                # Wait for the pager itself to report the new page; a changed
+                # page_source alone can be an error page or a partial render.
+                deadline = time.monotonic() + 45
+                while (
+                    self._page_index(driver.page_source) != str(page_number)
+                    and time.monotonic() < deadline
+                ):
+                    time.sleep(0.5)
+                current_html = driver.page_source
+            else:
+                response = session.post(
+                    url,
+                    data=form,
+                    timeout=(15, 45),
+                    headers={
+                        "User-Agent": self._user_agent(),
+                        "Referer": url,
+                        "Origin": "https://acukwik.com",
+                    },
+                )
+                response.raise_for_status()
+                current_html = response.text
+            self._validate_paginated_page(current_html, page_number, page_label, url)
+            safe_external_id = re.sub(r"[^A-Za-z0-9_.-]+", "_", external_id)
+            timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S_%f")
+            cache_file = self.html_cache_dir / f"{safe_external_id}_{page_label}_p{page_number}_{timestamp}.html"
+            cache_file.write_text(current_html, encoding="utf-8")
+            pages.append(cache_file)
+        raise RuntimeError(f"{page_label} pagination exceeded {max_pages} pages")
+
+    def _add_nearby_pages(
+        self,
+        nearby_entity: Dict[str, Any],
+        nearby_url: str,
+        first_page: Path,
+        icao: str,
+        external_id: str,
+        session: requests.Session,
+        browser_holder: Dict[str, Any],
+        cached_pages: List[Path],
+    ) -> None:
+        """Append the rows from every further page of the paginated nearby list.
+
+        Raises after marking the entity PARTIAL when a page is missing or the
+        row count differs from the map's expected count, so the airport is
+        retried rather than stored as complete.
+        """
+        data = nearby_entity.setdefault("data", {})
+        rows = data.setdefault("nearby_airports", [])
+        try:
+            extra_pages = self._fetch_paginated_pages(
+                nearby_url, first_page, external_id, "nearby", session, browser_holder
+            )
+            cached_pages.extend(extra_pages)
+            seen = {
+                (row.get("icao") or row.get("source_airport_id"), row.get("url"), tuple(row.get("raw_cells") or []))
+                for row in rows
+            }
+            for page_number, page in enumerate(extra_pages, start=2):
+                page_entity = NearbyParser(
+                    HtmlDriver.from_file(page, current_url=nearby_url)
+                ).parse(nearby_url, icao, load_page=False)
+                page_rows = (page_entity or {}).get("data", {}).get("nearby_airports", [])
+                if not page_entity or page_entity.get("scrape_status") == "FAILED" or not page_rows:
+                    raise RuntimeError(f"nearby page {page_number} parsed no rows")
+                for row in page_rows:
+                    key = (row.get("icao") or row.get("source_airport_id"), row.get("url"), tuple(row.get("raw_cells") or []))
+                    if key not in seen:
+                        seen.add(key)
+                        rows.append(row)
+        except Exception as exc:
+            nearby_entity["scrape_status"] = "PARTIAL"
+            nearby_entity.setdefault("errors", []).append(
+                {"field": "nearby_pagination", "error": str(exc)}
+            )
+            data["pages_fetched"] = None
+            logger.warning(f"Nearby pagination incomplete for {icao}: {exc}")
+            raise
+        data["pages_fetched"] = 1 + len(extra_pages)
+        # Only page 1 carries the map script; enrich rows from later pages with
+        # its markers (coordinates, IATA, runway length, ...).
+        NearbyParser.apply_map_markers(rows, data.get("map_markers") or [])
+
+        expected_count = data.get("expected_count")
+        if isinstance(expected_count, int) and expected_count != len(rows):
+            message = (
+                f"nearby row count {len(rows)} does not match expected {expected_count}"
+            )
+            nearby_entity["scrape_status"] = "PARTIAL"
+            nearby_entity.setdefault("errors", []).append(
+                {"field": "nearby_count", "error": message}
+            )
+            logger.warning(f"Nearby list incomplete for {icao}: {message}")
+            raise RuntimeError(message)
+
+    @staticmethod
+    def _basic_info_url(entity: Dict[str, Any]) -> Optional[str]:
+        """The organization's own /Basic-Info/ profile URL, if it has one."""
+        data = entity.get("data") or {}
+        candidates = [data.get("source_profile_url")]
+        candidates.extend(
+            link.get("url") for link in data.get("links") or [] if isinstance(link, dict)
+        )
+        candidates.extend(
+            contact.get("value") for contact in data.get("contacts") or [] if isinstance(contact, dict)
+        )
+        for candidate in candidates:
+            if isinstance(candidate, str) and is_basic_info_url(candidate.strip()):
+                candidate = candidate.strip()
+                if candidate.startswith("/"):
+                    candidate = f"https://acukwik.com{candidate}"
+                # Listing names can contain '#' (e.g. "GATE GOURMET (ATLANTA #300)"), which
+                # the site leaves unencoded; as a fragment it would truncate the path.
+                return candidate.replace("#", "%23")
+        return None
+
+    def _add_basic_info_profiles(
+        self,
+        entities: List[Dict[str, Any]],
+        external_id: str,
+        session: requests.Session,
+        browser_holder: Dict[str, Any],
+        cached_pages: List[Path],
+        stop_on_error: bool = True,
+    ) -> List[str]:
+        """Fetch each organization's Basic-Info page once and attach it as data.profile.
+
+        Listing fields are never overwritten. Failures are recorded on the
+        affected entities; with stop_on_error the first one is raised,
+        otherwise all are returned.
+        """
+        by_url: Dict[str, List[Dict[str, Any]]] = {}
+        for entity in entities:
+            if entity.get("entity_type") != "organization":
+                continue
+            profile_url = self._basic_info_url(entity)
+            if profile_url and "/Basic-Info//" in profile_url:
+                # Code-less airports (e.g. ACKOLSS) get links with an empty ICAO
+                # segment; the profile is served under the airport's source ID.
+                airports = (entity.get("data") or {}).get("associated_airports") or []
+                airport = airports[0] if airports else None
+                if isinstance(airport, dict):
+                    airport = airport.get("source_airport_id") or airport.get("icao")
+                if airport:
+                    profile_url = profile_url.replace("/Basic-Info//", f"/Basic-Info/{airport}/", 1)
+            if profile_url:
+                by_url.setdefault(profile_url, []).append(entity)
+
+        failures: List[str] = []
+        for index, (profile_url, owners) in enumerate(by_url.items(), start=1):
+            try:
+                profile_html = self._fetch_page_to_cache(
+                    profile_url, external_id, f"profile{index}", session, browser_holder
+                )
+                cached_pages.append(profile_html)
+                source_html = profile_html.read_text(encoding="utf-8")
+                self._verify_authentication(
+                    HtmlDriver(source_html, current_url=profile_url), profile_url, external_id
+                )
+                profile = parse_basic_info(source_html, profile_url)
+                if not profile.get("name"):
+                    raise RuntimeError("page is not an organization profile")
+            except Exception as exc:
+                message = f"Basic-Info {profile_url}: {exc}"
+                for entity in owners:
+                    entity.setdefault("errors", []).append(
+                        {"field": "profile", "url": profile_url, "error": str(exc)}
+                    )
+                logger.warning(f"Profile fetch failed for {external_id}: {message}")
+                if stop_on_error:
+                    raise RuntimeError(message) from exc
+                failures.append(message)
+                continue
+
+            for entity in owners:
+                entity_profile = copy.deepcopy(profile)
+                listing_name = re.sub(r"\s+", " ", (entity.get("data") or {}).get("name") or "").strip().upper()
+                entity_profile["matches_listing"] = listing_name == (profile["name"] or "").upper()
+                entity.setdefault("data", {})["profile"] = entity_profile
+                observed = entity.get("observed_fields")
+                if isinstance(observed, list) and "profile" not in observed:
+                    observed.append("profile")
+                    observed.sort()
+        return failures
 
     def _build_email_resolver(self, session: requests.Session, browser=None):
         """Build a resolver that can expand AC-U-KWIK email buttons via the authenticated API."""
@@ -810,6 +1123,17 @@ class ScraperOrchestrator:
             session = self._build_requests_session()
             browser_holder: Dict[str, Any] = {}
             attempt_started = time.monotonic()
+            final_attempt = attempt == max_retries - 1
+            # Parts (tabs, pages, profiles) that failed on the final attempt.
+            incomplete: List[str] = []
+
+            def part_failed(part: str, error: Exception) -> None:
+                """Retry the airport; on the last attempt keep going and record it."""
+                logger.warning(f"{part} scrape failed for {external_id}: {error}")
+                if not final_attempt:
+                    raise error
+                incomplete.append(f"{part}: {error}")
+
             try:
                 logger.info(f"Scraping {url} (attempt {attempt + 1}/{max_retries})")
 
@@ -858,15 +1182,21 @@ class ScraperOrchestrator:
                             )
                             cached_pages.append(clearance_html)
                             clearance_driver = HtmlDriver.from_file(clearance_html, current_url=clearance_url)
+                            self._verify_authentication(clearance_driver, clearance_url, external_id)
                             clearance_parser = ClearanceParser(clearance_driver)
                             clearance_entity = clearance_parser.parse(clearance_url, icao, load_page=False)
                             if clearance_entity:
                                 entities.append(clearance_entity)
                         except Exception as ce:
-                            logger.warning(f"Clearance scrape failed for {icao}: {ce}")
+                            if entities:
+                                entities[0].setdefault("errors", []).append(
+                                    {"field": "clearance", "url": clearance_url, "error": str(ce)}
+                                )
+                            part_failed("Clearance", ce)
 
                     # Scrape Nearby tab
                     if icao and scraping_cfg.get("scrape_nearby", True):
+                        nearby_entity = None
                         try:
                             nearby_url = f"https://acukwik.com/Nearby/{tab_id}"
                             nearby_html = self._fetch_page_to_cache(
@@ -874,12 +1204,41 @@ class ScraperOrchestrator:
                             )
                             cached_pages.append(nearby_html)
                             nearby_driver = HtmlDriver.from_file(nearby_html, current_url=nearby_url)
+                            self._verify_authentication(nearby_driver, nearby_url, external_id)
                             nearby_parser = NearbyParser(nearby_driver)
                             nearby_entity = nearby_parser.parse(nearby_url, icao, load_page=False)
                             if nearby_entity:
+                                # Appended first so a partial list is still written
+                                # when the final attempt cannot finish it.
                                 entities.append(nearby_entity)
+                                self._add_nearby_pages(
+                                    nearby_entity, nearby_url, nearby_html, icao,
+                                    external_id, session, browser_holder, cached_pages,
+                                )
                         except Exception as ne:
-                            logger.warning(f"Nearby scrape failed for {icao}: {ne}")
+                            # Pagination errors are already on the nearby entity.
+                            if entities and not any(entity is nearby_entity for entity in entities):
+                                entities[0].setdefault("errors", []).append(
+                                    {"field": "nearby", "url": nearby_url, "error": str(ne)}
+                                )
+                            part_failed("Nearby", ne)
+
+                    # Enrich organizations from their Basic-Info profile pages
+                    if scraping_cfg.get("scrape_basic_info", False):
+                        try:
+                            profile_failures = self._add_basic_info_profiles(
+                                entities, external_id, session, browser_holder, cached_pages,
+                                stop_on_error=not final_attempt,
+                            )
+                        except Exception as pe:
+                            part_failed("Basic-Info", pe)
+                        else:
+                            if profile_failures:
+                                part_failed(
+                                    "Basic-Info",
+                                    RuntimeError(f"{len(profile_failures)} profile(s) failed: "
+                                                 + "; ".join(profile_failures)),
+                                )
 
                 else:
                     # Legacy organization scraping (single entity)
@@ -921,6 +1280,14 @@ class ScraperOrchestrator:
 
                 for entity in entities:
                     self.output_writer.write_success(entity)
+
+                if incomplete:
+                    # Keep what was parsed, but leave the airport out of the
+                    # completed set so a resumed run fetches it again.
+                    raise IncompleteScrapeError(
+                        "Incomplete after final attempt (parsed entities written): "
+                        + "; ".join(incomplete)
+                    )
 
                 # Success!
                 self.progress_tracker.mark_completed(external_id)

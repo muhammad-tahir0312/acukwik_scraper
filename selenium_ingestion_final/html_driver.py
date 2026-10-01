@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from typing import Callable, List, Optional
 
@@ -105,6 +106,34 @@ def _find_elements(root, by, value):
     return wrapped
 
 
+_CF_EMAIL_ELEMENT = re.compile(
+    r"<(a|span)\b[^>]*\bdata-cfemail=\"([0-9a-fA-F]+)\"[^>]*>.*?</\1>", re.DOTALL
+)
+_CF_EMAIL_HREF = re.compile(r"/cdn-cgi/l/email-protection#([0-9a-fA-F]+)")
+
+
+def _decode_cfemail(encoded: str) -> str:
+    key = int(encoded[:2], 16)
+    return "".join(chr(int(encoded[i:i + 2], 16) ^ key) for i in range(2, len(encoded), 2))
+
+
+def decode_cf_emails(source_html: str) -> str:
+    """Restore addresses that Cloudflare encodes in served HTML.
+
+    A browser runs Cloudflare's decoder script and shows the plain address; an
+    HTTP fetch receives "[email protected]" plus the encoded data-cfemail value.
+    """
+    if "cfemail" not in source_html and "email-protection#" not in source_html:
+        return source_html
+    def _replace(match: "re.Match[str]") -> str:
+        email = _decode_cfemail(match.group(2))
+        # Keep links as links (as the browser shows them) so link lists stay lossless.
+        return f'<a href="mailto:{email}">{email}</a>' if match.group(1) == "a" else email
+
+    source_html = _CF_EMAIL_ELEMENT.sub(_replace, source_html)
+    return _CF_EMAIL_HREF.sub(lambda m: "mailto:" + _decode_cfemail(m.group(1)), source_html)
+
+
 class HtmlDriver:
     """Minimal Selenium-like driver for cached HTML documents."""
 
@@ -127,6 +156,7 @@ class HtmlDriver:
         return cls(source_html, current_url=current_url, email_resolver=email_resolver)
 
     def _set_html(self, source_html: str) -> None:
+        source_html = decode_cf_emails(source_html)
         self.page_source = source_html
         self._document = lxml_html.fromstring(source_html)
         self._root = HtmlElement(self._document)

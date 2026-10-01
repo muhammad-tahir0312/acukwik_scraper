@@ -4,7 +4,7 @@ source:
 
 input:
   csv_paths:
-    - ../country_links.csv
+    - ../country_links_20261001.csv
 
 output:
   directory: output
@@ -15,13 +15,18 @@ progress:
   file: progress/scraping_progress.json
 
 scraping:
-  fetch_mode: selenium
+  # http downloads pages with the saved cookies; set FETCH_MODE=selenium
+  # (or auto) to drive a browser instead.
+  fetch_mode: http
   parallel_workers: 4
   max_retries: 3
   retry_backoff: 5
   delay_between_requests: 3
   scrape_clearance: true
   scrape_nearby: true
+  # Fetch each organization's /Basic-Info/ profile (one request per listing)
+  # and attach it as data.profile.
+  scrape_basic_info: true
   keep_html_cache: false
 
 selenium:
@@ -29,7 +34,8 @@ selenium:
   headless: true
   page_load_timeout: 100
   implicit_wait: 0
-  # null selects a complete user agent for the installed browser.
+  # null selects a complete user agent for the installed browser; HTTP mode
+  # then uses the USER_AGENT env value or the Chrome UA the cookies came from.
   user_agent: null
 
 authentication:

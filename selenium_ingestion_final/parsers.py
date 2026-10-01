@@ -11,7 +11,8 @@ import hashlib
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timezone
 from pathlib import Path
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
+from lxml import html as lxml_html
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -173,6 +174,74 @@ def validate_and_clean(data: Dict[str, Any]) -> Dict[str, Any]:
     return data
 
 
+# Elements whose boundaries a browser renders as line breaks.  Used to build a
+# Selenium-like ``.text`` from lxml, whose text_content() glues blocks together.
+_BLOCK_TAGS = frozenset({
+    "address", "article", "aside", "blockquote", "br", "dd", "div", "dl", "dt",
+    "fieldset", "figcaption", "figure", "footer", "form", "h1", "h2", "h3", "h4",
+    "h5", "h6", "header", "hr", "li", "main", "nav", "ol", "p", "pre", "section",
+    "table", "tbody", "td", "tfoot", "th", "thead", "tr", "ul",
+})
+_NON_TEXT_TAGS = frozenset({"script", "style", "noscript", "template"})
+
+# Hidden ASP.NET inputs carrying AC-U-KWIK source IDs on a listing.
+_LISTING_HIDDEN_ID_FIELDS = ("hfAcukwik_ID", "hfGROUND_HANDLER_ID", "hfSupplier_ID", "hfVendor_ID", "hfHaveADV")
+
+_CLASS_XPATH = "contains(concat(' ', normalize-space(@class), ' '), ' {} ')"
+
+
+def block_text(element) -> str:
+    """Return an element's visible text with one line per block element.
+
+    Selenium's ``.text`` already behaves this way.  The lxml-backed HtmlDriver
+    returns text_content(), which glues adjacent blocks ("SITADXBMX7X") and
+    includes <script> bodies, so walk the lxml tree directly when available.
+    """
+    lxml_element = getattr(element, "_element", None)
+    if lxml_element is None:
+        raw = element.text or ""
+    else:
+        parts: List[str] = []
+
+        def walk(node) -> None:
+            tag = node.tag if isinstance(node.tag, str) else None
+            if tag is None or tag.lower() in _NON_TEXT_TAGS:
+                return
+            is_block = tag.lower() in _BLOCK_TAGS
+            if is_block:
+                parts.append("\n")
+            if node.text:
+                parts.append(node.text)
+            for child in node:
+                walk(child)
+                if child.tail:
+                    parts.append(child.tail)
+            if is_block:
+                parts.append("\n")
+
+        walk(lxml_element)
+        raw = "".join(parts)
+    lines = (" ".join(line.split()) for line in raw.splitlines())
+    return "\n".join(line for line in lines if line)
+
+
+def element_tail_text(driver, element) -> str:
+    """Return the text node directly following ``element`` (lxml ``.tail``)."""
+    lxml_element = getattr(element, "_element", None)
+    if lxml_element is not None:
+        return " ".join((lxml_element.tail or "").split())
+    try:
+        tail = driver.execute_script(
+            "var n = arguments[0].nextSibling; var t = '';"
+            "while (n && n.nodeType === 3) { t += n.textContent; n = n.nextSibling; }"
+            "return t;",
+            element,
+        )
+    except Exception:
+        return ""
+    return " ".join((tail or "").split())
+
+
 class AirportPageParser:
     """
     Parser for acukwik.com airport pages.
@@ -206,7 +275,8 @@ class AirportPageParser:
             # Parse organization entities on the same page
             org_entities = self._parse_organization_entities(url, airport_reference)
             entities.extend(org_entities)
-            
+            self._attach_panel_counts(airport_entity)
+
         except Exception as e:
             logger.error(f"Error parsing airport page: {str(e)}")
             # Return error entity
@@ -270,6 +340,12 @@ class AirportPageParser:
         restrictions = self._extract_restrictions_table(observed_fields, missing_fields, errors)
         if restrictions:
             data["airport_contacts_raw"] = restrictions
+
+        customs_info = self._extract_customs_info(observed_fields, missing_fields, errors)
+        if customs_info:
+            data["customs_info"] = customs_info
+
+        data.update(self._extract_diagram_urls(url, observed_fields))
         
         # Validate and clean
         data = validate_and_clean(data)
@@ -489,6 +565,7 @@ class AirportPageParser:
             "Tower Frequency": "tower_frequency",
             "ATIS Frequency": "atis_frequency",
             "CTAF Frequency": "ctaf_frequency",
+            "Unicom Frequency": "unicom_frequency",
             "Airport General Remarks": "airport_general_remarks",
         }
 
@@ -522,6 +599,10 @@ class AirportPageParser:
             if field_name in boolean_fields:
                 data[field_name] = bool(value and value.lower() not in ["no", "false", "n/a", ""])
                 observed.append(field_name)
+                if field_name == "open_24h" and value:
+                    # The bool turns "Restricted" into True; keep the source value.
+                    data["open_24h_raw"] = value
+                    observed.append("open_24h_raw")
                 return
             else:
                 if value:
@@ -695,50 +776,10 @@ class AirportPageParser:
                     "/following-sibling::table[1]//tr[position()>1]"
                 )
 
+            base_url = getattr(self.driver, "current_url", "") or ""
             for row in section_rows:
                 try:
-                    entry: Dict[str, Any] = {}
-                    cells = row.find_elements(By.CSS_SELECTOR, ".w31p, .w17p, .w30p, .w22p, td")
-                    cell_texts = [cell.text.strip() for cell in cells if cell.text.strip()]
-
-                    if cell_texts:
-                        entry["section"] = cell_texts[0]
-
-                    if len(cells) > 1:
-                        freq = cells[1].text.strip()
-                        if freq:
-                            entry["frequency"] = freq
-
-                    if len(cells) > 2:
-                        pf_text = cells[2].text.strip()
-                        if not pf_text:
-                            pf_text = " ".join([line.text.strip() for line in cells[2].find_elements(By.XPATH, ".//*[self::div or self::a]") if line.text.strip()])
-                        phone_match = re.search(r'(?:Phone|Tel)[:\s]+([+\d\s\-().]+)', pf_text, re.IGNORECASE)
-                        fax_match = re.search(r'Fax[:\s]+([+\d\s\-().]+)', pf_text, re.IGNORECASE)
-                        if phone_match:
-                            entry["phone"] = phone_match.group(1).strip()
-                        if fax_match:
-                            entry["fax"] = fax_match.group(1).strip()
-                        if not phone_match and not fax_match and pf_text:
-                            entry["contact_raw"] = pf_text
-
-                    if len(cells) > 3:
-                        ew_text = cells[3].text.strip()
-                        try:
-                            email_link = cells[3].find_element(By.CSS_SELECTOR, "a[href^='mailto:']")
-                            entry["email"] = email_link.get_attribute("href").replace("mailto:", "").strip()
-                        except Exception:
-                            pass
-                        try:
-                            web_link = cells[3].find_element(By.XPATH, ".//a[not(@href) or not(starts-with(@href,'mailto:'))]")
-                            href = web_link.get_attribute("href")
-                            if href and href.startswith("http"):
-                                entry["website"] = href
-                        except Exception:
-                            pass
-                        if "email" not in entry and "website" not in entry and ew_text:
-                            entry["email_website_raw"] = ew_text
-
+                    entry = self._parse_restriction_row(row, base_url)
                     if entry.get("section") or entry.get("phone") or entry.get("email"):
                         contacts.append(entry)
                 except Exception as e:
@@ -754,6 +795,153 @@ class AirportPageParser:
 
         return contacts if contacts else None
   
+    @staticmethod
+    def _parse_restriction_row(row, base_url: str = "") -> Dict[str, Any]:
+        """Parse one restrictions row: [section, frequency, phone/fax, email/website].
+
+        Only the row's direct children are columns; the phone/fax column nests
+        its own ``div.w30p`` label cells, which a descendant selector would
+        mistake for columns.
+        """
+        entry: Dict[str, Any] = {}
+        cells = row.find_elements(By.XPATH, "./div | ./td")
+
+        if cells:
+            section = " ".join(cells[0].text.split())
+            if section:
+                entry["section"] = section
+
+        if len(cells) > 1:
+            freq = " ".join(cells[1].text.split())
+            if freq:
+                entry["frequency"] = freq
+
+        if len(cells) > 2:
+            numbers: List[Dict[str, str]] = []
+            for pair in cells[2].find_elements(By.XPATH, ".//div[contains(concat(' ', normalize-space(@class), ' '), ' clearfix ')]"):
+                parts = [
+                    " ".join(part.text.split())
+                    for part in pair.find_elements(By.XPATH, "./div")
+                ]
+                parts = [part for part in parts if part]
+                if len(parts) >= 2:
+                    numbers.append({"label": parts[0].rstrip(":"), "value": " ".join(parts[1:])})
+            phones = [n["value"] for n in numbers if re.match(r"(?:phone|tel)", n["label"], re.IGNORECASE)]
+            faxes = [n["value"] for n in numbers if re.match(r"fax", n["label"], re.IGNORECASE)]
+            if numbers:
+                entry["contact_numbers"] = numbers
+                if phones:
+                    entry["phone"] = phones[0]
+                    entry["phones"] = phones
+                if faxes:
+                    entry["fax"] = faxes[0]
+                    entry["faxes"] = faxes
+            else:
+                pf_text = " ".join(cells[2].text.split())
+                phone_match = re.search(r'(?:Phone|Tel)[:\s]+([+\d\s\-().]+)', pf_text, re.IGNORECASE)
+                fax_match = re.search(r'Fax[:\s]+([+\d\s\-().]+)', pf_text, re.IGNORECASE)
+                if phone_match:
+                    entry["phone"] = phone_match.group(1).strip()
+                if fax_match:
+                    entry["fax"] = fax_match.group(1).strip()
+                if not phone_match and not fax_match and pf_text:
+                    entry["contact_raw"] = pf_text
+
+        if len(cells) > 3:
+            emails: List[str] = []
+            websites: List[str] = []
+            for link in cells[3].find_elements(By.TAG_NAME, "a"):
+                href = (link.get_attribute("href") or "").strip()
+                if href.lower().startswith("mailto:"):
+                    email = href[7:].split("?", 1)[0].strip()
+                    if email and email not in emails:
+                        emails.append(email)
+                elif href:
+                    website = urljoin(base_url, href) if base_url else href
+                    if website.startswith("http") and website not in websites:
+                        websites.append(website)
+            if emails:
+                entry["email"] = emails[0]
+                entry["emails"] = emails
+            if websites:
+                entry["website"] = websites[0]
+                entry["websites"] = websites
+            ew_text = " ".join(cells[3].text.split())
+            if not emails and not websites and ew_text:
+                entry["email_website_raw"] = ew_text
+
+        return entry
+
+    def _extract_customs_info(self, observed: List, missing: List, errors: List) -> Optional[Dict[str, Any]]:
+        """Extract the 'Customs Information' panel: labelled rows plus free-text remarks."""
+        try:
+            panels = self.driver.find_elements(By.XPATH, "//div[contains(@id,'pnlCustoms')]")
+            if not panels:
+                return None
+            panel = panels[0]
+            info: Dict[str, Any] = {}
+            fields: List[Dict[str, str]] = []
+            for pair in panel.find_elements(By.XPATH, ".//div[contains(concat(' ', normalize-space(@class), ' '), ' clearfix ')]"):
+                label_elems = pair.find_elements(By.XPATH, "./div[contains(concat(' ', normalize-space(@class), ' '), ' bold ')]")
+                value_elems = pair.find_elements(By.XPATH, "./div[not(contains(concat(' ', normalize-space(@class), ' '), ' bold '))]")
+                if not label_elems:
+                    continue
+                label = " ".join(label_elems[0].text.split()).rstrip(":").strip()
+                value = " ".join(" ".join(elem.text.split()) for elem in value_elems).strip()
+                if not label and not value:
+                    continue
+                fields.append({"label": label, "value": value})
+                key = re.sub(r"[^a-z0-9]+", "_", label.lower()).strip("_")
+                if key and value and key not in info:
+                    info[key] = value
+
+            # Remarks: unlabelled div.clearboth blocks, excluding the title and the
+            # container that holds the labelled rows.
+            remarks = []
+            for block in panel.find_elements(
+                By.XPATH,
+                ".//div[contains(concat(' ', normalize-space(@class), ' '), ' clearboth ')]"
+                "[not(.//strong[contains(@class,'fs18px')])]"
+                "[not(.//div[contains(concat(' ', normalize-space(@class), ' '), ' clearfix ')])]",
+            ):
+                text = block_text(block)
+                if text:
+                    remarks.append(text)
+            if remarks:
+                info["remarks"] = "\n".join(remarks)
+            if fields:
+                info["fields"] = fields
+            if not info:
+                missing.append("customs_info")
+                return None
+            info["raw_text"] = "\n".join(
+                line for line in block_text(panel).splitlines() if line != "Customs Information"
+            )
+            observed.append("customs_info")
+            return info
+        except Exception as e:
+            errors.append({"field": "customs_info", "error": str(e)})
+            return None
+
+    def _extract_diagram_urls(self, url: str, observed: List) -> Dict[str, Any]:
+        """Runway and FAA diagram links (absolute URLs)."""
+        found: Dict[str, Any] = {}
+        targets = (
+            ("runway_diagram_url", "//a[contains(@id,'hlRunwayDiagramIMG')]", "href"),
+            ("faa_diagram_url", "//a[contains(@id,'hlFAADiagramIMG')]", "href"),
+            ("faa_diagram_img_src", "//img[contains(@id,'imgFAADiagram')]", "src"),
+        )
+        for field_name, xpath, attribute in targets:
+            try:
+                elements = self.driver.find_elements(By.XPATH, xpath)
+                value = (elements[0].get_attribute(attribute) or "").strip() if elements else ""
+            except Exception:
+                value = ""
+            if value:
+                found[field_name] = urljoin(url, value)
+                observed.append(field_name)
+        return found
+
     def _extract_additional_data(self, observed: List, missing: List, errors: List) -> Dict[str, Any]:
         """
         Extract additional airport data from paired divs.
@@ -831,6 +1019,7 @@ class AirportPageParser:
         Includes FBOs, handlers, hotels, caterers, maintenance, etc.
         """
         organizations = []
+        self._panel_counts: Dict[str, Dict[str, int]] = {}
 
         # Parse every known AC-U-KWIK service section.  Role is deliberately
         # attached to the airport listing, never inferred as organization-wide.
@@ -857,9 +1046,90 @@ class AirportPageParser:
                 organizations.extend(orgs)
             except Exception as e:
                 logger.debug(f"Error extracting {section_name}: {e}")
-        
-        return organizations
-    
+
+        return self._dedupe_organizations(organizations)
+
+    @staticmethod
+    def _dedupe_organizations(organizations: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Drop listings emitted twice for one airport occurrence.
+
+        The same source listing may legitimately appear under two different
+        roles (e.g. FBO and Handler), so the key is (source_listing_key, role).
+        An OTHER copy of a listing that a known section already produced is
+        a duplicate panel, not a new role.  Listings without source IDs (hotels)
+        that share a name but differ in content are kept and re-keyed by
+        name and address instead of being dropped.
+        """
+        result: List[Dict[str, Any]] = []
+        by_key: Dict[tuple, Dict[str, Any]] = {}
+        known_role_keys = set()
+        for org in organizations:
+            data = org.get("data") or {}
+            key = data.get("source_listing_key")
+            role = (data.get("roles") or [None])[0]
+            if key and role != "OTHER":
+                known_role_keys.add(key)
+        for org in organizations:
+            data = org.get("data") or {}
+            key = data.get("source_listing_key")
+            role = (data.get("roles") or [None])[0]
+            if not key:
+                result.append(org)
+                continue
+            if role == "OTHER" and key in known_role_keys:
+                target = next((kept for kept in result
+                               if kept["data"].get("source_listing_key") == key), None)
+                if target is not None:
+                    for section in data.get("source_sections") or []:
+                        if section not in target["data"].setdefault("source_sections", []):
+                            target["data"]["source_sections"].append(section)
+                continue
+            existing = by_key.get((key, role))
+            if existing is None:
+                by_key[(key, role)] = org
+                result.append(org)
+                continue
+            if existing["data"].get("raw_text") == data.get("raw_text") or data.get("source_profile_url"):
+                for section in data.get("source_sections") or []:
+                    if section not in existing["data"].setdefault("source_sections", []):
+                        existing["data"]["source_sections"].append(section)
+                continue
+            address = (data.get("address") or {}).get("full") or data.get("raw_text") or ""
+            new_key = hashlib.sha256(
+                f"{key}|{' '.join(address.split()).lower()}".encode("utf-8")
+            ).hexdigest()[:24]
+            data["source_listing_key"] = new_key
+            org["external_id"] = generate_external_id(
+                "organization", data, (data.get("associated_airports") or [None])[0]
+            )
+            by_key[(new_key, role)] = org
+            result.append(org)
+        return result
+
+    def _attach_panel_counts(self, airport_entity: Dict[str, Any]) -> None:
+        """Record listing counts per service panel on the airport record.
+
+        ``expected`` is the number of distinct non-empty data-anchor-id values
+        (distinct names for hotels); a mismatch means listings were merged or
+        dropped, so it is reported as an error instead of passing silently.
+        """
+        counts = getattr(self, "_panel_counts", None)
+        if not counts:
+            return
+        data = airport_entity.setdefault("data", {})
+        data["organization_panel_counts"] = counts
+        mismatches = {
+            section: value for section, value in counts.items()
+            if value.get("expected") and value.get("parsed") != value.get("expected")
+        }
+        if mismatches:
+            airport_entity.setdefault("errors", []).append({
+                "field": "organization_panel_counts",
+                "error": "Parsed listing count differs from source anchors: " + json.dumps(mismatches, sort_keys=True),
+            })
+            if airport_entity.get("scrape_status") == "SUCCESS":
+                airport_entity["scrape_status"] = "PARTIAL"
+
     def _extract_vendors_from_section(self, section_name: str, role: str, 
                                      url: str, airport_icao: Optional[str]) -> List[Dict[str, Any]]:
         """Extract vendor organizations from a specific section."""
@@ -923,6 +1193,11 @@ class AirportPageParser:
                     By.CSS_SELECTOR, ".Car .bluePanelRow, div[id*='pnlCar'] .bluePanelRow"
                 ))
 
+            # Non-advert service rows hold two listings side by side, each in a
+            # direct child div.w50p.  Parse every column as its own listing so
+            # the second one is neither lost nor merged into the first.
+            vendor_blocks = self._split_listing_columns(vendor_blocks)
+
             seen = set()
             for vendor_block in vendor_blocks:
                 try:
@@ -941,11 +1216,74 @@ class AirportPageParser:
                 except Exception as e:
                     logger.debug(f"Error extracting single vendor: {e}")
                     continue
-        
+
+            self._record_panel_count(section_name, section_container, vendors)
+
         except Exception as e:
             logger.debug(f"Error in section {section_name}: {e}")
-        
+
         return vendors
+
+    @staticmethod
+    def _split_listing_columns(blocks: List[Any]) -> List[Any]:
+        """Replace two-column .bluePanelRow blocks with their listing columns.
+
+        Only direct child ``div.w50p`` columns that carry a non-empty
+        data-anchor-id or a listing name are kept; empty filler columns are
+        skipped.  Advert rows (anchor directly on the row), FBO/Fuel
+        ``.vendor`` blocks and table-like rows are returned unchanged.
+        """
+        column_xpath = f"./div[{_CLASS_XPATH.format('w50p')}]"
+        name_xpath = (
+            f".//strong[{_CLASS_XPATH.format('fs18px')}][normalize-space(.) != ''] | "
+            f".//*[{_CLASS_XPATH.format('fs18px')} and {_CLASS_XPATH.format('bold')}][normalize-space(.) != '']"
+        )
+        expanded = []
+        for block in blocks:
+            if "bluePanelRow" not in (block.get_attribute("class") or "").split():
+                expanded.append(block)
+                continue
+            columns = block.find_elements(By.XPATH, column_xpath)
+            if not columns:
+                expanded.append(block)
+                continue
+            for column in columns:
+                anchored = column.find_elements(
+                    By.XPATH, ".//a[@data-anchor-id and normalize-space(@data-anchor-id) != '']"
+                )
+                if anchored or column.find_elements(By.XPATH, name_xpath):
+                    expanded.append(column)
+        return expanded
+
+    def _record_panel_count(self, section_name: str, section_container, vendors: List[Dict[str, Any]]) -> None:
+        """Store expected (source anchors) vs parsed listing counts for a panel."""
+        if not hasattr(self, "_panel_counts"):
+            self._panel_counts = {}
+        scopes = [section_container] if section_container is not None else []
+        if section_name == "FBOs":
+            scopes = self.driver.find_elements(By.CSS_SELECTOR, "div.fbo")
+        if not scopes:
+            return
+        anchors = set()
+        names = set()
+        for scope in scopes:
+            for anchor in scope.find_elements(By.XPATH, ".//a[@data-anchor-id]"):
+                value = (anchor.get_attribute("data-anchor-id") or "").strip()
+                if value:
+                    anchors.add(value)
+            if section_name == "Hotels" and not anchors:
+                for element in scope.find_elements(
+                    By.XPATH,
+                    f".//*[{_CLASS_XPATH.format('bluePanelRow')}]"
+                    f"/*[{_CLASS_XPATH.format('fs18px')}][normalize-space(.) != '']",
+                ):
+                    names.add(" ".join(element.text.split()))
+        expected = len(anchors) or len(names)
+        parsed = len(vendors)
+        if section_name == "Hotels" and not anchors:
+            parsed = len({v["data"].get("name") for v in vendors})
+        if expected or parsed:
+            self._panel_counts[section_name] = {"expected": expected, "parsed": parsed}
 
     @staticmethod
     def _append_attribute(attributes: Dict[str, Any], label: str, value: str) -> None:
@@ -1007,6 +1345,18 @@ class AirportPageParser:
                 if value:
                     identifiers.setdefault(attribute, []).append(value)
 
+        # Hidden ASP.NET inputs (hfAcukwik_ID, hfSupplier_ID, ...).  Kept apart
+        # from ``identifiers`` until the listing key is computed so existing
+        # keys stay stable.
+        hidden_identifiers: Dict[str, List[str]] = {}
+        for hidden in vendor_block.find_elements(By.XPATH, ".//input[@type='hidden']"):
+            field_name = (hidden.get_attribute("name") or hidden.get_attribute("id") or "")
+            value = (hidden.get_attribute("value") or "").strip()
+            for suffix in _LISTING_HIDDEN_ID_FIELDS:
+                if value and field_name.endswith(suffix):
+                    hidden_identifiers.setdefault(suffix, []).append(value)
+                    break
+
         if not name:
             anchor_names = identifiers.get("data-anchor-id") or []
             if anchor_names:
@@ -1022,17 +1372,58 @@ class AirportPageParser:
         if name.lower() in generic_labels:
             return None
 
-        raw_text = "\n".join(line.strip() for line in vendor_block.text.splitlines() if line.strip())
+        # Block-aware text without <script>/<style> bodies, so adjacent label
+        # and value blocks are never glued together ("SITADXBMX7X").
+        raw_text = block_text(vendor_block)
         raw_fields: List[Dict[str, Any]] = []
         attributes: Dict[str, Any] = {}
 
         # Capture all DOM label/value pairs. Unknown labels are intentionally
-        # retained in raw_fields/attributes instead of being discarded.
+        # retained in raw_fields/attributes instead of being discarded.  The
+        # fuel price grid has its own bold header cells (Self/Full/JET A) and is
+        # parsed separately, so it is excluded here.
+        not_in_fuel_table = f"[not(ancestor::*[{_CLASS_XPATH.format('fuelTable')}])]"
         label_elements = vendor_block.find_elements(
             By.XPATH,
-            ".//*[contains(concat(' ', normalize-space(@class), ' '), ' bold ')][normalize-space(.) != '']"
+            f".//*[{_CLASS_XPATH.format('bold')}][normalize-space(.) != '']{not_in_fuel_table}"
+        )
+        # <strong>/<b> labels: "<strong>Brand </strong>PHILLIPS 66" (value is the
+        # trailing text) and "<div><strong>SITA</strong></div><div>DXBMX7X</div>".
+        strong_labels = vendor_block.find_elements(
+            By.XPATH,
+            f".//*[self::strong or self::b][not({_CLASS_XPATH.format('fs18px')})]"
+            f"[normalize-space(.) != '']{not_in_fuel_table}"
         )
         seen_pairs = set()
+        dom_labels = set()
+
+        def add_raw_field(label: str, value: str, value_element=None) -> None:
+            pair = (label.lower(), value)
+            if pair in seen_pairs:
+                return
+            seen_pairs.add(pair)
+            dom_labels.add(label.lower())
+            entry: Dict[str, Any] = {"label": label, "value": value}
+            value_lines = [line for line in value.splitlines() if line.strip()]
+            if len(value_lines) > 1:
+                # Keep the single-line value format of earlier HTTP output and
+                # preserve the block structure (address lines etc.) losslessly.
+                entry["value"] = " ".join(value_lines)
+                entry["lines"] = value_lines
+            value_links = []
+            if value_element is not None:
+                for value_link in value_element.find_elements(By.TAG_NAME, "a"):
+                    href = value_link.get_attribute("href")
+                    if href:
+                        value_links.append({
+                            "text": " ".join(value_link.text.split()),
+                            "url": urljoin(url, href),
+                        })
+            if value_links:
+                entry["links"] = value_links
+            raw_fields.append(entry)
+            self._append_attribute(attributes, label, entry["value"])
+
         for label_element in label_elements:
             label = " ".join(label_element.text.split()).strip(" :")
             if not label or label == name or len(label) > 80 or "\n" in label_element.text.strip():
@@ -1041,47 +1432,60 @@ class AirportPageParser:
             if not siblings:
                 continue
             value_element = siblings[0]
-            value = "\n".join(line.strip() for line in value_element.text.splitlines() if line.strip())
+            value = block_text(value_element)
             if not value or value == label:
                 continue
-            pair = (label.lower(), value)
-            if pair in seen_pairs:
+            add_raw_field(label, value, value_element)
+
+        for label_element in strong_labels:
+            label = " ".join(label_element.text.split()).strip(" :")
+            if not label or label == name or len(label) > 80:
                 continue
-            seen_pairs.add(pair)
-            entry: Dict[str, Any] = {"label": label, "value": value}
-            value_links = []
-            for value_link in value_element.find_elements(By.TAG_NAME, "a"):
-                href = value_link.get_attribute("href")
-                if href:
-                    value_links.append({
-                        "text": " ".join(value_link.text.split()),
-                        "url": urljoin(url, href),
-                    })
-            if value_links:
-                entry["links"] = value_links
-            raw_fields.append(entry)
-            self._append_attribute(attributes, label, value)
+            value_element = None
+            value = element_tail_text(self.driver, label_element)
+            if not value:
+                siblings = label_element.find_elements(By.XPATH, "following-sibling::*[1]")
+                if siblings:
+                    value_element = siblings[0]
+                else:
+                    # Label wrapped alone in its own cell: value is the next cell.
+                    parents = label_element.find_elements(By.XPATH, "..")
+                    if parents and " ".join(parents[0].text.split()).strip(" :") == label:
+                        siblings = parents[0].find_elements(By.XPATH, "following-sibling::*[1]")
+                        value_element = siblings[0] if siblings else None
+                value = block_text(value_element) if value_element is not None else ""
+            if not value or value.strip(" :").lower() == label.lower():
+                continue
+            add_raw_field(label, value, value_element)
 
         # Some table layouts render labels outside each row. Preserve and
-        # normalize common line-oriented fields as a fallback.
+        # normalize common line-oriented fields as a fallback.  Labels already
+        # paired from the DOM are not re-paired, and a value equal to its own
+        # label (e.g. a "Website" link under a "Website" label) is skipped.
         lines = [line.strip() for line in raw_text.splitlines() if line.strip()]
         recognized_labels = {
             "phone", "tel", "telephone", "tel after hours", "phone after hours",
-            "toll free", "toll-free", "fax", "email", "website", "address", "sita",
-            "aftn", "frequency", "remarks", "brand", "hours", "hours of operation",
-            "distance", "distance from airport", "price range",
+            "toll free", "toll-free", "toll free phone", "fax", "email", "website",
+            "address", "sita", "aftn", "frequency", "remarks", "brand", "hours",
+            "hours of operation", "distance", "distance from airport", "price range",
         }
         for index, line in enumerate(lines[:-1]):
             label = line.strip(" :")
-            if label.lower() not in recognized_labels:
+            if label.lower() not in recognized_labels or label.lower() in dom_labels:
                 continue
             value = lines[index + 1]
             pair = (label.lower(), value)
-            if value.lower() in recognized_labels or pair in seen_pairs:
+            if (
+                value.strip(" :").lower() in recognized_labels
+                or value.strip(" :").lower() == label.lower()
+                or pair in seen_pairs
+            ):
                 continue
             seen_pairs.add(pair)
             raw_fields.append({"label": label, "value": value})
             self._append_attribute(attributes, label, value)
+
+        fuel_info = self._extract_fuel_prices(vendor_block)
 
         contacts = []
 
@@ -1104,7 +1508,7 @@ class AirportPageParser:
                 continue
             if href.lower().startswith("mailto:"):
                 add_contact("email", href.split(":", 1)[1].split("?", 1)[0])
-            elif href.startswith("http") and href != source_profile_url and "acukwik.com/airport-info/" not in href.lower():
+            elif href.startswith("http") and not self._is_source_site_link(href, source_profile_url):
                 add_contact("website", href)
 
         # Resolve protected email buttons through the authenticated endpoint.
@@ -1127,11 +1531,12 @@ class AirportPageParser:
         for field in raw_fields:
             label = field["label"].lower().replace("&", "and").strip(" :")
             value = field["value"]
+            value_lines = field.get("lines") or [value]
             if label in {"phone", "tel", "telephone"}:
                 add_contact("phone", value, "Primary")
             elif label in {"tel after hours", "phone after hours", "after hours"}:
                 add_contact("phone_after_hours", value)
-            elif label in {"toll free", "toll-free", "tollfree"}:
+            elif label in {"toll free", "toll-free", "tollfree", "toll free phone", "toll-free phone"}:
                 add_contact("toll_free", value)
             elif label == "fax":
                 add_contact("fax", value)
@@ -1139,9 +1544,11 @@ class AirportPageParser:
                 add_contact("email", value)
             elif label == "website":
                 for field_link in field.get("links", []):
-                    add_contact("website", field_link.get("url"))
+                    link_url = field_link.get("url")
+                    if link_url and not self._is_source_site_link(link_url, source_profile_url):
+                        add_contact("website", link_url)
             elif label == "address":
-                address = self._parse_address(value)
+                address = self._parse_address("\n".join(value_lines))
             elif label == "sita":
                 sita_code = value
             elif label == "aftn":
@@ -1151,7 +1558,9 @@ class AirportPageParser:
             elif label == "remarks":
                 remarks = value
             elif label == "brand":
-                brands.extend(part.strip() for part in re.split(r"[,\n]", value) if part.strip())
+                brands.extend(
+                    part.strip() for part in re.split(r"[,\n]", "\n".join(value_lines)) if part.strip()
+                )
             elif label in {"distance", "distance from airport"}:
                 distance = value
             elif label == "price range":
@@ -1171,6 +1580,8 @@ class AirportPageParser:
         source_listing_key = hashlib.sha256(
             f"{airport_icao or ''}|{identity_payload}".encode("utf-8")
         ).hexdigest()[:24]
+        for key, values in hidden_identifiers.items():
+            identifiers.setdefault(key, []).extend(values)
         source_listing_id = None
         for key in ("data-anchor-id", "data-id"):
             values = identifiers.get(key) or []
@@ -1205,6 +1616,10 @@ class AirportPageParser:
             "distance_from_airport": distance,
             "price_range": price_range,
             "hours": hours,
+            "fuel_prices": fuel_info.get("fuel_prices"),
+            "fuel_price_unit": fuel_info.get("fuel_price_unit"),
+            "fuel_price_message": fuel_info.get("fuel_price_message"),
+            "fuel_prices_last_updated": fuel_info.get("fuel_prices_last_updated"),
         }
         data.update({key: value for key, value in optional_values.items() if value})
         data = validate_and_clean(data)
@@ -1223,6 +1638,77 @@ class AirportPageParser:
             "errors": [],
         }
     
+    @staticmethod
+    def _is_source_site_link(href: str, source_profile_url: Optional[str] = None) -> bool:
+        """True for AC-U-KWIK's own pages (profiles, airports), never a website."""
+        if not href:
+            return False
+        if source_profile_url and href == source_profile_url:
+            return True
+        host = urlparse(href).netloc.lower().split(":")[0]
+        if host == "acukwik.com" or host.endswith(".acukwik.com"):
+            return True
+        return bool(re.search(r"/(?:Basic-Info|Airport-Info)/", href, re.IGNORECASE)) and not host
+
+    def _extract_fuel_prices(self, vendor_block) -> Dict[str, Any]:
+        """Parse an FBO's fuel price grid and price message.
+
+        Header row (.fuelBorder1) holds the service columns (Self/Full); each
+        .fuelBorder2 row holds a fuel name and one price cell per column.
+        Empty cells are skipped rather than emitted as bogus values.
+        """
+        result: Dict[str, Any] = {}
+        prices: List[Dict[str, Any]] = []
+        for table in vendor_block.find_elements(By.XPATH, f".//*[{_CLASS_XPATH.format('fuelTable')}]"):
+            services: List[str] = []
+            headers = table.find_elements(By.XPATH, f".//*[{_CLASS_XPATH.format('fuelBorder1')}]")
+            if headers:
+                services = [" ".join(cell.text.split()) for cell in headers[0].find_elements(By.XPATH, "./div")]
+            for row in table.find_elements(By.XPATH, f".//*[{_CLASS_XPATH.format('fuelBorder2')}]"):
+                cells = row.find_elements(By.XPATH, "./div")
+                if not cells:
+                    continue
+                fuel = " ".join(cells[0].text.split())
+                for index, cell in enumerate(cells[1:], start=1):
+                    price_spans = cell.find_elements(By.XPATH, f".//*[{_CLASS_XPATH.format('price')}]")
+                    usd_spans = cell.find_elements(By.XPATH, f".//*[{_CLASS_XPATH.format('USDPrice')}]")
+                    price = " ".join((price_spans[0].text if price_spans else "").split())
+                    usd_price = " ".join(
+                        ((usd_spans[0].get_attribute("textContent") or usd_spans[0].text) if usd_spans else "").split()
+                    )
+                    if not price and not usd_price:
+                        continue
+                    entry: Dict[str, Any] = {
+                        "fuel": fuel or None,
+                        "service": services[index] if index < len(services) and services[index] else None,
+                        "price": price or None,
+                        "usd_price": usd_price or None,
+                    }
+                    if entry not in prices:
+                        prices.append(entry)
+            for unit_cell in table.find_elements(By.XPATH, f"./div[{_CLASS_XPATH.format('DNNAlignright')}]"):
+                unit = " ".join(unit_cell.text.split())
+                if unit and "fuel_price_unit" not in result:
+                    result["fuel_price_unit"] = unit
+        if prices:
+            result["fuel_prices"] = prices
+
+        messages: List[str] = []
+        for element in vendor_block.find_elements(By.XPATH, f".//*[{_CLASS_XPATH.format('fuelPriceMessage')}]"):
+            message = " ".join(
+                (element.get_attribute("textContent") or element.text or "").split()
+            )
+            if message and message not in messages:
+                messages.append(message)
+        if messages:
+            result["fuel_price_message"] = "\n".join(messages)
+            for message in messages:
+                match = re.search(r"Last Updated:\s*(.+)", message, re.IGNORECASE)
+                if match:
+                    result["fuel_prices_last_updated"] = match.group(1).strip()
+                    break
+        return result
+
     def _extract_single_vendor(self, vendor_block, role: str, url: str, 
                                airport_icao: Optional[str]) -> Optional[Dict[str, Any]]:
         """Extract single vendor/organization from a block using DOM traversal."""
@@ -1511,44 +1997,89 @@ class AirportPageParser:
             logger.debug(f"Error extracting vendor: {e}")
             return None
     
+    # "Teterboro, NJ 07608" / "Hasbrouck Heights NJ 07604"
+    _US_LOCALITY = re.compile(r"^(?P<city>.*?)[,\s]+(?P<state>[A-Z]{2})[,\s]+(?P<zip>\d{5}(?:-\d{4})?)$")
+    # "Hounslow, Middlesex TW6 3AE" / "Hayes UB3 5AN"
+    _UK_LOCALITY = re.compile(
+        r"^(?P<city>.*?)[,\s]+(?P<postcode>[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2})$", re.IGNORECASE
+    )
+    # "75008 Paris" / "Paris 75008" / "1010 Wien"
+    _LEADING_POSTCODE_LOCALITY = re.compile(r"^(?P<postcode>\d{4,6}(?:-\d{3,4})?)\s+(?P<city>\D.*)$")
+    _TRAILING_POSTCODE_LOCALITY = re.compile(r"^(?P<city>\D.*?)[,\s]+(?P<postcode>\d{4,6}(?:-\d{3,4})?)$")
+    _COUNTRY_LINE = re.compile(r"^[A-Z][A-Z .'&()-]*[A-Z.)]$")
+
     def _parse_address(self, address_text: str) -> Dict[str, Any]:
         """
         Parse address into structured components.
-        If parsing fails, store as 'full' only.
+
+        ``full`` is the single-line address (lines joined by a space, as in
+        earlier HTTP output); ``lines`` keeps the source line structure when
+        there is more than one line.  Multi-line addresses are split line by
+        line: street lines, a locality line ("City ST 12345", "Town POSTCODE")
+        and an optional all-caps country line.  ``postal_code`` keeps its
+        legacy "ST 12345" form for US addresses; ``state`` and ``zip_code``
+        hold the parts.  If parsing fails, store as 'full' only.
         """
-        address = {"full": address_text}
+        lines = [" ".join(line.split()) for line in (address_text or "").split('\n') if line.strip()]
+        address: Dict[str, Any] = {"full": " ".join(lines) if len(lines) > 1 else address_text}
         
         try:
-            # Try to extract components
-            lines = [line.strip() for line in address_text.split('\n') if line.strip()]
-            
-            # Last line often has country and postal code
-            if lines:
-                last_line = lines[-1]
-                
-                # Extract postal code (various formats)
+            if len(lines) == 1:
+                # Single-line address: no line structure to rely on.
+                last_line = lines[0]
                 postal_match = re.search(r'([A-Z]{2,3}[-\s]?\d{3,5})', last_line, re.IGNORECASE)
                 if postal_match:
                     address['postal_code'] = postal_match.group(1)
-                
-                # Extract country (uppercase words at end)
                 country_match = re.search(r'([A-Z\s]{3,})$', last_line)
                 if country_match:
                     address['country'] = country_match.group(1).strip()
-                
-                # City (second to last, or before country in last line)
-                if len(lines) > 1:
-                    second_last = lines[-2]
-                    # City might be in second-to-last line
-                    city_match = re.search(r'^([A-Za-z\s]+)', second_last)
-                    if city_match:
-                        address['city'] = city_match.group(1).strip()
-                
-                # Street (first line or lines)
-                if len(lines) > 2:
-                    address['street'] = ', '.join(lines[:-2])
-                elif len(lines) == 2:
-                    address['street'] = lines[0]
+                return address
+            if not lines:
+                return address
+
+            address['lines'] = lines
+            remaining = list(lines)
+            if self._COUNTRY_LINE.match(remaining[-1]) and not any(ch.isdigit() for ch in remaining[-1]):
+                address['country'] = remaining.pop()
+            if not remaining:
+                return address
+
+            locality = remaining.pop().rstrip(" ,")
+            city = None
+            us_match = self._US_LOCALITY.match(locality)
+            uk_match = None if us_match else self._UK_LOCALITY.match(locality)
+            if us_match:
+                city = us_match.group("city")
+                address['state'] = us_match.group("state")
+                address['zip_code'] = us_match.group("zip")
+                address['postal_code'] = f"{us_match.group('state')} {us_match.group('zip')}"
+            elif uk_match and uk_match.group("city"):
+                city = uk_match.group("city")
+                address['postal_code'] = uk_match.group("postcode").upper()
+            else:
+                numeric_match = (
+                    self._LEADING_POSTCODE_LOCALITY.match(locality)
+                    or self._TRAILING_POSTCODE_LOCALITY.match(locality)
+                )
+                if numeric_match:
+                    city = numeric_match.group("city")
+                    address['postal_code'] = numeric_match.group("postcode")
+                elif remaining:
+                    city = locality
+                else:
+                    # A lone line before the country is a street, not a city.
+                    remaining.append(locality)
+
+            if city:
+                city_parts = [part.strip() for part in city.strip(" ,").split(",") if part.strip()]
+                if city_parts:
+                    address['city'] = city_parts[0]
+                    if len(city_parts) > 1:
+                        address['region'] = ", ".join(city_parts[1:])
+
+            street_lines = [line.rstrip(" ,") for line in remaining if line.rstrip(" ,")]
+            if street_lines:
+                address['street'] = ', '.join(street_lines)
         
         except Exception as e:
             logger.debug(f"Address parsing failed: {e}")
@@ -1875,32 +2406,7 @@ class ClearanceParser:
                         continue
                     # Special handling for clearance_contacts: parse into structured contacts if possible
                     if field == "clearance_contacts":
-                        # Try to parse multiple contacts from the value
-                        contacts = []
-                        for part in value.split(". "):
-                            entry = {}
-                            # Extract type (Corporate/Private/Commercial)
-                            if ":" in part:
-                                section, rest = part.split(":", 1)
-                                entry["section"] = section.strip()
-                                rest = rest.strip()
-                            else:
-                                rest = part.strip()
-                            # Extract phone, email, web
-                            pm = re.search(r'Tel\s*([+\d\s\-().]+)', rest)
-                            if pm:
-                                entry["phone"] = pm.group(1).strip()
-                            em = re.search(r'e-mail\s*([\w\.-]+@[\w\.-]+)', rest)
-                            if em:
-                                entry["email"] = em.group(1).strip()
-                            wm = re.search(r'Web\s*([\w\.:/]+)', rest)
-                            if wm:
-                                entry["website"] = wm.group(1).strip()
-                            afs = re.search(r'AFS/AFTN\s*([A-Z0-9]+)', rest)
-                            if afs:
-                                entry["afs_aftn"] = afs.group(1).strip()
-                            if entry:
-                                contacts.append(entry)
+                        contacts = self._parse_clearance_contacts(value)
                         if contacts:
                             data[field] = contacts
                         else:
@@ -1922,11 +2428,28 @@ class ClearanceParser:
                 "Comments": "comments",
             }
             for heading_text, field_name in section_field_mapping.items():
+                # The table row is authoritative; the heading search is only a
+                # fallback for layouts without one.  Unscoped, it matched page
+                # text elsewhere (e.g. "Visa" in "Visakhapatnam").
+                if field_name in data:
+                    continue
                 try:
-                    heading = self.driver.find_element(
-                        By.XPATH,
-                        f"//*[contains(normalize-space(text()),'{heading_text}') and (self::h1 or self::h2 or self::h3 or self::h4 or self::strong or self::span or self::div)]"
+                    heading_test = (
+                        "(self::h1 or self::h2 or self::h3 or self::h4 or self::strong"
+                        " or self::span or self::div or self::td or self::th)"
                     )
+                    scope = "//div[contains(@class,'clearanceOverviewContent')]"
+                    headings = self.driver.find_elements(
+                        By.XPATH,
+                        f"{scope}//*[normalize-space(text())='{heading_text}' and {heading_test}]"
+                    ) or self.driver.find_elements(
+                        By.XPATH,
+                        f"{scope}//*[starts-with(normalize-space(text()),'{heading_text}') and {heading_test}]"
+                    )
+                    if not headings:
+                        missing_fields.append(field_name)
+                        continue
+                    heading = headings[0]
                     # Get sibling/following text block
                     try:
                         sibling = heading.find_element(
@@ -2047,6 +2570,102 @@ class ClearanceParser:
             }
 
 
+    # Labels that start a new value inside one Clearance Contacts section.
+    _CONTACT_KEYWORDS = r"(?:Tel|Fax|e-mail|Web|AFS/AFTN|SITA)"
+
+    @classmethod
+    def _parse_clearance_contacts(cls, value: str) -> List[Dict[str, Any]]:
+        """Split the Clearance Contacts text into one entry per flight category.
+
+        Example section: "Corporate/Private Flights: Curacao CAA, Tel +599 9 839
+        3319, 839 3324, e-mail civilair@gobiernu.cw, Web www.ccaa.cw/, AFS/AFTN
+        TNCCYAYX."  ``phone``/``email``/``website``/``afs_aftn`` keep the first
+        value for existing consumers; the plural keys hold every value.
+        """
+        contacts: List[Dict[str, Any]] = []
+        text = " ".join((value or "").split())
+        if not text:
+            return contacts
+        keyword = cls._CONTACT_KEYWORDS
+        sections = re.split(r"(?:^|(?<=\.)\s+)(?=[A-Z][\w/ ]*Flights?:)", text)
+        for part in sections:
+            part = part.strip()
+            if not part:
+                continue
+            entry: Dict[str, Any] = {"raw_value": part}
+            header = re.match(r"([A-Z][\w/ ]*Flights?):\s*", part)
+            if header:
+                entry["section"] = header.group(1).strip()
+                rest = part[header.end():]
+            elif ":" in part and not re.match(rf"{keyword}\b", part):
+                section, rest = part.split(":", 1)
+                entry["section"] = section.strip()
+            else:
+                rest = part
+            rest = rest.strip()
+
+            agency_match = re.match(rf"(.*?)(?:,\s*|^){keyword}\b", rest)
+            agency = (agency_match.group(1) if agency_match else rest).strip(" ,.")
+            if agency:
+                entry["agency"] = agency
+
+            def _values(label: str) -> List[str]:
+                found: List[str] = []
+                pattern = rf"(?:^|,\s*){label}\s+(.*?)(?=,\s*{keyword}\b|\.?$)"
+                for match in re.finditer(pattern, rest):
+                    # Commas inside "(ext. 5911, 5920)" belong to one number.
+                    for item in re.split(r",\s*(?![^()]*\))", match.group(1)):
+                        item = item.strip().rstrip(".;").strip()
+                        if item and item not in found:
+                            found.append(item)
+                return found
+
+            phones = _values("Tel")
+            faxes = _values("Fax")
+            emails: List[str] = []
+            for email in re.findall(r"[\w.+-]+@[\w-]+(?:\.[\w-]+)+", rest):
+                if email not in emails:
+                    emails.append(email)
+            websites: List[str] = []
+            for website in re.findall(r"(?:^|,\s*)Web\s+(\S+)", rest):
+                website = website.rstrip(".,;")
+                if website and website not in websites:
+                    websites.append(website)
+            def _codes(label: str) -> List[str]:
+                # Addresses are 7-8 character codes; skip joining words such as
+                # "& copy" or "(via ...)" around them.
+                codes: List[str] = []
+                for chunk in _values(label):
+                    for code in re.findall(r"\b(?=(?:[A-Za-z0-9]*[A-Z]){2})[A-Za-z0-9]{7,8}\b", chunk):
+                        if code not in codes:
+                            codes.append(code)
+                return codes
+
+            afs = _codes("AFS/AFTN")
+            sita = _codes("SITA")
+
+            if phones:
+                entry["phone"] = phones[0]
+                entry["phones"] = phones
+            if faxes:
+                entry["fax"] = faxes[0]
+                entry["faxes"] = faxes
+            if emails:
+                entry["email"] = emails[0]
+                entry["emails"] = emails
+            if websites:
+                entry["website"] = websites[0]
+                entry["websites"] = websites
+            if afs:
+                entry["afs_aftn"] = afs[0]
+                entry["afs_aftn_addresses"] = afs
+            if sita:
+                entry["sita"] = sita[0]
+                entry["sita_addresses"] = sita
+            contacts.append(entry)
+        return contacts
+
+
 class NearbyParser:
     """
     Parses the Nearby tab for a given airport.
@@ -2075,6 +2694,13 @@ class NearbyParser:
                 errors.append({"field": "page_load", "error": "Nearby page load timeout"})
             if getattr(self.driver, "supports_interaction", True):
                 time.sleep(2)
+
+            self._base_url = url
+            # The map script is on the first page only and lists the origin
+            # plus every nearby airport across all list pages.
+            map_markers = self.extract_map_markers(
+                getattr(self.driver, "page_source", "") or "", url
+            )
 
             page_num = 1
             max_pages = 50  # Safety limit
@@ -2109,14 +2735,45 @@ class NearbyParser:
             else:
                 missing_fields.append("nearby_airports")
 
+            extra_data: Dict[str, Any] = {}
+            if map_markers:
+                self.apply_map_markers(nearby_airports, map_markers)
+                extra_data["map_markers"] = map_markers
+                expected_count = len([m for m in map_markers if not m.get("is_origin")])
+                extra_data["expected_count"] = expected_count
+                observed_fields.append("map_markers")
+            # An empty list is a real answer (no airports nearby), not a failure.
+            table_failed = any(e.get("field") == "nearby_table" for e in errors)
+            scrape_status = "PARTIAL" if table_failed and not nearby_airports else "SUCCESS"
+            if (
+                map_markers
+                and getattr(self.driver, "supports_interaction", True)
+                and extra_data["expected_count"] != len(nearby_airports)
+            ):
+                # Browser mode walked every page itself, so the count is final.
+                scrape_status = "PARTIAL"
+                errors.append({
+                    "field": "nearby_count",
+                    "error": f"nearby row count {len(nearby_airports)} does not match expected {extra_data['expected_count']}",
+                })
+            elif not getattr(self.driver, "supports_interaction", True) and (
+                map_markers and not nearby_airports and extra_data["expected_count"]
+            ):
+                scrape_status = "PARTIAL"
+                errors.append({
+                    "field": "nearby_count",
+                    "error": f"no nearby rows parsed but the map lists {extra_data['expected_count']}",
+                })
+
             return {
                 "entity_type": "nearby_airports",
                 "external_id": f"acukwik_nearby_{icao}",
                 "url": url,
-                "scrape_status": "SUCCESS" if nearby_airports else "PARTIAL",
+                "scrape_status": scrape_status,
                 "data": {
                     "associated_airports": [icao],
                     "nearby_airports": nearby_airports,
+                    **extra_data,
                     "raw_text": "\n".join(
                         line.strip()
                         for line in self.driver.find_element(By.TAG_NAME, "body").text.splitlines()
@@ -2167,7 +2824,7 @@ class NearbyParser:
                         entry: Dict[str, Any] = {}
                         entry["raw_cells"] = [cell.text.strip() for cell in cells]
                         entry["links"] = [
-                            {"text": " ".join(link.text.split()), "url": link.get_attribute("href")}
+                            {"text": " ".join(link.text.split()), "url": self._absolute_url(link.get_attribute("href"))}
                             for link in row.find_elements(By.TAG_NAME, "a")
                             if link.get_attribute("href")
                         ]
@@ -2186,7 +2843,7 @@ class NearbyParser:
                                 entry["source_airport_id"] = identifier
                                 entry["name"] = link.text.strip()
                             if href:
-                                entry["url"] = href
+                                entry["url"] = self._absolute_url(href)
                         except Exception:
                             identifier = icao_cell.text.strip()
                             if re.fullmatch(r"[A-Z]{4}", identifier):
@@ -2222,27 +2879,30 @@ class NearbyParser:
                             line.strip() for line in div.text.splitlines() if line.strip()
                         )
                         entry["links"] = [
-                            {"text": " ".join(link.text.split()), "url": link.get_attribute("href")}
+                            {"text": " ".join(link.text.split()), "url": self._absolute_url(link.get_attribute("href"))}
                             for link in div.find_elements(By.TAG_NAME, "a")
                             if link.get_attribute("href")
                         ]
-                        # ICAO and name
+                        # ICAO and name: "LESU - Andorra-La Seu d'Urgell". Split on
+                        # the first " - " only; names contain hyphens.
                         icao_link = div.find_element(By.CSS_SELECTOR, ".col2 a")
                         href = icao_link.get_attribute("href")
+                        link_text = " ".join(icao_link.text.split())
+                        code_part, separator, name_part = link_text.partition(" - ")
                         source_match = re.search(
                             r"/Airport-Info/([^/?#]+)", href or "", re.IGNORECASE
                         )
                         identifier = (
                             source_match.group(1)
                             if source_match
-                            else icao_link.text.split("-")[0].strip()
+                            else code_part.strip()
                         )
                         if re.fullmatch(r"[A-Z]{4}", identifier):
                             entry["icao"] = identifier
                         else:
                             entry["source_airport_id"] = identifier
-                        entry["name"] = icao_link.text.split("-")[1].strip() if "-" in icao_link.text else ""
-                        entry["url"] = href
+                        entry["name"] = name_part.strip() if separator else ""
+                        entry["url"] = self._absolute_url(href)
                         # Primary Runway
                         entry["primary_runway"] = div.find_element(By.CSS_SELECTOR, ".col3.w15p.fl.p10px").text.strip()
                         # Type
@@ -2261,6 +2921,116 @@ class NearbyParser:
         except Exception as e:
             errors.append({"field": "nearby_table", "error": str(e)})
         return rows
+
+    def _absolute_url(self, href: Optional[str]) -> Optional[str]:
+        """Resolve a row link against the nearby page URL."""
+        if not href:
+            return href
+        base = getattr(self, "_base_url", None) or getattr(self.driver, "current_url", "") or ""
+        if not base or base == "about:blank":
+            return href
+        return urljoin(base, href)
+
+    _MARKER_CALL = re.compile(
+        r"addMarker(\w+)\(\s*map\s*,\s*([-+\d.]+)\s*,\s*([-+\d.]+)\s*,\s*'((?:[^'\\]|\\.)*)'"
+    )
+
+    @classmethod
+    def extract_map_markers(cls, page_source: str, url: str = "") -> List[Dict[str, Any]]:
+        """Parse the nearby map's addMarker*(map, lat, lon, '<table class="Mapdata">...')
+        calls, one entry per distinct /Airport-Info/ ID (the script repeats them).
+
+        The yellow marker, or the ID in the page URL, is the origin airport.
+        """
+        markers: List[Dict[str, Any]] = []
+        seen = set()
+        origin_match = re.search(r"/Nearby/([^/?#]+)", url or "", re.IGNORECASE)
+        origin_id = origin_match.group(1) if origin_match else None
+        for match in cls._MARKER_CALL.finditer(page_source or ""):
+            colour, lat, lon, popup = match.groups()
+            popup = popup.replace("\\'", "'")
+            id_match = re.search(r"/Airport-Info/([^/?#\"']+)", popup, re.IGNORECASE)
+            if not id_match:
+                continue
+            source_id = id_match.group(1)
+            if source_id in seen:
+                continue
+            seen.add(source_id)
+            marker: Dict[str, Any] = {
+                "source_airport_id": source_id,
+                "marker_category": colour.lower(),
+            }
+            try:
+                marker["latitude"] = float(lat)
+                marker["longitude"] = float(lon)
+            except ValueError:
+                marker["latitude_raw"], marker["longitude_raw"] = lat, lon
+            if re.fullmatch(r"[A-Z]{4}", source_id):
+                marker["icao"] = source_id
+            try:
+                table = lxml_html.fragment_fromstring(popup, create_parent="div")
+            except Exception:
+                table = None
+            fields: Dict[str, str] = {}
+            if table is not None:
+                for tr in table.iter("tr"):
+                    cells = [" ".join(td.text_content().split()) for td in tr.findall("td")]
+                    if len(cells) == 2 and cells[0]:
+                        fields[cells[0]] = cells[1]
+                for link in table.iter("a"):
+                    href = (link.get("href") or "").strip()
+                    if "/airport-info/" in href.lower():
+                        marker["url"] = urljoin(url, href) if url else href
+                    elif href and "website" not in marker:
+                        marker["website"] = urljoin(url, href) if url else href
+            if fields.get("Name"):
+                marker["name"] = fields["Name"]
+            codes = fields.get("ICAO-IATA")
+            if codes:
+                marker["codes_raw"] = codes
+                _, separator, iata = codes.partition(" - ")
+                if separator and iata.strip():
+                    marker["iata"] = iata.strip()
+            runway = fields.get("Rwy Length")
+            if runway:
+                runway_digits = runway.replace(",", "").strip()
+                marker["runway_length_ft"] = int(runway_digits) if runway_digits.isdigit() else runway
+            if "24 hours" in fields:
+                marker["hours_24"] = fields["24 hours"]
+            marker["is_origin"] = (
+                source_id == origin_id if origin_id else colour.lower() == "yellow"
+            )
+            if fields:
+                marker["raw_fields"] = fields
+            markers.append(marker)
+        return markers
+
+    _MARKER_ROW_FIELDS = (
+        "latitude", "longitude", "iata", "runway_length_ft", "website", "hours_24", "marker_category",
+    )
+
+    @classmethod
+    def apply_map_markers(cls, rows: List[Dict[str, Any]], markers: List[Dict[str, Any]]) -> int:
+        """Copy marker fields onto list rows with the same source ID; returns rows matched.
+
+        Public so rows from later list pages (which carry no map script) can be
+        enriched from the first page's markers.
+        """
+        by_id = {marker["source_airport_id"]: marker for marker in markers or []}
+        matched = 0
+        for row in rows:
+            row_id = row.get("icao") or row.get("source_airport_id")
+            if not row_id:
+                url_match = re.search(r"/Airport-Info/([^/?#]+)", row.get("url") or "", re.IGNORECASE)
+                row_id = url_match.group(1) if url_match else None
+            marker = by_id.get(row_id)
+            if not marker:
+                continue
+            matched += 1
+            for field in cls._MARKER_ROW_FIELDS:
+                if field in marker and field not in row:
+                    row[field] = marker[field]
+        return matched
 
     def _go_to_next_page(self) -> bool:
         """

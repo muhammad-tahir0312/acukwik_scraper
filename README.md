@@ -69,21 +69,30 @@ successful scrape.
 
 ## Run the scraper
 
-The default input is `country_links.csv`:
+For a complete scrape (cookie refreshes, airport-list regeneration, discovery
+passes, ETL), follow [docs/FULL_SCRAPE_RUNBOOK.md](docs/FULL_SCRAPE_RUNBOOK.md).
+
+The input is the list in `config.yaml` (`country_links_20261001.csv`, regenerated
+with `scripts/generate_airport_list.py`). Refresh `cookies.json` first:
 
 ```bash
+.venv/bin/python scripts/refresh_cookies.py
 .venv/bin/python selenium_ingestion_final/scraper.py selenium_ingestion_final/config.yaml
 ```
 
-To process at most 20 input airports, with no visible browser window:
+To process at most 20 input airports:
 
 ```bash
 .venv/bin/python selenium_ingestion_final/scraper.py --limit 20
 ```
 
-The maintained configuration uses Selenium for airport, clearance, nearby, and
-email retrieval, then parses the downloaded HTML locally. Local `.env`
-credentials are loaded automatically; no manual browser steps are part of a run.
+The default `fetch_mode: http` downloads the airport, clearance, every nearby
+page, and each organization's Basic-Info profile with the saved cookies, then
+parses the saved HTML locally. `FETCH_MODE=selenium` (or `auto`) drives a
+headless browser instead, at roughly a fifth of the speed. The cookies stop
+working after about 30 minutes; requests then fail with HTTP 403 until
+`scripts/refresh_cookies.py` is run again. A rerun with the same progress file
+resumes where it stopped.
 
 Paths are resolved relative to the config file. Useful environment overrides are:
 
@@ -91,15 +100,13 @@ Paths are resolved relative to the config file. Useful environment overrides are
 INPUT_CSV_PATH=/absolute/path/airports.csv \
 OUTPUT_DIRECTORY=/absolute/path/output \
 PROGRESS_FILE=/absolute/path/progress.json \
-PARALLEL_WORKERS=4 \
-USER_AGENT='the user agent used to obtain cookies.json' \
+PARALLEL_WORKERS=22 \
 .venv/bin/python selenium_ingestion_final/scraper.py selenium_ingestion_final/config.yaml
 ```
 
-Leave `selenium.user_agent` as `null` to use the installed Chrome's complete user
-agent. `FETCH_MODE=auto` enables HTTP with Selenium fallback; `FETCH_MODE=http`
-disables Selenium retrieval. Those HTTP modes can receive 403 even when the
-Selenium session works. The default is `FETCH_MODE=selenium`.
+HTTP requests use the Chrome 154 user agent that `scripts/refresh_cookies.py`
+logs in with; set `USER_AGENT` only together with the browser that created the
+cookies.
 
 The input CSV must contain `Airport Link`, `url`, or `link`; an `ICAO` column is recommended.
 

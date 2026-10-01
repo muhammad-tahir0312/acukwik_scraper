@@ -29,6 +29,11 @@ SECTION_ROLES: Dict[str, str] = {
 SECTION_ALIASES: Dict[str, str] = {
     "fbo": "FBOs",
     "fbos": "FBOs",
+    # The Airport-Info page titles the FBO panel "FBOs Fuel Info"; without
+    # these aliases every FBO is re-emitted as an OTHER listing.
+    "fbo fuel info": "FBOs",
+    "fbos fuel info": "FBOs",
+    "fbos and fuel info": "FBOs",
     "handler": "Handlers",
     "handlers": "Handlers",
     "ground handler": "Handlers",

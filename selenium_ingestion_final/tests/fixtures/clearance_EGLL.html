@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html  lang="en-US" dir="ltr">
+<head id="Head">
+	<!-- AirGap - Advanced Consent Override -->
+	<script>
+	self.airgap = {
+	overrides: [],
+	cookieOverrides: [],
+	...self.airgap,
+	};
+	const allowGcmAdvanced = (event) => {
+	if (event.purposes.has('GcmAdvanced')) {
+	event.allow();
+	}
+	};
+	self.airgap.overrides.push({override: allowGcmAdvanced});
+	self.airgap.cookieOverrides.push(allowGcmAdvanced);
+	</script>
+	  <script type="text/javascript">"use strict";function _typeof(t){return(_typeof="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(t){return typeof t}:function(t){return t&&"function"==typeof Symbol&&t.constructor===Symbol&&t!==Symbol.prototype?"symbol":typeof t})(t)}!function(){self.airgap?.ready||(self.airgap={readyQueue:[],ready(e){this.readyQueue.push(e)},...self.airgap});const e=()=>{const e="__tcfapiLocator",t=[],a=window;let n,s,o=a;for(;o;){try{if(o.frames[e]){n=o;break}}catch(e){}if(o===a.top)break;o=o.parent}n||(!function t(){const n=a.document,s=!!a.frames[e];if(!s)if(n.body){const t=n.createElement("iframe");t.style.cssText="display:none",t.name=e,n.body.appendChild(t)}else setTimeout(t,5);return!s}(),a.__tcfapi=function(...e){if(!e.length)return t;"setGdprApplies"===e[0]?e.length>3&&2===parseInt(e[1],10)&&"boolean"==typeof e[3]&&(s=e[3],"function"==typeof e[2]&&e[2]("set",!0)):"ping"===e[0]?"function"==typeof e[2]&&e[2]({gdprApplies:s,cmpLoaded:!1,cmpStatus:"stub"}):t.push(e)},a.addEventListener("message",(function(e){const t="string"==typeof e.data;let a={};if(t)try{a=JSON.parse(e.data)}catch(e){}else a=e.data;const n="object"==typeof a&&null!==a?a.__tcfapiCall:null;n&&window.__tcfapi(n.command,n.version,(function(a,s){let o={__tcfapiReturn:{returnValue:a,success:s,callId:n.callId}};e&&e.source&&e.source.postMessage&&e.source.postMessage(t?JSON.stringify(o):o,"*")}),n.parameter)}),!1))};airgap.ready((t=>{"TCF_EU"===t.loadOptions.consentManagerConfig.initialViewStateByPrivacyRegime[t.getRegimes()[0]]&&("undefined"!=typeof module?module.exports=e:e())}))}();</script>
+	  <script
+	data-cfasync="false"
+	data-local-sync="allow-network-observable"
+	data-prompt="1"
+	data-report-only="off"
+	data-dismissed-view-state="Collapsed"
+	data-tcf-ui-dismissed-view-state="Collapsed"
+	src="https://transcend-cdn.com/cm/ef49a3f1-d8c1-47d6-88fc-50e41130631f/airgap.js"
+	></script>
+	<!-- End AirGap -->
+	<script type="text/JavaScript">
+		var _elqQ = _elqQ || [];
+		_elqQ.push(['elqSetSiteId', '966913078']);
+		_elqQ.push(['elqTrackPageView', window.location.href]);
+
+		(function () {
+			function async_load() {
+				var s = document.createElement('script'); s.type = 'text/javascript'; s.async = true;
+				s.src = '//img.en25.com/i/elqCfg.min.js';
+				var x = document.getElementsByTagName('script')[0]; x.parentNode.insertBefore(s, x);
+			}
+			async_load(); //modification for GTM compatibility
+		})();
+	</script>
+<!-- End Eloqua tracking -->
+    
+
+<script src="/Portals/_default/Skins/acukwik/js/acukwik-adobe.js" type="text/javascript"></script>
+
+<script>
+    (function () {
+        function run() {
+            try {
+                // 1) Digital data (only if available)
+                if (window.ACUKWIK && ACUKWIK.Adobe && typeof ACUKWIK.Adobe.loadDigitalDataFromParams === "function") {
+                    ACUKWIK.Adobe.loadDigitalDataFromParams({
+                        apiBase: "/desktopmodules/Services/api/AdobeWS",
+                        tabId: 110,
+                        numResults: null,
+                        sku: "",
+                        pageUrl: (location.pathname + location.search + location.hash),
+                        referrer: (document.referrer || "")
+                    });
+                }
+
+                // 2) Cookie click binding (only if available)
+                if (window.ACUKWIK && ACUKWIK.Adobe && typeof ACUKWIK.Adobe.HomeMenuClick === "function") {
+                    ACUKWIK.Adobe.HomeMenuClick();
+                }
+            } catch (e) { }
+        }
+
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", run);
+        } else {
+            run();
+        }
+    })();
+</script>
+<script src="//assets.adobedtm.com/100e8b570010/6f645bf810b1/launch-b93c5d91f763.min.js"></script>
+<meta content="text/html; charset=UTF-8" http-equiv="Content-Type" />
+<meta name="viewport" content="initial-scale=1.0,width=device-width" />
+<!-- 
+Start of global snippet: Please do not remove
+Place this snippet between the <head> and </head> tags on every page of your site.
+-->
+<!-- Global site tag (gtag.js) - Google Marketing Platform -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=DC-9714310"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'DC-9714310');
+</script>
+<!-- End of global snippet: Please do not remove -->
+<script type='text/javascript'>
+    var script = document.createElement('script');
+    script.type = "text/javascript";
+    script.async=true;
+    script.addEventListener("load", function (event) {
+    if (window.IIRISTracker) {
+      var cfg = {};
+      cfg.config = {};
+      cfg.config.snowplow = {};
+      cfg.config.snowplow.appId = 'acukwik.com';
+      cfg.config.snowplow.cDomain = 'c.acukwik.com';
+      cfg.config.td = {};
+      cfg.config.td.lob = 'im_naaviation';
+      cfg.config.td.domain = 'acukwik'
+      cfg.config.snowplow.contentTagEnabled = false;
+
+IIRISTracker.initConfig(cfg);
+      var irisEvt = new Event("trackerLoaded");
+      window.dispatchEvent(irisEvt);
+}
+    });
+    script.src = "https://widgets.iiris.com/iiris-tracker/v3.0/iris-t.js";
+    document.getElementsByTagName('head')[0].appendChild(script);
+</script>
+<script>
+window[(function(_acf,_mt){var _1b='';for(var _SA=0;_SA<_acf.length;_SA++){var _Lz=_acf[_SA].charCodeAt();_Lz-=_mt;_Lz+=61;_mt>1;_Lz!=_SA;_Lz%=94;_1b==_1b;_Lz+=33;_1b+=String.fromCharCode(_Lz)}return _1b})(atob('YVBXeXZxbGp7Umwi'), 7)] = 'b2749cf33e1680197904'; var zi = document.createElement('script'); (zi.type = 'text/javascript'), (zi.async = true), (zi.src = (function(_nR0,_AP){var _Hs='';for(var _1w=0;_1w<_nR0.length;_1w++){_AP>4;var _AX=_nR0[_1w].charCodeAt();_AX-=_AP;_AX+=61;_Hs==_Hs;_AX%=94;_AX+=33;_AX!=_1w;_Hs+=String.fromCharCode(_AX)}return _Hs})(atob('bnp6dnlANTVweTQibzN5aXhvdnp5NGl1czUibzN6Z200cHk='), 6)), document.readyState === 'complete'?document.body.appendChild(zi): window.addEventListener('load', function(){ document.body.appendChild(zi) });
+</script><title>
+	AC-U-KWIK: Clearance Overview
+</title><meta id="MetaDescription" name="description" content="EGLL London Heathrow clearance overview includes full time zone details, local currency details and general comments." /><meta id="MetaKeywords" name="keywords" content="Corporate Pilots, Charter Dispatchers &amp;amp; Schedulers, Charter Brokers, Line Service Personnel, Flight Departments, Business Executives, Fuel Service Buyers, Customer Service Agents, Proximity Location Search, Airport Search, FBO Search, VOR Search, ICAO" /><meta id="MetaRobots" name="robots" content="INDEX, FOLLOW" /><link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.1/css/font-awesome.min.css" /><link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,700" rel="stylesheet" type="text/css" /><link href="/Portals/0-System/dnn-css-variables.css?cdv=439" rel="stylesheet" /><link href="/Resources/Shared/stylesheets/dnndefault/10.0.0/default.css?cdv=439" rel="stylesheet" /><link href="/Portals/_default/admin.css?cdv=439" rel="stylesheet" /><link href="/Portals/_default/skins/acukwik/skin.css?cdv=439" rel="stylesheet" /><link href="/Portals/0/portal.css?cdv=439" rel="stylesheet" /><script src="/Resources/libraries/jQuery/03_07_01/jquery.js?cdv=439" type="text/javascript"></script><script src="/Resources/libraries/jQuery-Migrate/03_04_01/jquery-migrate.js?cdv=439" type="text/javascript"></script><script src="/Resources/libraries/jQuery-UI/01_14_01/jquery-ui.min.js?cdv=439" type="text/javascript"></script><script src="/Resources/libraries/HoverIntent/01_10_01/jquery.hoverIntent.min.js?cdv=439" type="text/javascript"></script>
+	<!--[if IE]>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.js"></script>
+    <![endif]-->
+    <script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js"></script>
+	<script>
+    var gptadslots = [];
+    var googletag = googletag || { cmd: [] };
+</script>
+	<script type="text/javascript">
+ googletag.cmd.push(function () {
+     var mapping1 = googletag.sizeMapping().addSize([720, 540], [728, 90]).addSize([320, 240], [[320, 50], [300, 50]]).addSize([100, 100], [88, 31]).build();
+     var mapping2 = googletag.sizeMapping().addSize([990, 90], [980, 90], [970, 90], [728, 90], [320, 100], [320, 50]).build();
+     //Bottom Anchor declaration
+     gptadslots.push(googletag.defineOutOfPageSlot('/2441/acukwik.com', googletag.enums.OutOfPageFormat.BOTTOM_ANCHOR).setTargeting('pos', ['anchor']).defineSizeMapping(mapping2).addService(googletag.pubads()));
+     //Adslot 10 declaration
+     gptadslots.push(googletag.defineSlot('/2441/acukwik.com', [[320,50]], 'div-gpt-ad-6119057-10').setTargeting('pos', ['fullbanner1']).setTargeting('icao', ['EGLL']).setTargeting('siteArea', ['airport']).defineSizeMapping(mapping1).addService(googletag.pubads()));
+
+     //Adslot 5 declaration
+     gptadslots.push(googletag.defineSlot('/2441/acukwik.com', [[120,600]], 'div-gpt-ad-6119057-5').setTargeting('pos', ['skyscraper1']).setTargeting('siteArea', ['airport']).addService(googletag.pubads()));
+
+     //Adslot 11 declaration
+     gptadslots.push(googletag.defineSlot('/2441/acukwik.com', [[300,250]], 'div-gpt-ad-6119057-11').setTargeting('pos', ['lgsquare2']).setTargeting('icao', ['EGLL']).setTargeting('siteArea', ['airport']).addService(googletag.pubads()));
+
+     //Adslot 2 declaration
+     gptadslots.push(googletag.defineSlot('/2441/acukwik.com', [[120,600]], 'div-gpt-ad-6119057-2').setTargeting('pos', ['skyscraper2']).setTargeting('siteArea', ['airport']).addService(googletag.pubads()));
+
+     //Adslot 7 declaration
+     gptadslots.push(googletag.defineSlot('/2441/acukwik.com', [[320,50]], 'div-gpt-ad-6119057-7').setTargeting('pos', ['fullbanner2']).setTargeting('icao', ['EGLL']).setTargeting('siteArea', ['airport']).defineSizeMapping(mapping1).addService(googletag.pubads()));
+
+     //Adslot 14 declaration
+     gptadslots.push(googletag.defineSlot('/2441/acukwik.com', [[320,50]], 'div-gpt-ad-3632527-14').setTargeting('pos', ['fullbanner3']).setTargeting('siteArea', ['airport']).defineSizeMapping(mapping1).addService(googletag.pubads()));
+
+     googletag.pubads().enableSingleRequest();
+     googletag.pubads().collapseEmptyDivs();
+     googletag.enableServices();
+ });
+</script>
+<link rel='icon' href='/Portals/0/favicon_2026.ico?ver=rcVxVvHLakFyhFpO2nRzLQ%3d%3d' type='image/x-icon' /></head>
+<body id="Body">
+
+    <form method="post" action="/Clearance-Overview/EGLL" id="Form" enctype="multipart/form-data">
+<div class="aspNetHidden">
+<input type="hidden" name="__EVENTTARGET" id="__EVENTTARGET" value="" />
+<input type="hidden" name="__EVENTARGUMENT" id="__EVENTARGUMENT" value="" />
+<input type="hidden" name="__VIEWSTATE" id="__VIEWSTATE" value="VIEWSTATE-clearance_EGLL" />
+</div>
+
+<script type="text/javascript">
+//<![CDATA[
+var theForm = document.forms['Form'];
+if (!theForm) {
+    theForm = document.Form;
+}
+function __doPostBack(eventTarget, eventArgument) {
+    if (!theForm.onsubmit || (theForm.onsubmit() != false)) {
+        theForm.__EVENTTARGET.value = eventTarget;
+        theForm.__EVENTARGUMENT.value = eventArgument;
+        theForm.submit();
+    }
+}
+//]]>
+</script>
+
+
+<script src="/WebResource.axd?d=pynGkmcFUV0ADzfOnRUBpv3rK_50aSSPuUHVhzLLR3XQ4b9UzmHxiL-q9MA1&amp;t=639190833332169432" type="text/javascript"></script>
+
+
+<script src="/ScriptResource.axd?d=NJmAwtEo3Ipvb28UklfwIpkQF2ZpDbeKkjMECF-XTa5mE5mTRWfVXGX8s5iqHBGcJN5-ymlgQmOyu8XDSiBHXmEDvPiHV9SWYgs-c9hJOD-RVndwxad1zW9RxmXbS-kM9az72A2&amp;t=ffffffffbec1863d" type="text/javascript"></script>
+<script src="/ScriptResource.axd?d=dwY9oWetJoJSoofd0rZz-EqZbSZc2mqhUb3YHCfeXgaVdGUlfbgl2YiURnYYIE2o74d2pLZDBQf1EF06IBH8GddHVgpmt33Qdph_jHeqwr869dVJMT1ILCU9EGW2fdV2TPCaITxYETeHeDAl0&amp;t=ffffffffbec1863d" type="text/javascript"></script>
+<div class="aspNetHidden">
+
+	<input type="hidden" name="__VIEWSTATEGENERATOR" id="__VIEWSTATEGENERATOR" value="CA0B0334" />
+	<input type="hidden" name="__VIEWSTATEENCRYPTED" id="__VIEWSTATEENCRYPTED" value="" />
+	<input type="hidden" name="__EVENTVALIDATION" id="__EVENTVALIDATION" value="EVENTVALIDATION-clearance_EGLL" />
+</div>
+<script type="text/javascript">
+//<![CDATA[
+Sys.WebForms.PageRequestManager._initialize('ScriptManager', 'Form', ['tdnn$MyAccountLink1$up1','dnn_MyAccountLink1_up1','tdnn$ctr454$VDC$ctl00$TripSheetControl1$up1','dnn_ctr454_VDC_ctl00_TripSheetControl1_up1'], [], [], 5400, '');
+//]]>
+</script>
+
+        <script src="/Portals/_default/skins/acukwik/js/jquery.watermark.min.js?cdv=439" type="text/javascript"></script><script src="/Portals/_default/skins/acukwik/js/jquery.cookie.js?cdv=439" type="text/javascript"></script><script src="/Portals/_default/skins/acukwik/js/jquery.formatCurrency-1.4.0.pack.js?cdv=439" type="text/javascript"></script><script src="/Portals/_default/skins/acukwik/js/site.js?cdv=439" type="text/javascript"></script><script src="/js/dnn.modalpopup.js?cdv=439" type="text/javascript"></script><script src="/js/dnncore.js?cdv=439" type="text/javascript"></script><script src="/Resources/libraries/DnnPlugins/10_03_01/dnn.jquery.js?cdv=439" type="text/javascript"></script>
+        
+        
+        
+
+<div class="airportInfo">
+    <div class="clearboth pFixed">
+
+        <div class="leaderboard">
+            <!-- Async AdSlot 10 for Ad unit 'acukwik.com' ### Size: [[320,50]] -->
+            <!-- Adslot's refresh function: googletag.pubads().refresh([gptadslots[9]]) -->
+            <div id='div-gpt-ad-6119057-10'>
+                <script>
+                    googletag.cmd.push(function () { googletag.display('div-gpt-ad-6119057-10'); });
+                </script>
+            </div>
+            <!-- End AdSlot 10 -->
+        </div>
+        <header class="header secondary mb20px">
+            <div class="wrap">
+                <div class="clearfix">
+                    <div class="fl sidebar">
+                        <div id="TopNav">
+                            <a href="#" class="OpenMenu">Menu</a>
+                            <nav class="hide TopMenu">
+                                
+<ul>
+    <li id="dnn_TopNav1_MyAccount">
+        <a id="dnn_TopNav1_hlMyAccount" href="/Account/User/0">My Page</a>
+        <a href="/logoff.aspx" class="showonMobileTablet">Log Out</a>
+    </li>
+    
+    <li>
+        <a href="/Power-Search-Airports">Advanced</a>
+    </li>
+    <li>
+        <a href="/Map-Search">Map Search</a>
+    </li>
+    <li>
+        <a href="/Power-Search-FBO">FBOs</a>
+    </li>
+    <li>
+        <a href="/Power-Search-Heliports">Heliports</a>
+    </li>
+    <li>
+        <a href="/Account/User?d=y">Update Fuel</a>
+    </li>
+    <li>
+        <a href="https://www.aircharterguide.com/" target="_blank">Air Charter Guide</a>
+    </li>
+    <li>
+        <a href="https://marketplace.aviationweek.com/" target="_blank">Marketplace</a>
+    </li>
+    <li>
+        <a href="/Products">Products</a>
+    </li>
+    <li>
+        <a href="/Data-Licenses">Data Licenses</a>
+    </li>
+    <li>
+        <a href="/FAQ">FAQ</a>
+    </li>
+    <li>
+        <a href="/Advertise">Advertise</a>
+    </li>
+    <li>
+        <a href="/About-Us">About Us</a>
+    </li>
+</ul>
+<div class="clearboth social">
+    Follow Us:<br />
+    <br />
+    <a href="http://www.facebook.com/pages/Acukwik/100830696644032" target="_blank"><i class="fa fa-facebook" aria-hidden="true"></i></a>
+    <a href="https://twitter.com/acukwik" target="_blank">
+        <svg width="11" height="11" viewBox="0 0 1200 1227" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M714.163 519.284L1160.89 0H1055.03L667.137 450.887L357.328 0H0L468.492 681.821L0 1226.37H105.866L515.491 750.218L842.672 1226.37H1200L714.137 519.284H714.163ZM569.165 687.828L521.697 619.934L144.011 79.6944H306.615L611.412 515.685L658.88 583.579L1055.08 1150.3H892.476L569.165 687.854V687.828Z" fill="white" />
+        </svg></a>
+    <a href="https://www.linkedin.com/company/ac-u-kwik?trk=company_logo" target="_blank"><i class="fa fa-linkedin" aria-hidden="true"></i></a>
+</div>
+
+                            </nav>
+                        </div>
+                    </div>
+                    <div class="fl main_content">
+                        <div class="clearboth">
+                            <a id="dnn_dnnLOGOmobi_hypLogo" title="My Website" href="/">
+                                <img id="dnn_dnnLOGOmobi_imgLogo" src="/portals/0/web_images/header-logo.svg" />
+                            </a>
+                        </div>
+                        <div id="dnn_BasicSearch_pnlBasicSearch" class="BasicSearch" onkeypress="javascript:return WebForm_FireDefaultButton(event, &#39;dnn_BasicSearch_lbntSearch&#39;)">
+	
+    <input name="dnn$BasicSearch$txtSearch" type="text" maxlength="50" id="dnn_BasicSearch_txtSearch" class="basicSearchTXT" />
+    <a id="dnn_BasicSearch_lbntSearch" class="Search" href="javascript:__doPostBack(&#39;dnn$BasicSearch$lbntSearch&#39;,&#39;&#39;)"><i class="fa fa-search" aria-hidden="true"></i></a>
+    <div class="clearboth">
+        <div class="fl w25p"><a href="/Power-Search-Airports">Advanced</a></div>
+        <div class="fl w25p"><a href="/Map-Search" class="Proximity">Map <span>Search</span></a></div>
+        
+        <div class="clearboth"></div>
+    </div>
+
+</div>
+
+
+                    </div>
+                    <div class="fl sidebar">
+                        
+
+<ul class="hideonMobile">
+    
+    
+    <li id="dnn_MyAccountLink1_MyAccount" class="myAccount">
+        <a id="dnn_MyAccountLink1_hlMyAccountMain" href="/Account"><span id="dnn_MyAccountLink1_ltrMyAccount" class="accountName">TEST USER</span>
+            <span class="ownAvatar">
+                <span class="avatar">
+                    <img id="dnn_MyAccountLink1_imgMy1" src="/extimages/avatar/0.png" alt="TEST USER" /></span>
+            </span>
+        </a>
+    </li>
+</ul>
+
+<div class="myAccountMenu">
+    <ul>
+        <li>
+            <a id="dnn_MyAccountLink1_hlMyAccount" href="/Account">My Page</a></li>
+        <li><a href="/logoff.aspx">Log Out</a></li>
+    </ul>
+</div>
+<div id="dnn_MyAccountLink1_up1">
+	
+        
+        <div id="dnn_MyAccountLink1_UpdateProgress1" style="display:none;">
+		
+                <div class="divprogress" id="progress"></div>
+            
+	</div>
+    
+</div>
+
+                    </div>
+                </div>
+            </div>
+        </header>
+    </div>
+    <main class="wrap airportInfoWrap clearfix">
+        <section class="fl sidebar">
+            <div class="skyscraper">
+                <!-- Async AdSlot 5 for Ad unit 'acukwik.com' ### Size: [[120,600]] -->
+                <!-- Adslot's refresh function: googletag.pubads().refresh([gptadslots[4]]) -->
+                <div id='div-gpt-ad-6119057-5'>
+                    <script>
+                        googletag.cmd.push(function () { googletag.display('div-gpt-ad-6119057-5'); });
+                    </script>
+                </div>
+                <!-- End AdSlot 5 -->
+            </div>
+        </section>
+        <section class="fl main_content">
+            <div class="clearboth">
+                <div id="dnn_ContentPane"><div class="DnnModule DnnModule-DynamicControl DnnModule-454"><a name="454"></a><div id="dnn_ctr454_ContentPane"><!-- Start_Module_454 --><div id="dnn_ctr454_ModuleContent" class="DNNModuleContent ModDynamicControlC">
+	<div id="dnn_ctr454_VDC_ContentPane" class="">
+<section class="clearanceOverviewWrap">
+    <h1>Clearance Overview at
+        EGLL/London Heathrow</h1>
+    <h2>
+        London, UNITED KINGDOM</h2>
+    <p>
+        ICAO - EGLL, IATA - LHR</p>
+    <div id="dnn_ctr454_VDC_ctl00_TripSheetControl1_divMainNav" class="clearfix arptMainLinks">
+    <a id="dnn_ctr454_VDC_ctl00_TripSheetControl1_hlOverView" href="/Airport-Info/EGLL">Overview</a>
+    
+    <a id="dnn_ctr454_VDC_ctl00_TripSheetControl1_hlWeather" href="/Weather/EGLL">Weather</a>
+    <a id="dnn_ctr454_VDC_ctl00_TripSheetControl1_hlClearances" href="/Clearance-Overview/EGLL">Clearance</a>
+    <a id="dnn_ctr454_VDC_ctl00_TripSheetControl1_hlPassport" href="/Passport-Visa-Health/EGLL">Visa/Health</a>
+    <a id="dnn_ctr454_VDC_ctl00_TripSheetControl1_hlNOTAMS" href="/NOTAMs/EGLL">NOTAMs</a>
+    
+    <a id="dnn_ctr454_VDC_ctl00_TripSheetControl1_hlNearby" href="/Nearby/EGLL">Nearby</a>
+    <a id="dnn_ctr454_VDC_ctl00_TripSheetControl1_hlFuelFinder" href="/Airport-Fuel-Finder/EGLL">Fuel Finder</a>
+    <a id="dnn_ctr454_VDC_ctl00_TripSheetControl1_hlPrintTripSheet" href="javascript:__doPostBack(&#39;dnn$ctr454$VDC$ctl00$TripSheetControl1$hlPrintTripSheet&#39;,&#39;&#39;)">Trip Sheet</a>
+    
+</div>
+<div id="dnn_ctr454_VDC_ctl00_TripSheetControl1_up1">
+		
+        
+        <div id="dnn_ctr454_VDC_ctl00_TripSheetControl1_UpdateProgress1" style="display:none;">
+			
+                <div class="divprogress" id="progress"></div>
+            
+		</div>
+    
+	</div>
+
+    <div class="clearanceOverviewContent">
+        
+                <table>
+            
+                <tr>
+                    <td class="grayBg">Country</td>
+                    <td>UNITED KINGDOM</td>
+                </tr>
+            
+                <tr>
+                    <td class="grayBg">Country Phone Code</td>
+                    <td>44</td>
+                </tr>
+            
+                <tr>
+                    <td class="grayBg">Currency</td>
+                    <td>Pound (GBP)</td>
+                </tr>
+            
+                <tr>
+                    <td class="grayBg">Exchange Guide</td>
+                    <td>GBP 0.75</td>
+                </tr>
+            
+                <tr>
+                    <td class="grayBg">Time Zone</td>
+                    <td>UTC +0, DST starts on the last Sunday in March, at 0100 local & ends on the last Sunday in October at 0200 local.</td>
+                </tr>
+            
+                <tr>
+                    <td class="grayBg">General Information</td>
+                    <td>Regulatory Overview:  Private and corporate operators with aircraft registered in an ICAO contracted state, and on a flight plan, do not require prior permission to overfly or land in the United Kingdom (UK) but charter operators do need a charter permit from the CAA. They will also need UK Third Country Operator (TCO) approval which can take 2-3 weeks to obtain.  Aviation Rules/Regulations: When you are told 'No Delay Expected', know that this could mean that up to 20 min holding will be required. There are approach bans in force in the UK that apply to all registrations and types of flight when weather conditions are below your minima. Ambulance pilots might need to check if their flights require them to land at a Sanitary Airport.  Navigation: The largest and busiest international airport of entry is London Heathrow Airport (EGLL/LHR), located in the southern region of the UK, 27 km west (a 40-minute drive) from the capital city centre of London. RNP is available on all runways. The second busiest international airport of entry is London Gatwick Airport (EGKK/LGW), 45 km south (a 70-minute drive) of London city centre. It is a good alternate for General Aviation (GA). RNP is available on all runways. The third busiest international airport of entry, and one more centrally located in the UK, is Manchester Airport (EGCC/MAN), located in the western central region of the UK, 15 km south of the city centre of Manchester. RNP is available on 23L. The busiest international airport of entry in Scotland is Edinburgh Airport (EGPH/EDI), located in the northern region of the UK, 14 km east (a 27-minute drive) from the Edinburgh city centre. Check your minima and do not fly below 1,000 ft if the RVR is below your minimums (‘approach ban’). You cannot conduct a Cat II or III approach unless previously been cleared by the UK CAA. Time-based separation minima in use, see AIC P 001/2015.  Arrivals/Departures: Major airports in the UK do get very busy and that the term 'Fuel Emergency' has no legal meaning in the UK. Carry healthy fuel reserves and if those dissipate, make a prompt decision to divert. All inbound flights returning from a malarial country are expected to have been sprayed at the top of descent to meet local disinsection requirements. There are Customs requirements that apply according to your point of departure or destination:- 1) If you are arriving from outside the European Union (EU), you must i) advise Customs and Immigration of your arrival in a timely manner (in advance, through your handler); ii) use a Customs designated airport or ensure you have dispensation if requesting a non-designated airport; iii) if you are carrying alcohol or tobacco products, fill a Form C209; iv) complete a Crew Declaration Form (C911); v) Submit the new online General Aviation Report (sGAR) Form - updated by the General Aviation (Persons on Board, Flight Information and Civil Penalties) Regulations 2024 - between 48 and 2 hours prior to arrival (note new penalties for breaching these regulations, of up to a GBP10,000 fine); vi) Duty/VAT: if you intend to fly into (and within) the EU for any substantive period of time, and particularly if this will entail carrying any EU nationals on board either as passengers or crew, you will need to take advice concerning import requirements. In order for the aircraft to be in 'free circulation’ on such flights you may well find you are required to import the aircraft at your first point of entry into the EU - which generally involves payment of VAT. VAT rates vary throughout the EU. In the UK the rate is now 20%, payable if the aircraft was to stay in the UK for an extended period of more than 6 months (assuming it qualifies for Temporary Admission (TA)). 2) If you are leaving for a destination outside the EU: i) you must leave from a Customs designated airport, unless you have been granted special dispensation; ii) fill in another General Aviation Report (GAR) submitting it at least 24 hours prior to departure and return your Form C209; iii) you must not land again at another airport in the UK, unless it is a Customs airport or you have Customs prior permission. 3) Flights from another EU country: i) again, Customs must be advised; ii) fill a General Aviation Report (GAR) and submit it at least 4 hours prior to arrival; iii) you may chose to land at either a designated airport or at one of an ever-growing list of airfields that Customs have approved; iv) Duty/VAT: if you have already completed import formalities in an EU country, this will not satisfy the UK for VAT as it is now separate. 4) Flights to the EU: i) inform Customs you are leaving (normally via your FBO/handler). Note: Immigration is a separate issue. Non-EU nationals may have their passports checked in all cases & will generally have restrictions imposed on their length of stay; ii) fill in a General Aviation Report (GAR). Customs attendance outside their normal hours will involve overtime charges. VAT refunds: where possible, ensure that receipts are in the name of the company making the claim and not the individual. Claims had been rejected in the past. Aviation Passenger Duty in force that now affects all aircraft above 5,700 kg using Avtur. Note that Northern Ireland utilises a different set of rates, and the Isle of Man is not part of the UK so APD does not apply. Returns are expected to have been filed within 7 days of a chargeable flight. Remember that if you have been required, or advised, to import your aircraft it is your responsibility to see it is properly re-exported. Exceptionally for customs purposes, your aircraft should be declared as ‘commercial’ and not ‘private’ as long as it is flown by professional, remunerated crew. Arrivals and departures between the UK, Republic of Ireland, Northern Ireland, Isle of Man and the Channel Islands are additionally covered by the Terrorism Act 2000. You must make sure your handler advises Special Branch of your intentions 12 hours in advance. For Air Passenger Duty (APD) for flights from the UK, from 1 April 2026 there is a new Higher Rate for aircraft over 20 tons MTOW and equipped to carry fewer than 19 passengers. In these cases, the charge now goes from GBP142 a passenger (domestic and band A, which is to a destination 2,000 statute miles or less distance from London) to GBP1097 per person (2,000 to 5,500 miles) and jump to GBP1141 per person on destinations over 5,500 miles from London. All aircraft operating into a military base in the UK (including RAF Northolt) are required to have insurance that includes a Crown Indemnity clause. A General Aviation Report (GAR) must be completed online (via an approved app) for UK Border Force on all foreign arrivals and every departure, irrespective if your departure or arrival was from a designated airport or not. You can also register online at www.submit-general-aviation-report.service.gov.uk and from 31 October 2025 you will be required to log in via a GOV.UK ONE LOGIN account (formerly Government Gateway). There is an emergency GAR hotline that should only be used in cases that cannot be made online, and are of an emergency nature. When departing from any London area airport, and on first contact with airways, the call should be the SID you are attempting, your passing level, and your initial climb level. The CAA has released an Aeronautical Information Circular (AIC) on the subject. Expect to relegate high-speed departures to history, at least within the London Terminal Maneuvering Area (TMA). The same applies for those spectacular climbs, maximum climb is now capped at 8,000 fpm and you are expected to smooth out the level-off. Note that full security screening is required for any commercial (including charter) flight with an aircraft with MTOW greater than 10,000 kg (22,000 lbs) and also for any private flight using an aircraft with MTOW greater than 100,309 lbs (45.5 t). Book well in advance as many airports are overstretched. Forms Required/Notice Period: All crew and passengers must have a passport valid for the duration of your stay in the UK. At least six months’ remaining validity is required for onward travel to many countries. No visa is required for stays less than six months. Visitors from a list of countries who are 12 or over (under 18s need to be accompanied by an adult) and have biometric passports are able to use ePassport Gates upon arrival in the UK. If you have previously registered for the UK’s Registered Traveller Services (RTS), also use the ePassport Gates on arrival.  </td>
+                </tr>
+            
+                <tr>
+                    <td class="grayBg">WGS-84</td>
+                    <td>All coordinates published by the UK authorities for use in aeronautical navigation conform to WGS-84.</td>
+                </tr>
+            
+                <tr>
+                    <td class="grayBg">Visa</td>
+                    <td>For regular visitors over 18, the Registered Traveller Service, similar to the US Global Entry programme, is available to citizens from a list of countries including Australia, Canada, Hong Kong (SAR passports only), Japan, New Zealand, S Korea, Singapore, Taiwan & USA. Successful applicants will be able to use UK entry lanes & ePassport gates at a growing number of airports for a cost of GBP70 per year. Visit www.gov.uk/registered-traveller. GBP50 is returned for unsuccessful applications.</td>
+                </tr>
+            
+                <tr>
+                    <td class="grayBg">Documentation</td>
+                    <td></td>
+                </tr>
+            
+                <tr>
+                    <td class="grayBg">Application Format</td>
+                    <td>No prior application required for private/corporate flights.</td>
+                </tr>
+            
+                <tr>
+                    <td class="grayBg">Clearance Contacts</td>
+                    <td>Corporate/Private Flights: Civil Aviation Authority, Foreign Registered Aircraft Permits Department, Tel +44 33 0138 3484, e-mail <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="1f79706d7a7678717c7e6d6d767a6d6f7a6d72766b6c5f7c7e7e317c70316a74">[email&#160;protected]</a>, Web www.caa.co.uk/. Commercial Flights: Civil Aviation Authority, Foreign Registered Aircraft Permits Department, Tel +44 20 7453 6436, e-mail <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="c6a0a9b4a3afa1a8a5a7b4b4afa3b4b6a3b4abafb2b586a5a7a7e8a5a9e8b3ad">[email&#160;protected]</a>, Web www.caa.co.uk.</td>
+                </tr>
+            
+                <tr>
+                    <td class="grayBg">Comments</td>
+                    <td>Political/Economic Overview: The government is a parliamentary democracy, a constitutional monarchy and a Commonwealth realm. King Charles III is the monarch and head of state of the UK, as well as 14 other countries referred to as ‘Commonwealth Realms’. The parliamentary democracy is made up of the House of Commons and the House of Lords. It is led by a Prime Minister who is the head of government. The economy is a high-income and diversified non-EU European economy (voted to leave EU in 2016, departed 2020, but retained many of its laws which Parliament is now free to repeal or change).  Geography/Environment/Natural Disasters: Natural hazards include winter storms and floods.  Advice for Key Airports: EGLL/Heathrow: Taxiing is by blocks and not by taxiway numbers. If unsure of your position, request progressive taxi instructions. EGSS/Stansted: Slots in effect. As long as you apply for one at least the day before you need it, you will usually get what you want. Trying to get one on the day is an exercise in futility. Stansted is the only airport that is genuinely H24. EGGW/Luton: Parking can reach saturation levels. Once the GA parking areas are full, repositioning to another airport is the only option. EGLC/London City: EGKB/Biggin Hill has extended its operating hours though there is a per-movement surcharge for ops before 0700L and after 2100L weekdays, and after 2000L at weekends. Aircraft arriving before 0700L must meet Chapter 4 noise standards. There are several on-site airport hotels at EGLL/London and EGKK/Gatwick, and one at EGPH/Edinburgh, and none at EGCC/Manchester. Hotels are a five minute drive from these airports.  Safety Advice for Crew: The security threat is medium Level 2 ‘Exercise increased precautions’ due to risk of terrorism. There is the potential for isolated violence related to the political situation in Northern Ireland. The UK crime rate is low. Take normal precautions. Public transportation in the UK is extensive. Buses and the London Underground (subway system) are safe and reliable. Use only licensed black cabs or pre-ordered car services. Many cities also have tram services.  Currency Limits: The currency used is the Pound Sterling (GBP). There are no currency restrictions for entry or exit.  Health: While medical services are widely available, free medical care under the National Health System (NHS) is allowed only for residents, certain European Union (EU) nationals and some visa holders. An NHS surcharge is assessed on certain visa applicants at the time of application. Tourists and short-term visitors will not face the surcharge but will be charged 150 percent of the cost of any medical treatment they receive from the NHS. Unpaid balances of GBP1,000 or more can result in being barred from return to the UK. Ambulance services are widely available. In case of serious illness or injury, take a private car or taxi to the nearest medical facility rather than wait. Bring all medications with you as required in original packaging along with the doctor’s prescription.  Local Cultural Considerations: The primary language used is English. Christian (Protestant) is the main religion followed by Roman Catholic and Islam.</td>
+                </tr>
+            </table>
+    </div>
+    
+    
+    <div class="redNoteFull clearfix">
+        <div class="fl w7p">
+            <p class="redNoteFullIcon"><i class="fa fa-hand-paper-o"></i></p>
+        </div>
+        <div class="fl w93p">
+            <p>Clearance information includes full time zone details, local currency details and strictly personal comments covering all countries in the world.</p>
+            <p class="redNoteFullRemember"><span class="bold">REMEMBER:</span> The basic premise throughout this guide is that you will be operating a private or corporate aircraft registered in an ICAO contracted state. If you are a commercial/air taxi operator OR fly an aircraft registered in a non-contracted country — <span class="bold">CHECK AGAIN!</span> Different rules or requirements may/do apply.</p>
+        </div>
+    </div>
+</section>
+</div>
+</div><!-- End_Module_454 --></div>
+</div></div>
+            </div>
+        </section>
+        <section class="fl sidebar">
+            <div class="skyscraper fr">
+                <!-- Async AdSlot 2 for Ad unit 'acukwik.com' ### Size: [[120,600]] -->
+                <!-- Adslot's refresh function: googletag.pubads().refresh([gptadslots[1]]) -->
+                <div id='div-gpt-ad-6119057-2'>
+                    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+                        googletag.cmd.push(function () { googletag.display('div-gpt-ad-6119057-2'); });
+                    </script>
+                </div>
+                <!-- End AdSlot 2 -->
+            </div>
+        </section>
+        <div class="clearboth">
+            
+<section class="wrap clearfix">
+    
+    
+    
+</section>
+
+        </div>
+    </main>
+    <div class="clearboth">
+        <div class="leaderboard">
+            <!-- Async AdSlot 7 for Ad unit 'acukwik.com' ### Size: [[320,50]] -->
+            <!-- Adslot's refresh function: googletag.pubads().refresh([gptadslots[6]]) -->
+            <div id='div-gpt-ad-6119057-7'>
+                <script>
+                    googletag.cmd.push(function () { googletag.display('div-gpt-ad-6119057-7'); });
+                </script>
+            </div>
+            <!-- End AdSlot 7 -->
+        </div>
+    </div>
+    <footer id="footer">
+    <div class="topFooter">
+        <div class="clearfix">
+            <div class="logo fl w33p">
+                <a href="http://aviationweek.com/" target="_blank">
+                    <img class="footer-logo" src="/portals/0/web_images/AW_logo_stacked_small_white.png" /></a>
+            </div>
+            <ul class="w15p pt30px fl footer-first-submenu">
+                <li><a href="/About-Us">About Us</a></li>
+                <li><a href="/Products">Products</a></li>
+                <li><a href="/Data-Licenses">Data Licenses</a></li>
+                <li><a href="/Power-Search-Airports">Advanced Search</a></li>
+                <li><a href="https://www.acukwikalert.com/" target="_blank">News</a></li>
+            </ul>
+            <ul class="w25p pt30px fl footer-second-submenu">
+                <li><a href="/Account/User?d=y">Update Fuel</a></li>
+                <li><a href="/Contact-Us">Contact Us</a></li>
+                <li><a href="/FAQ">FAQ</a></li>
+                <li><a href="/Glossary">AC-U-KWIK Abbreviations</a></li>
+                <li><a href="/Advertise">Advertise</a></li>
+            </ul>
+            <div class="w20p fl pt30px footer-social">
+                <span>Follow Us:</span>
+                <div class="icons">
+                    <a class="facebook" href="http://www.facebook.com/pages/Acukwik/100830696644032" target="_blank"><i class="fa fa-facebook" aria-hidden="true"></i></a>
+                    <a class="x" href="https://x.com/acukwik" target="_blank">
+                        <svg width="1200" height="1227" viewBox="0 0 1200 1227" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M714.163 519.284L1160.89 0H1055.03L667.137 450.887L357.328 0H0L468.492 681.821L0 1226.37H105.866L515.491 750.218L842.672 1226.37H1200L714.137 519.284H714.163ZM569.165 687.828L521.697 619.934L144.011 79.6944H306.615L611.412 515.685L658.88 583.579L1055.08 1150.3H892.476L569.165 687.854V687.828Z" fill="white" />
+                        </svg>
+                    </a>
+                    <a class="linkedin" href="https://www.linkedin.com/company/ac-u-kwik?trk=company_logo" target="_blank"><i class="fa fa-linkedin" aria-hidden="true"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="informaFooter">
+        <div class="clearfix">
+            <a href="https://www.informamarkets.com" target="_blank">
+                <img src="/Portals/0/web_images/Informa_Markets_Logo_1Line_White_Grad_RGB_1024.png" alt="Informa Markets" />
+            </a>
+            <span id="dnn_dnnCopyright_lblCopyright" class="Copyright">Copyright &copy; 2026. All rights reserved. Informa Markets, a trading division of Informa PLC.</span>
+
+        </div>
+    </div>
+    <div class="footerLinks">
+        <div class="clearfix">
+            <ul class="clearfix">
+                <li>
+                    <a href="http://www.informamarkets.com/accessibility" target="_blank">Accessibility<span class="separator">|</span></a>
+                </li>
+                <li>
+                    <a href="https://www.Informa.com/Privacy-Policy/" target="_blank">Privacy Policy <span class="separator">|</span></a>
+                </li>
+                <li>
+                    <a href="https://www.informamarkets.com/en/cookie-policy.html" target="_blank">Cookie Policy<span class="separator">|</span></a>
+                </li>
+                <li>
+                    <a href="http://www.informamarkets.com/terms-of-use/" target="_blank">Terms of Use</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</footer>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'DC-9714310');
+    function pixelfire() {
+        var source = '9714310';
+        var type = 'invmedia';
+        var cat = 'rtacu0';
+        var pagep = window.location.pathname;
+        var axel = Math.random() + "";
+        var num = axel * 1000000000000000000;
+        var tag_url = new Image();
+        tag_url.src = "https://ad.doubleclick.net/ddm/activity/src=" + source + ";type=" + type + ";cat=" + cat + ";ord=1;num=" + num + ";u1=" + pagep + "?";
+        document.body.appendChild(tag_url);
+    };
+    window.onload = function () {
+        pixelfire();
+    };
+</script>
+<script>
+    (function (w, d, t) {
+        _ml = w._ml || {};
+        _ml.eid = '62439';
+        var s, cd, tag; s = d.getElementsByTagName(t)[0]; cd = new Date();
+        tag = d.createElement(t); tag.async = 1;
+        tag.src = 'https://ml314.com/tag.aspx?' + cd.getDate() + cd.getMonth();
+        s.parentNode.insertBefore(tag, s);
+    })(window, document, 'script');
+</script>
+
+</div>
+
+
+
+
+
+        <input name="ScrollTop" type="hidden" id="ScrollTop" />
+        <input name="__dnnVariable" type="hidden" id="__dnnVariable" autocomplete="off" value="`{`dnn_current_userid`:`0`}" />
+        
+        
+    
+
+<script type="text/javascript">
+//<![CDATA[
+Sys.Application.add_init(function() {
+    $create(Sys.UI._UpdateProgress, {"associatedUpdatePanelId":"dnn_MyAccountLink1_up1","displayAfter":500,"dynamicLayout":true}, null, null, $get("dnn_MyAccountLink1_UpdateProgress1"));
+});
+Sys.Application.add_init(function() {
+    $create(Sys.UI._UpdateProgress, {"associatedUpdatePanelId":"dnn_ctr454_VDC_ctl00_TripSheetControl1_up1","displayAfter":500,"dynamicLayout":true}, null, null, $get("dnn_ctr454_VDC_ctl00_TripSheetControl1_UpdateProgress1"));
+});
+//]]>
+</script>
+</form>
+    
+	<script language="JavaScript" type="text/javascript"><!--
+if (navigator.appVersion.indexOf('MSIE') >= 0) document.write(unescape('%3C') + '!' + '')
+//--></script>
+</body>
+</html>

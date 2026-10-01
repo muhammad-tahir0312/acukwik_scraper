@@ -91,3 +91,6 @@ cookies_old.json
 *.pgpass
 *.dump
 *.backup
+
+# Cookie jars and their backups (session credentials)
+cookies.backup_*.json
