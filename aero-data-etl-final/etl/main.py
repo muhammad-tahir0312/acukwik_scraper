@@ -108,7 +108,9 @@ def main(input_path):
                         cur.execute(APP_LOG_INSERT, [str(exc), json.dumps({
                             'run_id': str(run_id), 'stack': stack, 'raw': record,
                         })])
-            backfill_association_links()
+        # Records link themselves as they load; this catches references to airports
+        # that arrived later in the file. It scans whole tables, so run it once per
+        # file rather than per batch (per batch made large imports quadratic).
         backfill_association_links()
         if not failed:
             reconcile_listing_roles({

@@ -9,6 +9,22 @@ import hashlib
 import json
 import re
 
+# An airport reference is an ICAO code or an AC-U-KWIK source ID. A code can match
+# both the scraped airport and a stub created from another airport's nearby list,
+# so prefer the scraped row, then an exact ICAO match, then the oldest row.
+AIRPORT_BY_REFERENCE = """
+SELECT id FROM airports
+WHERE icao = %s OR source_airport_id = %s
+ORDER BY (scrape_status IS NULL), (icao = %s) DESC NULLS LAST, id
+LIMIT 1
+"""
+
+
+def find_airport_id(cur, reference):
+    cur.execute(AIRPORT_BY_REFERENCE, [reference, reference, reference])
+    row = cur.fetchone()
+    return row['id'] if row else None
+
 
 logger = logging.getLogger(__name__)
 
@@ -504,13 +520,9 @@ def upsert_entity(org, airport_id=None, listing_observer=None):
             linked_airport_ids.add(airport_id)
 
         for assoc_icao in associated_airports:
-            cur.execute(
-                "SELECT id FROM airports WHERE icao=%s OR source_airport_id=%s",
-                [assoc_icao, assoc_icao],
-            )
-            airport_row = cur.fetchone()
-            if airport_row:
-                linked_airport_ids.add(airport_row['id'])
+            found_airport_id = find_airport_id(cur, assoc_icao)
+            if found_airport_id:
+                linked_airport_ids.add(found_airport_id)
 
         if not associated_airports and normalized_url:
             cur.execute(
@@ -619,13 +631,9 @@ def upsert_clearance(clearance, airport_id=None):
         else:
             # Standalone record: references can be ICAO codes or AC-U-KWIK path IDs.
             for airport_reference in (clearance.get('associated_airports') or []):
-                cur.execute(
-                    "SELECT id FROM airports WHERE icao=%s OR source_airport_id=%s",
-                    [airport_reference, airport_reference],
-                )
-                row = cur.fetchone()
-                if row:
-                    cur.execute(AIRPORT_CLEARANCE_LINK, [row['id'], clearance_id])
+                found_airport_id = find_airport_id(cur, airport_reference)
+                if found_airport_id:
+                    cur.execute(AIRPORT_CLEARANCE_LINK, [found_airport_id, clearance_id])
         return clearance_id
 
 def upsert_nearby_airports(nearby, airport_id=None):
@@ -639,6 +647,18 @@ def upsert_nearby_airports(nearby, airport_id=None):
             source_airport_id = COALESCE(EXCLUDED.source_airport_id, airports.source_airport_id)
         RETURNING id;
     """
+
+    def stub_airport_id(cur, icao, source_airport_id, airport_external_id, item):
+        # Reuse the airport if it already exists (scraped or stub) so FAA and
+        # code-less airports are not duplicated under a second external ID.
+        existing = find_airport_id(cur, icao or source_airport_id)
+        if existing:
+            return existing
+        cur.execute(UPSERT_MINIMAL_AIRPORT, [
+            icao, source_airport_id, airport_external_id, item.get('name'),
+            item.get('airport_type'), item.get('url')
+        ])
+        return cur.fetchone()['id']
 
     def airport_identity(item):
         icao = item.get('icao')
@@ -655,11 +675,7 @@ def upsert_nearby_airports(nearby, airport_id=None):
     if nearby.get('icao') or nearby.get('source_airport_id'):
         icao, source_airport_id, airport_external_id = airport_identity(nearby)
         with get_db_cursor(commit=True) as cur:
-            cur.execute(UPSERT_MINIMAL_AIRPORT, [
-                icao, source_airport_id, airport_external_id, nearby.get('name'),
-                nearby.get('airport_type'), nearby.get('url')
-            ])
-            nearby_airport_id = cur.fetchone()['id']
+            nearby_airport_id = stub_airport_id(cur, icao, source_airport_id, airport_external_id, nearby)
             if airport_id:
                 cur.execute(AIRPORT_NEARBY_LINK, [airport_id, nearby_airport_id])
         return nearby_airport_id
@@ -700,28 +716,26 @@ def upsert_nearby_airports(nearby, airport_id=None):
         ])
         nearby_record_id = cur.fetchone()['id']
 
+        # Resolve the parent airport(s) once, not once per nearby row.
+        parent_airport_ids = []
+        if not airport_id:
+            for icao in (nearby.get('associated_airports') or []):
+                found_airport_id = find_airport_id(cur, icao)
+                if found_airport_id:
+                    parent_airport_ids.append(found_airport_id)
+
         # Upsert each nearby airport into airports table and create links
         for item in (nearby.get('nearby_airports') or []):
             icao, source_airport_id, airport_external_id = airport_identity(item)
             if not airport_external_id:
                 continue
-            cur.execute(UPSERT_MINIMAL_AIRPORT, [
-                icao, source_airport_id, airport_external_id, item.get('name'),
-                item.get('airport_type'), item.get('url')
-            ])
-            item_airport_id = cur.fetchone()['id']
+            item_airport_id = stub_airport_id(cur, icao, source_airport_id, airport_external_id, item)
 
             if airport_id:
                 cur.execute(AIRPORT_NEARBY_LINK, [airport_id, item_airport_id])
             else:
-                for icao in (nearby.get('associated_airports') or []):
-                    cur.execute(
-                        "SELECT id FROM airports WHERE icao=%s OR source_airport_id=%s",
-                        [icao, icao],
-                    )
-                    row = cur.fetchone()
-                    if row:
-                        cur.execute(AIRPORT_NEARBY_LINK, [row['id'], item_airport_id])
+                for parent_id in parent_airport_ids:
+                    cur.execute(AIRPORT_NEARBY_LINK, [parent_id, item_airport_id])
 
         return nearby_record_id
 
@@ -744,26 +758,39 @@ def backfill_association_links():
             """
         )
 
+        # A reference is an ICAO code or an AC-U-KWIK source ID. Matching through one
+        # code->id set (instead of "icao = x OR source_airport_id = x") gives the same
+        # pairs but lets PostgreSQL hash-join instead of scanning airports per row.
         cur.execute(
             """
+            WITH airport_codes AS (
+                SELECT icao AS code, id FROM airports WHERE icao IS NOT NULL
+                UNION
+                SELECT source_airport_id, id FROM airports WHERE source_airport_id IS NOT NULL
+            )
             INSERT INTO airport_clearances (airport_id, clearance_id)
-            SELECT a.id, c.id
+            SELECT DISTINCT a.id, c.id
             FROM clearances c
-            JOIN LATERAL unnest(COALESCE(c.associated_airports, ARRAY[]::text[])) AS assoc(icao) ON TRUE
-            JOIN airports a ON a.icao = assoc.icao OR a.source_airport_id = assoc.icao
+            JOIN LATERAL unnest(COALESCE(c.associated_airports, ARRAY[]::text[])) AS assoc(code) ON TRUE
+            JOIN airport_codes a ON a.code = assoc.code
             ON CONFLICT DO NOTHING
             """
         )
 
         cur.execute(
             """
+            WITH airport_codes AS (
+                SELECT icao AS code, id FROM airports WHERE icao IS NOT NULL
+                UNION
+                SELECT source_airport_id, id FROM airports WHERE source_airport_id IS NOT NULL
+            )
             INSERT INTO airport_nearby_airports (airport_id, nearby_airport_id)
             SELECT DISTINCT src.id, dst.id
             FROM nearby_airports n
-            JOIN LATERAL unnest(COALESCE(n.associated_airports, ARRAY[]::text[])) AS src_icao(icao) ON TRUE
-            JOIN airports src ON src.icao = src_icao.icao OR src.source_airport_id = src_icao.icao
-            JOIN LATERAL unnest(COALESCE(n.icaos, ARRAY[]::text[])) AS dst_icao(icao) ON TRUE
-            JOIN airports dst ON dst.icao = dst_icao.icao OR dst.source_airport_id = dst_icao.icao
+            JOIN LATERAL unnest(COALESCE(n.associated_airports, ARRAY[]::text[])) AS src_code(code) ON TRUE
+            JOIN airport_codes src ON src.code = src_code.code
+            JOIN LATERAL unnest(COALESCE(n.icaos, ARRAY[]::text[])) AS dst_code(code) ON TRUE
+            JOIN airport_codes dst ON dst.code = dst_code.code
             ON CONFLICT DO NOTHING
             """
         )

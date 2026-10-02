@@ -155,6 +155,27 @@ def upsert_airport(data):
                 [external_id, icao, raw_country, raw_state, raw_city, json.dumps(candidates)]
             )
 
+        # Another airport's nearby list may already have created a stub row for this
+        # airport under a different external ID (e.g. acukwik_source_W63 for the FAA
+        # airport acukwik_faa_W63). Adopt that stub so the airport has one row and
+        # existing nearby links point at the full record. source_airport_id is the
+        # site's own path ID, so the match is exact.
+        if external_id and source_airport_id:
+            cur.execute("SELECT 1 FROM airports WHERE external_id = %s", [external_id])
+            if not cur.fetchone():
+                cur.execute(
+                    """
+                    UPDATE airports SET external_id = %s
+                    WHERE id = (
+                        SELECT id FROM airports
+                        WHERE scrape_status IS NULL
+                          AND (source_airport_id = %s OR icao = %s)
+                        ORDER BY id LIMIT 1
+                    )
+                    """,
+                    [external_id, source_airport_id, source_airport_id],
+                )
+
         cur.execute(AIRPORT_UPSERT, [
             icao, iata, name, airport_type, city_id, country_id, state_id, lat_deg, lon_deg, elevation_ft,
             fuel_available, approaches, runway_surface, length_ft, width_ft, ident, utc_offset,

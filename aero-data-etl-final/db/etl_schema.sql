@@ -393,6 +393,10 @@ CREATE UNIQUE INDEX idx_airports_external_id_uniq
 ON public.airports (external_id)
 WHERE external_id IS NOT NULL;
 
+CREATE INDEX idx_airports_source_airport_id
+ON public.airports (source_airport_id)
+WHERE source_airport_id IS NOT NULL;
+
 CREATE TABLE public.organization_profile_views (
     id BIGSERIAL PRIMARY KEY,
     organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,

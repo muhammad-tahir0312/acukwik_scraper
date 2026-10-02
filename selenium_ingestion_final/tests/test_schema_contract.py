@@ -20,8 +20,9 @@ def test_etl_does_not_fall_back_to_name_only_identity():
     forbidden = 'SELECT * FROM organizations WHERE lower(trim(name)) = lower(trim(%s)) LIMIT 1'
     assert forbidden not in etl
     assert "upsert_airport_listing" in etl
-    assert "a.source_airport_id = assoc.icao" in etl
-    assert "dst.source_airport_id = dst_icao.icao" in etl
+    # Backfill joins resolve references by ICAO and by AC-U-KWIK source ID.
+    assert "SELECT source_airport_id, id FROM airports WHERE source_airport_id IS NOT NULL" in etl
+    assert "JOIN airport_codes dst ON dst.code = dst_code.code" in etl
 
 
 def test_listing_upsert_parameter_count_matches_sql():

@@ -137,6 +137,8 @@ For an existing database, apply:
 ```bash
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f aero-data-etl-final/db/migrations/002_airport_scoped_organization_roles.sql
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f aero-data-etl-final/db/migrations/003_airport_source_identifiers.sql
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f aero-data-etl-final/db/migrations/004_listing_role_details.sql
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f aero-data-etl-final/db/migrations/005_airport_source_id_index.sql
 ```
 
 Pass scraper output directly to the launcher from the repository root:

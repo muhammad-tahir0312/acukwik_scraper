@@ -13,7 +13,7 @@ and load it into PostgreSQL. Written after the 2026-10-01 run, which collected
    refresh the cookies, and start it again with the same output and progress paths;
    it resumes where it stopped.
 5. Run `scripts/discover_missing_airports.py` and scrape what it finds, until it finds nothing.
-6. Load the output with `aero-data-etl-final/run_etl.sh`.
+6. Load the output into a fresh database with `aero-data-etl-final/run_etl.sh`, verify it, and swap it in.
 
 ## How it works
 
@@ -186,15 +186,64 @@ into memory. The 2026-10-01 result:
 | nearby_airports | 25,149 (4.78 M rows; 19,206 multi-page; 0 row-count mismatches vs map markers) |
 | organization | 47,536 (20,690 with a Basic-Info profile; 0 with errors) |
 
-Then load it (the ETL streams the files):
+Then load it into a **fresh database** and swap it in once verified. Loading on
+top of an existing database leaves stale rows from earlier loads (old listings,
+links to since-merged airports), so build a new one with the same structure:
 
 ```bash
-DATABASE_URL=postgresql://localhost/av-new ./aero-data-etl-final/run_etl.sh \
-  $R/output/scraped_records_*.jsonl > $R/etl.log 2>&1
+createdb av-new-build
+pg_dump --schema-only --no-owner av-new | psql -q -d av-new-build
+psql -d av-new-build -f aero-data-etl-final/db/migrations/005_airport_source_id_index.sql
+DATABASE_URL=postgresql://localhost/av-new-build ./aero-data-etl-final/run_etl.sh \
+  $R/output/scraped_records_*.jsonl > $R/etl/etl_build.log 2>&1
 ```
 
-The ETL writes row by row: about 80 airports/min, roughly 5 hours for a full run.
-Check `etl_runs` (status, records_processed/failed) and `app_logs` when it finishes.
+The ETL streams the files. The 2026-10-02 load of all 13 output files
+(123,864 records) took 59 minutes, about 430 airports/min, with 0 failures.
+(Before the ETL fixes below it slowed to under 10 airports/min.)
+
+Verify before swapping:
+
+| Check | 2026-10-02 result |
+|---|---|
+| `etl_runs` | 13 × `SUCCESS`, 123,864 processed, 0 failed; `app_logs` empty |
+| airports | 25,149, all scraped (0 stubs left after the CYMX merge below) |
+| clearances / `airport_clearances` | 25,149 / 25,149 |
+| `airport_nearby_airports` | 4,782,482 = nearby rows in the scrape |
+| organizations / listings / listing roles | 24,330 / 47,456 / 47,535 |
+| listings on stub airports, organizations without an airport | 0 / 0 |
+| spot checks | EGLL 60 listings + 79 nearby; KTEB 45 listings |
+
+Listing roles are one fewer than organization records because AC-U-KWIK lists
+"Hotel Granduca" at LIRS twice ("Via Sanese"/"Via Senese" 170); the ETL merges
+hotels by airport + name.
+
+Then swap (no connections may be open to either database), keeping the old one
+until the new one is confirmed in the app:
+
+```bash
+psql -d postgres -c 'ALTER DATABASE "av-new" RENAME TO "av-new-old-YYYYMMDD"' \
+                 -c 'ALTER DATABASE "av-new-build" RENAME TO "av-new"'
+```
+
+### ETL fixes made on 2026-10-02 (do not undo)
+
+- **Backfill once per file.** `backfill_association_links()` scans whole tables;
+  it used to run every 100 records, which made large imports quadratic. Its
+  joins use one code→id set instead of `icao = x OR source_airport_id = x`.
+- **Index `airports.source_airport_id`** (migration `005`).
+- **Deterministic airport lookup** (`find_airport_id`). A code can match the
+  scraped airport and a stub created from another airport's nearby list; the
+  scraped row wins. Before, about 12% of organizations landed on stubs.
+- **No duplicate stub airports.** An airport upsert adopts a matching stub
+  (same source ID, or a stub whose ICAO equals the source ID), and nearby rows
+  reuse an existing airport. FAA-only airports used to be stored twice
+  (`acukwik_faa_X` and `acukwik_source_X`), doubling their nearby links.
+- If a stub still duplicates a scraped airport after a load (as CYMX did, before
+  the ICAO rule was added), merge it by repointing `airport_clearances`,
+  `airport_nearby_airports` (both columns), `organization_airports`,
+  `organization_airport_roles` and `organization_airport_listings` to the real
+  row, then deleting the stub.
 
 ## Site quirks handled in code (do not undo)
 
