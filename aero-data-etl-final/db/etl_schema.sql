@@ -393,7 +393,7 @@ CREATE UNIQUE INDEX idx_airports_external_id_uniq
 ON public.airports (external_id)
 WHERE external_id IS NOT NULL;
 
-CREATE INDEX idx_airports_source_airport_id
+CREATE UNIQUE INDEX idx_airports_source_airport_id
 ON public.airports (source_airport_id)
 WHERE source_airport_id IS NOT NULL;
 

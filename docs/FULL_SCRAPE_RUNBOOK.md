@@ -186,17 +186,22 @@ into memory. The 2026-10-01 result:
 | nearby_airports | 25,149 (4.78 M rows; 19,206 multi-page; 0 row-count mismatches vs map markers) |
 | organization | 47,536 (20,690 with a Basic-Info profile; 0 with errors) |
 
-Then load it into a **fresh database** and swap it in once verified. Loading on
-top of an existing database leaves stale rows from earlier loads (old listings,
-links to since-merged airports), so build a new one with the same structure:
+Then load it into a **fresh database built by the portal backend's migrations**
+(`aviation-index`), and swap it in once verified. The backend owns the app schema
+(users, ads, reviews, compliance, ...); an ETL-only schema lacks about 40 of its
+tables, and loading on top of an old database leaves stale rows behind.
 
 ```bash
-createdb av-new-build
-pg_dump --schema-only --no-owner av-new | psql -q -d av-new-build
-psql -d av-new-build -f aero-data-etl-final/db/migrations/005_airport_source_id_index.sql
-DATABASE_URL=postgresql://localhost/av-new-build ./aero-data-etl-final/run_etl.sh \
-  $R/output/scraped_records_*.jsonl > $R/etl/etl_build.log 2>&1
+createdb av-new-app
+cd ../aviation-index && DB_HOST=localhost DB_PORT=5432 DB_USER=$USER DB_PASS= DB_NAME=av-new-app \
+  npm run migration:run && cd -
+for m in aero-data-etl-final/db/migrations/*.sql; do psql -d av-new-app -v ON_ERROR_STOP=1 -f $m; done
+DATABASE_URL=postgresql://localhost/av-new-app ./aero-data-etl-final/run_etl.sh \
+  $R/output/scraped_records_*.jsonl > $R/etl/etl_app.log 2>&1
 ```
+
+The ETL makes many small committed writes, so keep other disk-heavy work (e.g.
+Cypress/e2e runs) off the machine during the load; they slowed it about 15x.
 
 The ETL streams the files. The 2026-10-02 load of all 13 output files
 (123,864 records) took 59 minutes, about 430 airports/min, with 0 failures.
@@ -223,7 +228,7 @@ until the new one is confirmed in the app:
 
 ```bash
 psql -d postgres -c 'ALTER DATABASE "av-new" RENAME TO "av-new-old-YYYYMMDD"' \
-                 -c 'ALTER DATABASE "av-new-build" RENAME TO "av-new"'
+                 -c 'ALTER DATABASE "av-new-app" RENAME TO "av-new"'
 ```
 
 ### ETL fixes made on 2026-10-02 (do not undo)
@@ -239,6 +244,10 @@ psql -d postgres -c 'ALTER DATABASE "av-new" RENAME TO "av-new-old-YYYYMMDD"' \
   (same source ID, or a stub whose ICAO equals the source ID), and nearby rows
   reuse an existing airport. FAA-only airports used to be stored twice
   (`acukwik_faa_X` and `acukwik_source_X`), doubling their nearby links.
+- **Per-airport profile and fuel prices.** Basic-Info profiles (hours, fuel
+  types, cards) and posted fuel prices are stored on the listing role
+  (`organization_airport_listing_roles.details.profile` / `.fuelPrices`), not on
+  `organizations.extra`; the same company has different values per airport.
 - If a stub still duplicates a scraped airport after a load (as CYMX did, before
   the ICAO rule was added), merge it by repointing `airport_clearances`,
   `airport_nearby_airports` (both columns), `organization_airports`,

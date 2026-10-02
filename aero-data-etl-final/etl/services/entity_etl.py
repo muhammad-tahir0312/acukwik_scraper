@@ -216,6 +216,14 @@ ROLE_FIELD_KEYS = (
 )
 
 
+# Values that differ per airport for the same company (its Basic-Info profile:
+# hours, fuel types, cards; and posted fuel prices). They belong on the airport
+# listing, never on the shared organization row.
+LISTING_SCOPED_KEYS = (
+    'profile', 'fuel_prices', 'fuel_price_unit', 'fuel_price_message', 'fuel_prices_last_updated',
+)
+
+
 def listing_role_details(org):
     """Keep each role occurrence's values separate when a listing has many roles."""
     fields = {key: org[key] for key in ROLE_FIELD_KEYS if org.get(key) not in (None, '', [])}
@@ -235,6 +243,10 @@ def listing_role_details(org):
         'media': org.get('media') or [],
         'rawText': org.get('raw_text'),
         'fields': fields,
+        'profile': org.get('profile') or {},
+        'fuelPrices': {
+            key: org[key] for key in LISTING_SCOPED_KEYS[1:] if org.get(key) not in (None, '', [])
+        },
     }
 
 
@@ -443,7 +455,7 @@ def upsert_entity(org, airport_id=None, listing_observer=None):
         'missing_fields', 'errors'
         , 'display_name', 'display_names', 'source_section', 'source_sections', 'source_listing_key', 'source_listing_id',
         'source_profile_url', 'source_identifiers', 'raw_fields', 'attributes',
-        'links', 'media', 'raw_text', 'canonical_address', *ROLE_FIELD_KEYS
+        'links', 'media', 'raw_text', 'canonical_address', *ROLE_FIELD_KEYS, *LISTING_SCOPED_KEYS
     }
     extra = {k: v for k, v in org.items() if k not in known_fields}
     errors_json = json.dumps(org.get('errors')) if org.get('errors') else None
